@@ -1,0 +1,2287 @@
+about_program: Über Soul of Waifu
+about_program_description: '<b>Soul of Waifu</b> ist ein kostenloses Desktop-Programm mit offenem Quellcode, in dem sich KI-Charaktere wirklich erinnern, weiterentwickeln und leben – sowohl im Programm selbst als auch auf deinem Desktop. Erstelle oder importiere einen Charakter einmal und interagiere mit ihm über drei miteinander verbundene Dimensionen:<br><br>• 💬 <b>Interaktiver Text- und Sprachchat:</b> Lebendiger 1-zu-1-Dialog mit animierten Live2D/VRM-Avataren, Live-Sprachstreaming, einem adaptiven Status-HUD, Dateianhängen und Werkzeugnutzung. <br><br>• 🎲 <b>Soul Stage Rollenspiel-Engine:</b> Textbasierte Tabletop-Rollenspiele, geleitet von einem KI-Spielleiter mit Weltzustandsverfolgung, Inventarverwaltung und dynamischen NPCs.<br><br>• 🖥️ <b>Soul Companion: </b> Ein eigenständiger Charakter auf deinem Desktop mit einem neurohormonellen Stimmungsmodell, Bilderkennung, Zwischenablage-Lesen und Werkzeugaufrufen.<br><br>Alle Dimensionen werden durch das Modul <b>Soul Memory</b> vereint – ein kognitives Gedächtnissystem mit emotionaler Entwicklung, einem persönlichen Tagebuch und automatischer Auflösung von Widersprüchen. Läuft zu 100 % lokal und privat auf deinem PC über GGUF (CUDA, Vulkan, HIP, SYCL) ohne Filter oder Abonnements, mit Unterstützung für Cloud-APIs, Discord und einen lokalen Web-Client.'
+about_program_title: Über Soul of Waifu
+about_tagline: KI-ROLLENSPIEL-ENGINE
+add_character_error: Lege einen Namen und die erste Nachricht für deinen Charakter fest.
+add_character_error_title: Fehler beim Erstellen
+add_character_text_1: wurde erfolgreich hinzugefügt!
+add_character_text_2: Du kannst jetzt mit dem Charakter in deiner Charakterliste interagieren.
+add_character_text_3: Beim Hinzufügen des Charakters ist ein Fehler aufgetreten.
+add_character_text_4: Bitte versuche es erneut.
+add_character_title: Charakterinformationen
+add_character_title_error: Fehler beim Hinzufügen eines Charakters
+ai_asst_age_card_title: Alter & Spezies/Rasse
+ai_asst_age_placeholder: 'z. B.: «24 Jahre alt, Mensch» oder «unbekannt, uralter Vampir»'
+ai_asst_appearance_card_subtitle: Wichtige Details — den Rest ergänzt die KI
+ai_asst_appearance_card_title: Aussehen
+ai_asst_appearance_placeholder: Haar-/Augenfarbe, Statur, Kleidungsstil, markante Merkmale…
+ai_asst_backstory_card_title: Vorgeschichte
+ai_asst_backstory_placeholder: Wichtige vergangene Ereignisse, die den Charakter geprägt haben…
+ai_asst_bg_skip_hint: Dieser Schritt ist optional — überspringe ihn, und die KI erfindet die Details.
+ai_asst_btn_apply: Auf Editor anwenden
+ai_asst_btn_apply_tooltip: Wendet die markierten Felder auf den Charakter-Editor an und schließt diesen Dialog.
+ai_asst_btn_back: ←  Zurück
+ai_asst_btn_back_tooltip: Zurück zum vorherigen Schritt
+ai_asst_btn_done: Fertig
+ai_asst_btn_generate: ✨  Karte generieren
+ai_asst_btn_generate_tooltip: Sendet die gesammelten Antworten an den ausgewählten Anbieter und generiert die Kartenfelder.
+ai_asst_btn_next: Weiter  →
+ai_asst_btn_next_tooltip: Weiter zum nächsten Schritt
+ai_asst_btn_regen: Neu generieren
+ai_asst_btn_regen_tooltip: Generiert nur dieses Feld neu, die anderen bleiben als bestätigter Kontext erhalten.
+ai_asst_btn_select_all: Alle auswählen
+ai_asst_btn_select_none: Alle abwählen
+ai_asst_close_tooltip: Schließen
+ai_asst_concept_card_subtitle: Beschreibe die Grundidee frei — den Rest kannst du weiter unten verfeinern.
+ai_asst_concept_card_title: Wer ist dein Charakter?
+ai_asst_concept_field_label: Kurze Charakteridee
+ai_asst_concept_field_placeholder: 'z. B.: «Eine ehemalige Elfen-Söldnerin, kriegsmüde, die nun eine Taverne am Rande des Königreichs führt und eine dunkle Vergangenheit verbirgt»…'
+ai_asst_concept_field_tooltip: Erforderlich. Die KI verwendet dies als Ausgangspunkt für alle anderen Felder.
+ai_asst_custom_placeholder: Eigene Variante… (Enter drücken zum Hinzufügen)
+ai_asst_custom_tooltip: Gib einen Wert ein und drücke Enter — er wird zu einem Chip, den du umschalten kannst.
+ai_asst_err_generation: '[Generierung fehlgeschlagen: {error}]'
+ai_asst_err_parse: '
+
+
+  [Die Antwort des Modells konnte nicht als JSON oder Markdown geparst werden. Versuche einen anderen Anbieter oder vereinfache die Anfrage.]'
+ai_asst_err_provider: 'Fehler: Anbieter konnte nicht abgerufen werden. Überprüfe die Einstellungen in Options.'
+ai_asst_extra_card_subtitle: Besondere Phrasen, Lore, Referenzen, Einschränkungen — alles, was für die Genauigkeit wichtig ist
+ai_asst_extra_card_title: Was muss noch berücksichtigt werden?
+ai_asst_extra_placeholder: Freitext…
+ai_asst_field_alt_greetings_hint: Eine Liste von 2-3 ALTERNATIVEN ersten Nachrichten (andere Ausgangssituationen/Stimmungen), im selben Stil wie die Hauptnachricht. Als JSON-Array von Strings zurückgeben.
+ai_asst_field_alt_greetings_label: Alternative Begrüßungen
+ai_asst_field_creator_notes_hint: 'Eine kurze Servicenotiz für alle, die die Karte verwenden: Genre, Tags, Nutzungstipps. 1-3 Sätze.'
+ai_asst_field_creator_notes_label: Notizen des Erstellers
+ai_asst_field_description_hint: 'Zusammenhängende Beschreibung in der dritten Person: wer sie sind, Aussehen, Beruf, wichtige biografische Merkmale. 3-6 Sätze, ohne Füllwörter, ohne Meta-Kommentare.'
+ai_asst_field_description_label: Beschreibung
+ai_asst_field_example_messages_hint: '1-2 kurze Beispiele für den Austausch zwischen {{user}} und dem Charakter, die den Sprachstil des Charakters zeigen. Format:
+
+  {{user}}: ...
+
+  {{char}}: ...
+
+  (leere Zeile)
+
+  {{user}}: ...
+
+  {{char}}: ...'
+ai_asst_field_example_messages_label: Beispieldialoge
+ai_asst_field_first_message_hint: Erste Zeile, in der der Charakter {{user}} anspricht, in der Ich-Perspektive, charaktergetreu. Handlungen in *Sternchen*, Dialoge als reiner Text. Atmosphärisch, lebendig, keine Spoiler.
+ai_asst_field_first_message_label: Erste Nachricht
+ai_asst_field_name_hint: Kurzer, einprägsamer Name (und, falls passend, Nachname/Spitzname). Nur der Name, ohne Erklärungen.
+ai_asst_field_name_label: Charaktername
+ai_asst_field_personality_hint: 'Kompakte Zusammenfassung der Persönlichkeit des Charakters: wichtige Eigenschaften, Gewohnheiten, Sprechweise, Trigger und Schwächen. Als kommagetrennte Liste oder kurze Phrasen.'
+ai_asst_field_personality_label: Persönlichkeit
+ai_asst_field_scenario_hint: Beschreibung der aktuellen Situation/des Ortes/Kontexts, in dem das Rollenspiel zwischen dem Charakter und {{user}} beginnt. 2-4 Sätze.
+ai_asst_field_scenario_label: Szenario
+ai_asst_fields_card_subtitle: Markiere nur das, was die KI generieren soll. Andere Felder bleiben unverändert.
+ai_asst_fields_card_title: Welche Felder sollen ausgefüllt werden?
+ai_asst_genre_anime: Anime / Manga
+ai_asst_genre_card_subtitle: Wähle einen oder mehrere — oder füge einen eigenen hinzu
+ai_asst_genre_card_title: Setting / Genre
+ai_asst_genre_cyberpunk: Cyberpunk
+ai_asst_genre_fantasy: Fantasy
+ai_asst_genre_historical: Historisch
+ai_asst_genre_horror: Horror
+ai_asst_genre_modern: Modern
+ai_asst_genre_postapoc: Post-Apokalypse
+ai_asst_genre_scifi: Sci-Fi
+ai_asst_genre_sliceoflife: Alltagsgeschichte
+ai_asst_header_subtitle: Beantworte ein paar Fragen — den Rest übernimmt das neuronale Netz
+ai_asst_header_title: KI-Charakterassistent
+ai_asst_meeting_card_subtitle: Dies wird zur Grundlage für das Feld «Szenario» und die erste Nachricht
+ai_asst_meeting_card_title: Wie verläuft die erste Begegnung?
+ai_asst_meeting_placeholder: 'z. B.: «{{user}} betritt spätabends die Taverne, der Charakter schließt gerade»…'
+ai_asst_mode_card_title: Anwendungsmodus
+ai_asst_mode_empty: Nur leere Felder ausfüllen (vorhandenen Inhalt beibehalten)
+ai_asst_mode_overwrite: Ausgewählte Felder vollständig überschreiben
+ai_asst_mode_tooltip: Wähle, wie die generierten Werte auf den Editor angewendet werden.
+ai_asst_motive_card_subtitle: Was treibt den Charakter an? Angst, Ziel, Geheimnis…
+ai_asst_motive_card_title: Inneres Motiv
+ai_asst_motive_placeholder: 'z. B.: «Hat Angst, wieder jemanden zu verlieren, und hält Menschen deshalb auf Distanz»…'
+ai_asst_prompt_field_keys_header: '
+
+  Generiere JSON mit den FOLGENDEN Schlüsseln (und nur diesen):'
+ai_asst_prompt_l_age: Alter/Spezies
+ai_asst_prompt_l_appearance: Aussehen
+ai_asst_prompt_l_array: Array aus Strings
+ai_asst_prompt_l_backstory: Vorgeschichte
+ai_asst_prompt_l_concept: Grundidee
+ai_asst_prompt_l_extra: Zusätzliche Wünsche/Einschränkungen
+ai_asst_prompt_l_genre: Setting/Genre
+ai_asst_prompt_l_meeting: Umstände des Kennenlernens
+ai_asst_prompt_l_motive: Inneres Motiv/Angst/Ziel
+ai_asst_prompt_l_relationship: Beziehung zu {{user}}
+ai_asst_prompt_l_role: Rolle des Charakters
+ai_asst_prompt_l_speech: Sprechweise
+ai_asst_prompt_l_string: String
+ai_asst_prompt_l_tone: Erzählton
+ai_asst_prompt_l_traits: Persönlichkeitsmerkmale
+ai_asst_prompt_refine_addition: '
+
+
+  Bereits bestätigte Teile der Karte (aus Konsistenzgründen nicht neu schreiben):
+
+  '
+ai_asst_prompt_system: 'Du bist ein erfahrener Drehbuchautor und Spieledesigner, der dem Nutzer eines Rollenspiel-KI-Chat-Programms hilft, eine fiktive Charakterkarte zu erstellen. Du arbeitest AUSSCHLIESSLICH mit Fiktion. Antworte STRIKT mit gültigem JSON — keine Erklärungen, keine Einleitung, keine ``` Markdown-Umschließungen, keine Kommentare — nur das JSON-Objekt selbst. Schreibe in der GLEICHEN Sprache wie die Antworten des Nutzers (Standard: Russisch). Verwende den Platzhalter {{user}}, um dich auf den Nutzer zu beziehen, und {{char}}, um dich in Dialogbeispielen auf den Charakter selbst zu beziehen.'
+ai_asst_prompt_user_footer: '
+
+  Gib genau ein JSON-Objekt mit diesen Schlüsseln zurück. Kein Text vor oder nach dem JSON. Lasse keine Felder leer — falls Daten fehlen, erfinde logisch stimmige Details, die mit den bereits angegebenen Informationen übereinstimmen.'
+ai_asst_prompt_user_header: 'Hier sind die Charakterinformationen, die vom Nutzer über den Fragebogen gesammelt wurden:
+
+  '
+ai_asst_provider_card_subtitle: Verwendet denselben Anbieter, der in der App konfiguriert ist
+ai_asst_provider_card_title: Sprachmodell (Anbieter)
+ai_asst_provider_tooltip: Klicken, um diesen Anbieter für die Generierung auszuwählen.
+ai_asst_rel_boss: Chef / Untergebener
+ai_asst_rel_card_subtitle: Wähle die Option, die am besten zur Dynamik passt
+ai_asst_rel_card_title: Wer ist der Charakter für dich?
+ai_asst_rel_chance: Zufällige Begegnung
+ai_asst_rel_enemy: Rivale / Feind
+ai_asst_rel_family: Familienmitglied
+ai_asst_rel_friend: Freund
+ai_asst_rel_mentor: Mentor / Schüler
+ai_asst_rel_partner: Romantischer Partner
+ai_asst_rel_stranger: Fremder
+ai_asst_review_card_subtitle: Du kannst den Text vor dem Anwenden manuell bearbeiten. Wenn du ein Feld abwählst, wird es beim Anwenden ausgeschlossen.
+ai_asst_review_card_title: Überprüfen & anwenden
+ai_asst_role_antagonist: Antagonist
+ai_asst_role_assistant: Assistent
+ai_asst_role_card_subtitle: Wie fügt sich dieser Charakter in die Geschichte ein?
+ai_asst_role_card_title: Rolle des Charakters
+ai_asst_role_companion: Begleiter
+ai_asst_role_friend: Freund
+ai_asst_role_love: Liebesinteresse
+ai_asst_role_mentor: Mentor
+ai_asst_role_rival: Rivale
+ai_asst_role_stranger: Geheimnisvoller Fremder
+ai_asst_speech_accent: Akzent / Sprachmarotte
+ai_asst_speech_archaic: Archaisch
+ai_asst_speech_card_subtitle: Wie spricht der Charakter?
+ai_asst_speech_card_title: Sprechstil
+ai_asst_speech_direct: Direkt
+ai_asst_speech_emoji: Mit Emojis
+ai_asst_speech_formal: Formell
+ai_asst_speech_poetic: Poetisch
+ai_asst_speech_slang: Locker / Slang
+ai_asst_speech_teasing: Neckisch
+ai_asst_status_no_fields: ⚠ Wähle im vorherigen Schritt mindestens ein zu generierendes Feld aus.
+ai_asst_status_no_token: ⚠ Kein API-Token für «{provider}» festgelegt. Richte ihn in Options → API ein und komm dann zurück.
+ai_asst_step_1: Konzept
+ai_asst_step_2: Charakter & Stimme
+ai_asst_step_3: Aussehen & Vorgeschichte
+ai_asst_step_4: Beziehungen
+ai_asst_step_5: Details & Grenzen
+ai_asst_step_6: Generator
+ai_asst_step_indicator: Schritt {n} von {total}
+ai_asst_stepper_title: SCHRITTE
+ai_asst_stream_card_title: Modellantwort
+ai_asst_tone_adventure: Abenteuer / Action
+ai_asst_tone_card_title: Erzählton
+ai_asst_tone_comedy: Komödie
+ai_asst_tone_drama: Drama / Düstere Themen
+ai_asst_tone_light: Leicht / Freundlich
+ai_asst_tone_mystery: Mystery / Detektiv
+ai_asst_tone_romance: Romantik (keine expliziten Szenen)
+ai_asst_trait_calm: Ruhig
+ai_asst_trait_caring: Fürsorglich
+ai_asst_trait_chaotic: Chaotisch
+ai_asst_trait_cold: Kühl
+ai_asst_trait_confident: Selbstbewusst
+ai_asst_trait_energetic: Energiegeladen
+ai_asst_trait_kind: Freundlich
+ai_asst_trait_loyal: Loyal
+ai_asst_trait_manipulative: Manipulativ
+ai_asst_trait_naive: Naiv
+ai_asst_trait_playful: Verspielt
+ai_asst_trait_sarcastic: Sarkastisch
+ai_asst_trait_serious: Ernst
+ai_asst_trait_shy: Schüchtern
+ai_asst_trait_tsundere: Tsundere
+ai_asst_trait_wise: Weise
+ai_asst_traits_card_subtitle: Wähle mehrere aus oder füge eigene hinzu
+ai_asst_traits_card_title: Persönlichkeitsmerkmale
+ai_asst_window_title: KI-Assistent — Charakter-Ersteller
+alternate_greetings_label: Alternative Begrüßungen
+ambient_default_track_label: 'Standard-Track:'
+ambient_default_volume_label: 'Standardlautstärke:'
+ambient_sound_tooltip: "<b>🎵 Ambient-Sound-Modul</b><br><br>\nDiese Funktion fügt einen <b>atmosphärischen Sound</b> hinzu, wenn du einen Chat mit einem Charakter betrittst.<br><br>\nNach dem Einschalten kannst du das passende <b>Ambiente</b> auswählen — Hintergrundmusik oder Geräusche, die die richtige Stimmung erzeugen:\nsei es rauschender Wind, das Geräusch von Regentropfen oder das gemütliche Knistern eines Lagerfeuers.<br><br>\n\n<b>Beispiel:</b><br>\nWenn du mit einem Charakter in einer <i>Taverne</i> chattest,\nkannst du ein Ambiente mit <i>dem Geräusch einer fröhlichen Menge und einer heiteren Melodie</i> wählen,\num in die Atmosphäre des Ortes einzutauchen und die emotionale Verbindung zum Charakter zu stärken."
+api_configuration_title: API-Konfiguration
+api_label: API-Token
+api_open_dashboard: '{name}-Dashboard öffnen'
+api_token_help_tooltip: 'Füge hier deinen {provider}-API-Schlüssel ein.
+
+  Rechtsklick, um das {provider}-Dashboard zu öffnen und einen Schlüssel zu erstellen.'
+appearance_btn_reset: Zurücksetzen
+appearance_btn_save: Speichern
+appearance_color_accent: Akzent
+appearance_color_amber: Amber
+appearance_color_arctic: Arktis
+appearance_color_blue: Blau
+appearance_color_bright: Hell
+appearance_color_cool: Kühl
+appearance_color_cool_gray: Kühles Grau
+appearance_color_coral: Koralle
+appearance_color_cream: Creme
+appearance_color_dark: Dunkel
+appearance_color_darker: Dunkler
+appearance_color_dim: Gedimmt
+appearance_color_dimmed: Abgedunkelt
+appearance_color_dracula_orange: Orange
+appearance_color_forest: Wald
+appearance_color_gold: Gold
+appearance_color_gray: Grau
+appearance_color_green: Grün
+appearance_color_lavender: Lavendel
+appearance_color_lilac: Lila
+appearance_color_muted: Gedämpft
+appearance_color_nord_green: Nord-Grün
+appearance_color_rose: Rosé
+appearance_color_sage: Salbei
+appearance_color_sakura: Sakura
+appearance_color_sky: Himmelblau
+appearance_color_slate: Schiefer
+appearance_color_soft: Weich
+appearance_color_standard: Standard
+appearance_color_warm: Warm
+appearance_color_warm_gray: Warmes Grau
+appearance_color_white: Weiß
+appearance_dlg_char_bubble: Sprechblasenfarbe des Charakters
+appearance_dlg_pick_color: Farbe wählen
+appearance_dlg_user_bubble: Sprechblasenfarbe des Nutzers
+appearance_header_italic: Kursiv
+appearance_header_preview: Vorschau
+appearance_header_quotes: Zitate
+appearance_header_text_color: Textfarbe
+appearance_header_theme: Theme
+appearance_header_ui: Oberfläche (Seitenleiste und Schaltflächen)
+appearance_header_ui_accent: Akzent (Das aktive Menüelement)
+appearance_header_ui_hover: Hover (Hintergrund der aktiven Schaltfläche)
+appearance_header_ui_text: Textfarbe der Schaltfläche
+appearance_header_window_theme: UI-Theme
+appearance_lbl_bubble_opacity: Deckkraft der Sprechblase
+appearance_lbl_corner_radius: Eckenradius
+appearance_lbl_custom: Benutzerdefiniert
+appearance_lbl_font_size: Schriftgröße
+appearance_lbl_max_width: Maximale Breite
+appearance_preset_abyss: Abgrund
+appearance_preset_crimson: Karmesinrot
+appearance_preset_default: Standard
+appearance_preset_dracula: Dracula
+appearance_preset_emerald: Smaragd
+appearance_preset_material: Material
+appearance_preset_midnight: Mitternacht
+appearance_preset_nord: Nord
+appearance_preset_onedark: One Dark
+appearance_preset_sakura: Sakura
+appearance_preview_text_1: Sie blickt zu dir,
+appearance_preview_text_2: ihre Augen verengen sich langsam.
+appearance_preview_text_3: Also... du erinnerst dich an nichts?
+appearance_preview_text_4: Ich erinnere mich genug.
+appearance_tab_name: Aussehen
+appearance_tooltip_custom: Benutzerdefinierte Farbe
+appearance_wtheme_amber: Amber
+appearance_wtheme_coffee: Kaffee
+appearance_wtheme_cyberpunk: Cyberpunk
+appearance_wtheme_default: Standard
+appearance_wtheme_dracula: Dracula
+appearance_wtheme_forest: Wald
+appearance_wtheme_graphite: Graphit
+appearance_wtheme_midnight: Mitternacht
+appearance_wtheme_nord: Nord
+appearance_wtheme_obsidian: Obsidian
+appearance_wtheme_oceanic: Ozeanisch
+appearance_wtheme_rose: Rosé
+appearance_wtheme_royal: Königlich
+appearance_wtheme_slate: Schiefer
+appearance_wtheme_synthwave: Synthwave
+appearance_wtheme_tokyo_night: Tokyo Night
+attach_file_dialog_title: Dateien an deine Nachricht anhängen
+attach_file_tooltip: Ein Bild oder Dokument an deine Nachricht anhängen
+audio_devices_title: Audiogeräte
+audio_hud_title: Ambient-Audio
+audio_hud_track_label: SOUNDSCAPE-TRACK
+audio_hud_volume_label: LAUTSTÄRKE
+author_notes_editor_cancel: ABBRECHEN
+author_notes_editor_placeholder: Gib hier deine Anweisungen oder Hinweise für den Charakter ein...
+author_notes_editor_save: DIREKTIVEN SPEICHERN
+author_notes_editor_title: Editor für Autorennotizen
+author_notes_header_title: EDITOR FÜR AUTORENNOTIZEN
+author_notes_hint: Diese Anweisungen werden dynamisch in das Kontextfenster eingefügt. Nutze sie, um das Verhalten des Charakters zu steuern, einen bestimmten Schreibstil durchzusetzen oder übergeordnete Szenarioziele festzulegen.
+author_notes_input_label: INHALT DER DIREKTIVEN
+author_notes_saved_body: Die Autorennotizen wurden erfolgreich gespeichert.
+author_notes_subtitle: GLOBALE ERZÄHLDIREKTIVEN
+author_notes_title: Autorennotizen
+author_notes_tooltip: Autorennotizen
+auto_summary_tooltip: Mit dieser Einstellung legst du fest, nach wie vielen Nachrichten eine Zusammenfassung deines Chats erstellt wird.
+auto_translate_new_messages_tooltip: 'Wenn aktiviert, wird jede neue Charakternachricht automatisch übersetzt.
+
+  Wenn deaktiviert, bleiben die Nachrichten in ihrer Originalsprache, und du kannst
+
+  sie einzeln manuell über die Aktion "Übersetzen" im Nachrichtenmenü übersetzen.'
+available_files_text: 'Verfügbare Dateien für das Repository:'
+back: ← Zurück
+background_changer_default_btn: Standard
+background_changer_label_1: Wähle einen Hintergrund für den Chat
+background_changer_title: Chat-Hintergrund
+backup_app_version_label: Version
+backup_busy_downloads: Ein Modell-Download läuft gerade.
+backup_busy_generation: Gerade wird eine Antwort generiert.
+backup_busy_scene_turn: Gerade wird ein Soul-Stage-Zug gespielt.
+backup_busy_toast_title: Backup
+backup_busy_working: Es läuft bereits eine andere Backup-Operation.
+backup_cancelled: Vorgang abgebrochen.
+backup_characters_required: Charaktere können nicht von einem Backup ausgeschlossen werden.
+backup_collecting: Dateien werden gesammelt...
+backup_contains_characters: 'Enthält Charaktere:'
+backup_created_label: 'Erstellt:'
+backup_done_text: 'Backup gespeichert unter:
+
+  {path}'
+backup_done_title: Backup abgeschlossen
+backup_err_bad_manifest: Das Paket-Manifest ist beschädigt.
+backup_err_bad_zip: Die Datei ist kein gültiges Paket.
+backup_err_empty: Es gab nichts zu sichern.
+backup_err_no_manifest: Diese Datei ist kein Soul of Waifu-Backup.
+backup_err_no_rollback: 'Beim Wiederherstellen ist ein Fehler aufgetreten, und auch das automatische Zurücksetzen ist fehlgeschlagen.
+
+  Verwende einen Snapshot aus .soul_stage/backups/, um manuell wiederherzustellen.'
+backup_err_not_a_backup: Diese Datei konnte nicht als Soul of Waifu-Backup-Paket gelesen werden.
+backup_err_permission: Zugriff verweigert. Schließe Programme, die diese Dateien möglicherweise verwenden, und versuche es erneut.
+backup_err_rolled_back: 'Beim Wiederherstellen ist ein Fehler aufgetreten.
+
+  Deine vorherigen Daten wurden automatisch aus dem Sicherheits-Snapshot wiederhergestellt.'
+backup_err_toast_title: Backup fehlgeschlagen
+backup_export_button: Backup jetzt erstellen
+backup_export_subtitle: 'Wähle aus, was enthalten sein soll. API-Schlüssel werden standardmäßig aus Sicherheitsgründen ausgeschlossen;
+
+  lokale KI-Modelle werden standardmäßig aufgrund ihrer Größe ausgeschlossen.'
+backup_export_title: 📤  Backup erstellen
+backup_grp_api_keys: API-Schlüssel
+backup_grp_avatars: Avatare & Cache
+backup_grp_characters: Charaktere & Chats
+backup_grp_live2d: Live2D-Assets
+backup_grp_media: Hintergründe & Ambient-Audio
+backup_grp_models: Lokale LLM-Modelle
+backup_grp_rvc: RVC-Stimmmodelle
+backup_grp_soul_memory: Soul Memory
+backup_grp_soul_stage: Soul-Stage-Szenen & NPC-Gedächtnis
+backup_grp_user_data: Personas, Presets & Lorebooks
+backup_grp_voices: TTS-Stimmen
+backup_locked_tooltip: Essenzielle Daten – immer enthalten
+backup_menu_item: Backup & Migration
+backup_need_path: Wähle zuerst aus, wo das Backup gespeichert werden soll.
+backup_newer_version_warn: ⚠ Dieses Paket wurde mit einer NEUEREN Version von Soul of Waifu erstellt. Das Wiederherstellen kann Probleme verursachen.
+backup_nothing_selected: Nichts ausgewählt
+backup_open_dialog_title: Backup-Paket auswählen
+backup_overwrite_text: 'An diesem Ort existiert bereits eine Datei.
+
+  Ersetzen?'
+backup_overwrite_title: Vorhandene Datei überschreiben?
+backup_phase_apply: Dateien werden angewendet...
+backup_phase_cleanup: Aufräumen...
+backup_phase_extract: Paket wird entpackt...
+backup_phase_safety: 'Sicherheits-Snapshot:'
+backup_phase_validate: Paket wird überprüft...
+backup_pick_file: .sowpack-Datei auswählen...
+backup_refresh_sizes: ↻ Neu berechnen
+backup_replace_confirm: Ersetzen
+backup_restart_now: Jetzt neu starten
+backup_restore_button: Alles wiederherstellen
+backup_restore_subtitle: 'Ersetzt aktuelle Charaktere, Personas, Lorebooks, Szenen und Erinnerungen durch den
+
+  Inhalt des ausgewählten Pakets. Bevor irgendetwas überschrieben wird, wird automatisch
+
+  ein Sicherheits-Snapshot deiner aktuellen Daten unter .soul_stage/backups/ gespeichert. Ein Neustart
+
+  wird anschließend empfohlen.'
+backup_restore_title: 📥  Aus Backup wiederherstellen
+backup_restored_text: '{count} Dateien wurden wiederhergestellt.
+
+  Starte Soul of Waifu neu, um die wiederhergestellten Daten zu laden.'
+backup_restored_title: Wiederherstellung abgeschlossen
+backup_save_dialog_title: Soul of Waifu-Backup erstellen
+backup_save_to: 'Speichern unter:'
+backup_save_to_tooltip: 'Standardmäßig wird das Backup im Ordner ''Backups'' innerhalb
+
+  des Programmverzeichnisses gespeichert, sodass es zusammen mit der App wandert.
+
+  Du kannst bei Bedarf auch einen anderen Ort wählen.'
+backup_tab_subtitle: 'Erstelle ein portables .sowpack-Backup deines gesamten Profils: Charaktere, Chats,
+
+  Personas, Lorebooks, Soul-Stage-Szenen, Erinnerungen und Assets, und stelle es
+
+  mit einem Klick auf diesem oder jedem anderen Computer wieder her.'
+backup_tab_title: Backup & Migration
+backup_toast_title: Backup
+backup_total_label: 'Gesamt:'
+backup_warn_api: sensibel
+backup_warn_big: groß
+backup_word_export: Export
+backup_word_restore: Wiederherstellen
+base_url_tooltip: 'Optional. Leer lassen, um den offiziellen Endpunkt des Anbieters zu verwenden.
+
+  Nur ausfüllen, wenn du einen lokalen Proxy oder einen benutzerdefinierten kompatiblen Server verwendest.'
+batch_size_text: Prompt-Batch-Größe
+batch_size_tooltip: 'Tokens, die bei der Prompt-Auswertung gleichzeitig verarbeitet werden.<br><br>
+
+  512 ist sicher. Höher = schnelleres Laden, mehr VRAM.'
+branch_created: 'Branch ''{name}'' erstellt — du befindest dich jetzt darin.
+
+  Wechsle jederzeit über den Chat-Manager zurück.'
+branch_default_name: Branch (ab Nachricht {n})
+branch_dialog_label: 'Es wird eine Kopie dieses Chats bis zu dieser Nachricht erstellt.
+
+  Der ursprüngliche Chat bleibt unverändert. Benenne den Branch:'
+branch_dialog_title: 🌿 Branch ab hier
+branch_failed: Der Branch konnte nicht erstellt werden.
+branch_msg_not_found: Diese Nachricht befindet sich nicht im aktuellen Chat.
+branch_toast_title: Branch
+browse_workflow_tooltip: workflow_api.json auswählen
+btn_apply_changes: Änderungen übernehmen
+btn_check_chats: Chat-Manager / Export
+btn_check_examples: Beispiele / Notizen
+btn_check_identity: Identität / Persönlichkeit
+btn_check_scenario: Szenario / Begrüßung
+btn_check_settings: Allgemeine Einstellungen
+btn_creator_notes_text: Notizen des Erstellers
+btn_done: Fertig
+btn_download_model: ' Herunterladen'
+btn_downloaded: ' Heruntergeladen ✓'
+btn_drop: Entfernen
+btn_duplicate_character: Duplizieren
+btn_examples_text: Beispiele
+btn_general_info_text: Allgemeine Infos
+btn_identity_text: Identität
+btn_reinstall: Neu installieren
+btn_scenario_text: Szenario
+btn_stop_download: Stopp
+btn_stopping: Wird gestoppt...
+btn_try_again: ' Erneut versuchen'
+btn_use: Verwenden
+button_delete_model: Löschen
+button_disable_server: Modell entladen
+button_download_model: ' Modell herunterladen'
+button_launch_server: Modell laden
+button_loading_server: Lädt…
+button_set_default: ' Als Standard festlegen'
+call_btn_text: Anruf
+call_mode_companion_desc: Ein randloser Desktop-Begleiter, der immer im Vordergrund über deinen anderen Fenstern bleibt.
+call_mode_companion_title: Soul Companion
+call_mode_dialog_cancel: Abbrechen
+call_mode_dialog_confirm: Anruf starten
+call_mode_dialog_subtitle: Du kannst jederzeit den Modus wechseln — das ändert nicht deine Standardeinstellungen.
+call_mode_dialog_title: Anrufmodus wählen
+call_mode_sow_desc: Vollbild-Anruffenster mit interaktivem Modell und Sprachchat.
+call_mode_sow_title: Soul of Waifu System
+cancel: Abbrechen
+cancel_button: Abbrechen
+card_version_label: Charakterkarten-Version
+category_consumables: Verbrauchsgegenstände
+category_other: Sonstiges
+category_quest_items: Quest-Gegenstände
+category_tools: Werkzeuge
+category_valuables: Wertgegenstände
+category_weapons: Waffen
+change_chat_background_tooltip: Chat-Hintergrund ändern
+character_building_label: Charaktererstellung
+character_card_label: Charakterkarte
+character_creator_btn_add_custom_variable: + Benutzerdefinierte Variable hinzufügen
+character_creator_desc_custom_variable: Konfiguriere benutzerdefinierte Zustandsvariablen (wie Vertrauen, Gold oder Inventar), die der Charakter während einzelner Chat-Sitzungen dynamisch verfolgen kann.
+character_creator_item_advanced: Erweiterte Einstellungen & Lore
+character_creator_item_dialogues: Dialoge & Begrüßungen
+character_creator_item_export: Export & Werkzeuge
+character_creator_item_general_info: Allgemeine Informationen
+character_creator_item_personality: Persönlichkeit & Szenario
+character_creator_title_advanced: Erweiterte Einstellungen & Lore
+character_creator_title_custom_variable: Variablen & Zustand
+character_creator_title_dialogues: Dialoge & Begrüßungen
+character_creator_title_export: Export & Werkzeuge
+character_creator_title_general_info: Allgemeine Informationen
+character_creator_title_personality: Persönlichkeit & Szenario
+character_description_building_label: Charakterbeschreibung
+character_edit_cancel: Abbrechen
+character_edit_conv_method: Konversationsmethode
+character_edit_description: 'Charakterbeschreibung:'
+character_edit_description_placeholder_1: Gib die Charakterbeschreibung ein
+character_edit_description_placeholder_2: Charakterbeschreibung
+character_edit_edit_title: Text bearbeiten
+character_edit_error_2: Der Charakter wurde in der Konfiguration nicht gefunden.
+character_edit_first_message: 'Erste Nachricht des Charakters:'
+character_edit_first_message_placeholder: Gib die erste Nachricht des Charakters ein
+character_edit_lorebooks: Lorebooks
+character_edit_persona: Persona
+character_edit_personality: 'Persönlichkeit des Charakters:'
+character_edit_personality_placeholder: Gib die Persönlichkeitsmerkmale des Charakters ein
+character_edit_prompt_preset: System-Prompt-Preset
+character_edit_save_button: Speichern
+character_edit_saved: Gespeichert
+character_edit_saved_2: Die Änderungen wurden erfolgreich gespeichert.
+character_edit_saved_error: Fehler beim Speichern
+character_edit_saved_error_2: Der Charakter wurde in der Konfiguration nicht gefunden.
+character_edit_settings: 'Charaktereinstellungen: '
+character_edit_start_new_dialogue: Neuen Chat starten
+character_edit_start_new_dialogue_success: Ein neuer Chat wurde erfolgreich gestartet.
+character_edit_start_new_dialogue_sure: Bist du sicher, dass du einen neuen Chat starten möchtest?
+character_edit_title: Charaktereinstellungen
+character_image_building_label: Charakterbild
+character_name_building_label: Charaktername
+character_name_chat: Charaktername
+character_personality_building_label: Charakterpersönlichkeit
+character_settings_close_btn: SCHLIESSEN
+character_settings_engine: EINSTELLUNGS-ENGINE
+character_settings_name_label: CHARAKTERNAME
+character_settings_nav_label: KONFIGURATION
+character_settings_new_chat_btn: NEUEN CHAT STARTEN
+character_settings_none: Keine
+character_settings_save_btn: ÄNDERUNGEN SPEICHERN
+character_settings_selected_count: 'Ausgewählt: {count}'
+character_settings_subtitle: META & PROMPTS
+characters_gateway_button: ' Soul Hub'
+characters_gateway_cai_add: Zur Liste hinzufügen
+characters_gateway_query: 'Deine Suchanfrage: '
+characters_gateway_tab_title: Charakterkarten
+characters_gateway_trending: Beliebt
+chat_continue_message: Ab dieser Nachricht fortsetzen
+chat_delete_message: Löschen
+chat_edit_message: Nachricht bearbeiten
+chat_edit_message_2: Bearbeiten
+chat_manager_label: Chatverlauf-Manager
+chat_regenerate_message: Neu generieren
+chat_renamed_success: Chat umbenannt in '{new_name}'.
+chat_save_message: Speichern
+chat_search_next: Nächster Treffer
+chat_search_prev: Vorheriger Treffer
+chat_search_progress: Treffer {current} von {total}
+chat_template_auto: Auto
+chat_template_label: Chat-Vorlage
+chat_template_tooltip: '<b>Chat-Vorlage</b><br><br>
+
+  Bestimmt, wie das System deine Konversation formatiert, bevor sie an die KI gesendet wird. Verschiedene Modelle werden auf bestimmte Formate trainiert.<br><br>
+
+  Wird die falsche Vorlage verwendet, kann die KI halluzinieren oder seltsame Symbole ausgeben (wie <code>&lt;|im_end|&gt;</code>).<br><br>
+
+  💡 <i>''Auto'' liest die Vorlage direkt aus der GGUF-Datei. Wenn sich das Modell seltsam verhält, versuche eine bestimmte Vorlage wie ''ChatML'' oder ''Llama-3'' zu erzwingen.</i>'
+checkbox_auto_translate_new_messages: Neue Nachrichten automatisch übersetzen
+checking_current_build: 'Aktuell: Wird geprüft...'
+choice_hint_discovery: WAS TUST DU?  —  ODER SCHREIBE ETWAS EIGENES
+choice_hint_encounter: REAGIERE AUF DIE BEDROHUNG  —  ODER SCHREIBE ETWAS EIGENES
+choice_hint_none: WÄHLE DEINE AKTION  —  ODER SCHREIBE ETWAS EIGENES
+choice_hint_romance: WÄHLE DEINE ANTWORT  —  ODER SCHREIBE ETWAS EIGENES
+choice_hint_twist: DU BIST AM ZUG  —  ODER SCHREIBE ETWAS EIGENES
+choice_hint_visitor: WIE REAGIERST DU?  —  ODER SCHREIBE ETWAS EIGENES
+choose_ai_provider_subtitle: Wähle die Engine für die Antwortgenerierung
+choose_ai_provider_title: KI-Anbieter wählen
+choose_button_text: Wählen
+choose_llm_device_label: Recheneinrichtung
+choose_model_background: Modellhintergrund wählen
+choose_model_background_color: Hintergrundfarbe wählen
+choose_model_background_image: Hintergrundbild wählen
+choose_model_fps: Modell-FPS wählen
+choose_openrouter_model_tooltip: Das aktuell in der Liste markierte Modell übernehmen
+choose_translator_label: Übersetzer wählen
+choose_your_avatar_label: Avatar wählen
+choose_your_description_label: Schreibe deine Beschreibung
+choose_your_name_label: Schreibe deinen Namen
+clean_character_card_button: Alle Felder leeren
+comedy: Komödie
+computer_specs_title: Computerspezifikationen
+configuration_tab: Konfiguration
+confirm: Bestätigen
+conflict_title: Konflikt
+conn_failed: Verbindung fehlgeschlagen.
+context_size_text: Kontextgröße
+context_size_tooltip: '<b>Kontextfenster</b><br><br>
+
+  Dies ist die maximale Anzahl an Tokens, die das Modell auf einmal verarbeiten kann (sein Arbeitsgedächtnis). Es umfasst den Chatverlauf, Autorennotizen und Lorebook-Einträge.<br><br>
+
+  Wähle den höchsten Wert für unbegrenzten Kontext (API) oder um automatisch das größte verfügbare Kontextfenster für dein lokales Sprachmodell zu erkennen.<br><br>
+
+  Ein größeres Kontextfenster ermöglicht es dem Charakter, <b>sich mehr zu merken</b>, erhöht aber deutlich den VRAM-Verbrauch.<br><br>
+
+  💡 <i>Verringere diesen Wert bei schwächeren PCs. Für Langzeitgedächtnis lasse das Modul ''Soul Memory'' aktiviert, anstatt die Kontextgröße zu maximieren.</i>'
+continue_session: Fortsetzen
+conversation_method: Konversationsmethode
+conversation_method_item_cai: Character AI
+conversation_method_item_mistralai: Mistral AI
+conversation_method_item_openai: Open AI
+conversation_method_item_openrouter: OpenRouter
+conversation_method_label: Konversationsmethode
+conversation_method_title: Konversationsmethode
+conversation_provider_title: Konversationsanbieter
+copied_to_clipboard_toast: Nachricht in die Zwischenablage kopiert.
+cpu_moe_layers_text: CPU-MoE-Schichten
+cpu_moe_layers_tooltip: 0 = Deaktiviert. Wie viele Mixture-of-Experts-Schichten (MoE) im CPU-RAM gehalten werden. Essenziell für sehr große MoE-Modelle.
+cpu_threads_text: CPU-Threads
+cpu_threads_tooltip: '0 = Auto.<br><br>
+
+  Auf die Anzahl deiner physischen CPU-Kerne setzen für optimale Inferenzgeschwindigkeit auf der CPU.'
+create: Erstellen
+create_character_button: ' Charakter erstellen'
+create_character_button_2: ' Charakter erstellen'
+create_character_button_3: Charakter erstellen
+creator_info_button: Notizen des Erstellers
+creator_info_close_button: Schließen
+creator_info_title: 'Titel vom Ersteller:'
+creator_info_window_title: Notizen des Erstellers
+creator_label: Entwickelt von
+creator_notes_label: Notizen des Erstellers
+current_ver_label: 'Aktuell:'
+custom_args_label: Benutzerdefinierte Argumente
+custom_args_placeholder: z. B. --rope-freq-base 10000 --temp 0.8
+custom_args_tooltip: '<b>Benutzerdefinierte Backend-Argumente</b><br><br>
+
+  Ermöglicht es dir, zusätzliche Kommandozeilenargumente direkt an den lokalen LLM-Server (llama.cpp) zu übergeben.<br><br>
+
+  Dies ist für fortgeschrittene Nutzer gedacht, die bestimmte Engine-Parameter (wie RoPE-Skalierung oder Cache-Einstellungen) feinjustieren möchten, die nicht in der UI verfügbar sind.<br><br>
+
+  💡 <i>Mit Vorsicht verwenden. Falsche Flags können den Server zum Absturz bringen oder deine UI-Einstellungen überschreiben. Beispiel: <b>--rope-freq-base 10000</b></i>'
+day: Tag
+default_chat_name: Standard-Chat
+delete: Löschen
+delete_btn_text: Charakter löschen
+delete_button: Löschen
+delete_chat_button: ''
+delete_chat_message_text: Diese Nachricht wird dauerhaft gelöscht. Dies kann nicht rückgängig gemacht werden.
+delete_chat_message_title: Nachricht löschen
+delete_folder: Ordner löschen
+delete_message_1: Charakter löschen
+delete_message_2: 'Bist du sicher, dass du löschen möchtest '
+delete_model: LLM löschen
+delete_scene_confirm: Diese Szene und ihren gesamten Verlauf dauerhaft löschen?
+delete_scene_detail: '"{title}" · {count} gespeicherte Nachrichten gehen verloren'
+delete_scene_title: Szene löschen
+desc_placeholder: Kurze Zusammenfassung für die Liste
+devices_title: Geräte
+dice_rolls: Würfelwürfe
+dice_rolls_enable: 🎲 Würfelwürfe für diese Szene aktivieren
+dice_rolls_hint: Erlaubt dem Spielleiter, bei riskanten oder umstrittenen Aktionen d20/2d6/3d6-Proben zu verlangen.
+director_note_btn_tooltip: Erzähldirektive
+director_note_placeholder: Handlungsnotiz (eine einmalige Anweisung an die KI für den nächsten Zug)...
+disable_ambient: 🔇 Ambient-Audio deaktivieren (in Stille spielen)
+disable_ambient_hint: 'Wenn aktiviert, wird während der Szene kein Ambient-Audio abgespielt.<br>
+
+  Nützlich, wenn du Stille möchtest oder nur begrenzte Audio-Assets hast.'
+discord_gateway_header: DISCORD-GATEWAY
+discord_gateway_status: 'Aktueller Status:'
+discord_gateway_subtitle: BOT-INTEGRATION
+discord_gateway_title: Discord-Gateway
+discord_info: Gib deinen Discord-Bot-Token ein, um deinen aktuell aktiven Charakter mit Discord zu verbinden. Der Bot antwortet auf Nachrichten in Servern, auf die er Zugriff hat.
+discord_start_btn: Bot starten
+discord_status_running: LÄUFT
+discord_status_stopped: GESTOPPT
+discord_stop_btn: Bot stoppen
+discord_token_label: BOT-TOKEN
+docs_btn: Docs
+download_chip_cancel: Download abbrechen
+download_chip_tooltip: 'Im Hintergrund wird ein Modell heruntergeladen.
+
+  Klicken, um den Models Hub zu öffnen.'
+download_complete_desc: 'Das Modell wurde erfolgreich heruntergeladen.
+
+  Gespeichert unter: {short_path}'
+download_complete_title: Download abgeschlossen
+download_model_title: Modell herunterladen
+draft_discard_confirm: Verwerfen
+draft_discard_text: 'Die Charakterkarte hat ungespeicherte Änderungen.
+
+  Verwerfen?'
+draft_discard_title: Ungespeicherte Änderungen
+drag_and_drop_overlay: 'Ziehe eine .png- oder .json-Datei genau hierher,
+
+  um sie in Soul of Waifu zu importieren'
+dry_base_text: DRY-Basis
+dry_base_tooltip: '<b>DRY-Basis</b><br><br>
+
+  Der Skalierungsfaktor für den DRY-Algorithmus. Bestimmt, wie aggressiv die Strafe mit der Sequenzlänge skaliert.<br><br>
+
+  💡 <i>Empfohlen: 1.75</i>'
+dry_length_text: DRY erlaubte Länge
+dry_length_tooltip: '<b>DRY erlaubte Länge</b><br><br>
+
+  Die Anzahl an Tokens, die sich wiederholen dürfen, bevor die DRY-Strafe aktiviert wird.<br><br>
+
+  💡 <i>Empfohlen: 2 (Verhindert, dass gängige Zwei-Wort-Phrasen wie "Ich bin" bestraft werden).</i>'
+dry_mult_text: DRY-Multiplikator
+dry_mult_tooltip: '<b>DRY (Don''t Repeat Yourself)</b><br><br>
+
+  Anders als ältere Strafen, die sich auf einzelne Wörter richten, erkennt und bestraft DRY <b>ganze sich wiederholende Sequenzen und Satzstrukturen</b>.<br><br>
+
+  Wenn deine Waifu jede Nachricht ständig mit <i>"Ich seufze und sehe dich an"</i> beginnt, erkennt DRY dieses Muster und zwingt sie, sich anders zu verhalten.<br><br>
+
+  💡 <i><b>Multiplikator:</b> Stärke der Strafe (Versuche 0.8).</i>'
+duplicate_character_error: Ein Charakter mit diesem Namen existiert bereits. Dem Charakternamen wird eine Zahl hinzugefügt.
+duplicate_character_error_title: Doppelter Name
+duplicate_success: Charakter dupliziert als '{new_name}'
+duplicate_title: Charakter dupliziert
+dyn_temp_max_text: Dynamische Temp. Max
+dyn_temp_max_tooltip: '<b>Dynamische Temperatur (Min/Max)</b><br><br>
+
+  Anstelle eines festen Werts verschiebt sich die Temperatur dynamisch zwischen den Min- und Max-Grenzen, basierend auf der Konfidenz der KI.<br><br>
+
+  Beim Angeben von Fakten sinkt die Temperatur, um logisch zu bleiben. Bei der Beschreibung von Emotionen steigt sie an, um kreativ zu werden.'
+dyn_temp_min_text: Dynamische Temp. Min
+dyn_temp_min_tooltip: '<b>Dynamische Temperatur (Min/Max)</b><br><br>
+
+  Anstelle eines festen Werts verschiebt sich die Temperatur dynamisch zwischen den Min- und Max-Grenzen, basierend auf der Konfidenz der KI.<br><br>
+
+  Beim Angeben von Fakten sinkt die Temperatur, um logisch zu bleiben. Bei der Beschreibung von Emotionen steigt sie an, um kreativ zu werden.'
+edit: Bearbeiten
+edit_personas: Personas verwalten...
+edit_save_error: Bearbeitete Nachricht konnte nicht gespeichert werden!
+edit_scene: Szene bearbeiten
+editor_back_button: ←  Zurück
+editor_back_tooltip: Zurück zur vorherigen Seite
+enable_adv_sampling_text: Erweitertes Sampling aktivieren
+enable_adv_sampling_tooltip: Wenn deaktiviert, werden die Standard-Generierungseinstellungen von Karte 1 verwendet. Erweiterte Einstellungen werden ignoriert.
+enable_ambient_checkbox: Ambient-Modul
+enable_flash_attention_checkbox: Flash Attention
+enable_mcp_text: MCP-Proxy-Integration aktivieren
+enable_mlock_checkbox: MLock
+enable_soul_memory: Soul-Memory-Modul
+enable_sow_system_checkbox: Soul of Waifu-System-Modul
+enable_summary_checkbox: Auto-Zusammenfassungsmodul
+enable_tool_calling_text: Natives Tool-Calling aktivieren
+enable_tool_calling_tooltip: Erlaubt der KI, während der Generierung nativ Python-Funktionen auszuführen.
+epic_fantasy: Episches Fantasy
+error_download_failed: 'Herunterladen von {filename} fehlgeschlagen:
+
+
+  {error_msg}'
+error_generation_failed: Bild konnte nicht generiert werden.
+error_generation_header: ⚠ GENERIERUNGSFEHLER
+error_header: ⚠ FEHLER
+error_title: Download-Fehler
+evening: Abend
+event_discovery: ENTDECKUNG
+event_encounter: BEGEGNUNG
+event_moment: MOMENT
+event_twist: WENDEPUNKT
+event_visitor: BESUCHER
+example_messages_title: Beispielnachrichten
+exit_busy_confirm: Trotzdem beenden
+exit_busy_downloads: '• Laufende Modell-Downloads: {names}'
+exit_busy_generation: • Es wird noch eine Antwort generiert
+exit_busy_text: 'Einige Aufgaben laufen noch:
+
+  {reasons}
+
+
+  Wenn du jetzt beendest, werden sie unterbrochen.'
+exit_busy_title: Soul of Waifu beenden?
+export_all: Alles exportieren
+export_card_button: Charakter exportieren
+export_card_dialog_title: Charakterkarte exportieren
+export_character_card_button: Charakterkarte exportieren
+export_chat_button: ''
+export_md_dialog_title: Szene als Markdown exportieren
+export_md_failed: Export konnte nicht erstellt werden.
+export_md_no_scene: Keine aktive Szene zum Exportieren.
+export_md_success: Szene als Markdown exportiert.
+export_md_write_failed: Datei konnte nicht geschrieben werden — überprüfe Pfad und Berechtigungen.
+export_scene: Export
+export_success: Szene erfolgreich exportiert!
+export_title: Szene exportieren
+expressions_btn_text: Ausdruckseinstellungen
+expressions_selector_choose_method: Ausdrucksmethode wählen
+expressions_selector_folder_saved_title: Ausdrucksordner gespeichert
+expressions_selector_foler_saved_body: Ausdrucksordner erfolgreich gespeichert
+expressions_selector_invalid_directory: Ungültiges Ausdrucksverzeichnis
+expressions_selector_live2d_folder_saved_body: Live2D-Ordner erfolgreich gespeichert
+expressions_selector_live2d_folder_saved_title: Live2D-Ordner gespeichert
+expressions_selector_mode_saved_body: Ausdrucksmodus erfolgreich gespeichert
+expressions_selector_mode_saved_title: Ausdrucksmodus gespeichert
+expressions_selector_no_folders: Keine Ordner gefunden
+expressions_selector_nothing: Hier gibt es noch nichts anzuzeigen.
+expressions_selector_nothing_desc: Erweiterte Visualisierung deaktivieren. Es wird nur die statische Avatar-Karte des Charakters angezeigt.
+expressions_selector_save_button: Auswahl speichern
+expressions_selector_select_file_vrm: VRM-Modelldatei auswählen
+expressions_selector_select_folder: Einen Emotionsordner auswählen
+expressions_selector_select_folder_live2d: Ordner mit Live2D-Modell auswählen
+expressions_selector_title: Ausdrucksauswahl
+expressions_selector_vrm_file_saved_body: VRM-Datei erfolgreich gespeichert
+expressions_selector_vrm_file_saved_title: VRM-Datei gespeichert
+expressions_vrm_selector_invalid_directory: Ungültiges VRM-Modellverzeichnis
+expressions_vrm_selector_no_files: Keine VRM-Dateien gefunden
+field_atmosphere: Kontext der Welt
+field_clocks: Uhren
+field_clocks_hint: 'Format: "Titel | aktuell/max | Beschreibung"'
+field_facts_hint: 'Format: "Schlüssel: Wert" (eine pro Zeile)'
+field_inventory_hint: Ein Gegenstand pro Zeile
+field_location: Ort
+field_objectives: Ziele
+field_objectives_hint: 'Format: "Titel | aktuell/max | Status | Beschreibung" (Status: aktiv/abgeschlossen/gescheitert)'
+field_relationships: Beziehungen
+field_relationships_hint: 'Format: "Subjekt -> Ziel | Zuneigung(-100..100) | Rolle/Titel | Tag1, Tag2"'
+field_resources: Ressourcen
+field_resources_hint: 'Format: "Name: aktuell/max" (eine pro Zeile)'
+field_skills: Fertigkeiten
+field_skills_hint: 'Format: "Fertigkeit: Modifikator" (-5 bis +10, eine pro Zeile)'
+field_status_effects: Statuseffekte
+field_status_hint: Ein Zustand pro Zeile
+field_time: Tageszeit
+first_message: Erste Nachricht des Charakters  (optional)
+first_message_building_label: Erste Nachricht
+first_msg_placeholder: Optionale Begrüßung des ersten Gruppenmitglieds.
+flashattention_tooltip: '<b>Flash Attention</b><br><br>
+
+  Diese Technologie <b>beschleunigt die KI</b> und <b>reduziert den VRAM-Verbrauch</b> bei der Verarbeitung langer Konversationen.<br><br>
+
+  Sie optimiert Berechnungen und macht die Textgenerierung bei großen Kontextfenstern sehr effizient.<br><br>
+
+  💡 <i>Für maximale Leistung dringend empfohlen, aktiviert zu lassen.</i>'
+folder_add_char: Charakter hinzufügen
+folder_add_char_prompt: 'Auswählen:'
+folder_add_char_title: Charakter hinzufügen
+folder_characters_label: Charaktere
+folder_create_btn: Ordner erstellen
+folder_create_btn_with_count: Ordner erstellen ({group_count})
+folder_create_subtitle: Organisiere deine Charaktere in einem eigenen Ordner
+folder_create_title: Neuer Ordner
+folder_create_title_scene: Szenenordner erstellen
+folder_created: Ordner erstellt!
+folder_delete_btn: Ordner löschen
+folder_delete_confirm_msg: Diesen Ordner löschen?
+folder_delete_confirm_title: Ordner löschen
+folder_delete_detail: Charaktere kehren in die Hauptliste zurück.
+folder_delete_detail_scenes: Szenen kehren in die Haupt-Lobby zurück.
+folder_drag_tip: Ziehen zum Neuanordnen
+folder_edit_btn: Ordner bearbeiten
+folder_editor_title: Ordner bearbeiten
+folder_empty: Keine Charaktere in diesem Ordner
+folder_members_label: 'Charaktere im Ordner:'
+folder_name_empty: Der Ordnername darf nicht leer sein
+folder_name_exists: Ein Ordner mit diesem Namen existiert bereits
+folder_name_label: 'Ordnername:'
+folder_name_placeholder: Ordnername eingeben...
+folder_no_chars_available: Keine weiteren Charaktere verfügbar
+folder_remove_char: Auswahl entfernen
+folder_save_btn: Speichern
+folder_saved: Ordner gespeichert!
+folder_scenes_label: Szenen
+folder_select_chars_label: 'Charaktere auswählen:'
+folder_select_hint: Zum Auswählen klicken
+folder_select_scenes_label: 'Szenen in diesem Ordner:'
+folder_select_scenes_title: 'Ordner bearbeiten: '
+force_memory_tooltip: Soul-Memory-Update jetzt erzwingen
+freq_penalty_text: Häufigkeitsstrafe
+freq_penalty_tooltip: '<b>Häufigkeitsstrafe</b><br><br>
+
+  Bestraft Wörter danach, <b>wie oft sie bereits im Text aufgetaucht sind</b>.<br><br>
+
+  Dies zwingt die KI, ein reichhaltigeres Vokabular zu verwenden und nach Synonymen zu suchen, statt dieselben Adjektive zu wiederholen.<br><br>
+
+  💡 <i>Zu hohe Werte zerstören die Grammatik. Empfohlen: 0.0 - 0.5.</i>'
+gateway_add_to_list: Zur Liste hinzufügen
+gateway_empty_text: Hier wurde noch nichts gefunden.
+gateway_error_text: 'Daten konnten nicht geladen werden.
+
+  Überprüfe deine Internetverbindung und versuche es erneut.'
+gateway_loading: Wird geladen...
+generated_image_title: Generiertes Bild
+generation_params_title: Generierungsparameter
+generation_stopped_partial_text: Die Antwort wurde unterbrochen — die teilweise Antwort wurde beibehalten.
+generation_stopped_toast_text: Die Antwort wurde gestoppt, bevor sie begonnen hat.
+generation_stopped_toast_title: Generierung gestoppt
+github_error: Fehler beim Verbinden mit GitHub
+global_editors_title: Globale Editoren
+gm_tone: Spielleiter-Ton
+gpu_layers_text: GPU-Schichten
+gpu_layers_tooltip: '<b>GPU-Schichten-Auslagerung</b><br><br>
+
+  Mit dieser Einstellung kannst du <b>steuern, wie viel des LLM</b> direkt auf deiner GPU läuft, und so <b>Geschwindigkeit</b> und <b>Grafikspeicherverbrauch</b> ausbalancieren.<br><br>
+
+  Je mehr Schichten in den VRAM geladen werden, desto schneller antwortet das Modell — aber desto höher ist der GPU-Speicherbedarf.<br>
+
+  Du kannst manuell einstellen, wie viele Schichten ausgelagert werden, wodurch sich große Modelle auch auf Mittelklasse-GPUs betreiben lassen.<br><br>
+
+  💡 <i>Besonders nützlich für große Modelle. Je stärker deine GPU, desto mehr Schichten kannst du zuweisen.</i>'
+greeting_afternoon_1: Guten Nachmittag, {user}. Soul of Waifu läuft stabil und ist bereit.
+greeting_afternoon_2: Machst du eine Nachmittagspause, {user}? Schauen wir mal bei deinen Begleitern vorbei.
+greeting_afternoon_3: Hallo, {user}. Musst du kurz der Realität entfliehen? Deine Waifus sind da.
+greeting_afternoon_4: Nachmittag, {user}. Das Portal ist offen und bereit für ein bisschen Kommunikation.
+greeting_afternoon_5: Willkommen zurück, {user}. Schreiben wir ein weiteres Kapitel unserer Geschichte.
+greeting_afternoon_6: Ein weiterer Schritt in unserer gemeinsamen Geschichte. Wie läuft dein Tag, {user}?
+greeting_afternoon_7: Die Sonne steht im Zenit, {user}. Perfekter Zeitpunkt, um kurz auszusteigen und bei alten Freunden vorbeizuschauen.
+greeting_evening_1: Guten Abend, {user}. Zeit, es sich gemütlich zu machen und mit deinem Lieblingsbegleiter zu plaudern.
+greeting_evening_2: Abend, {user}. Bereit, wieder in die Soul Stage einzutauchen?
+greeting_evening_3: Willkommen zurück, {user}. Die perfekte Stunde für ein ruhiges, tiefgründiges Gespräch.
+greeting_evening_4: Gemütliche Abendstimmung, {user}. Deine Begleiter haben dir viel zu erzählen.
+greeting_evening_5: Abend, {user}. Schauen wir, welche Gedanken heute im Tagebuch festgehalten wurden.
+greeting_evening_6: Warme Dämmerung und eine Tasse Tee. Deine Waifus haben dich heute vermisst, {user}.
+greeting_evening_7: Die Hektik des Tages liegt hinter uns. Entspann dich, {user}, dein persönliches Universum ist bereit.
+greeting_morning_1: Guten Morgen, {user}. Bereit für ein neues Abenteuer?
+greeting_morning_2: Morgen, {user}! Deine Begleiter warten auf dich.
+greeting_morning_3: Aufstehen, {user}. Laden wir ein paar Erinnerungen und starten den Tag.
+greeting_morning_4: Morgen, {user}! Bereit, unsere digitale Reise fortzusetzen?
+greeting_morning_5: Guten Morgen, {user}. Die Oberfläche ist bereit, und die Seelen sind wach.
+greeting_morning_6: Ein Duft von Tee und leises Flüstern. Deine Begleiter haben die Augen geöffnet, {user}.
+greeting_morning_7: Die Sonne blinzelt hervor, und ein neuer Tag beginnt in Soul of Waifu. Morgen, {user}!
+greeting_night_1: Machst du die Nacht zum Tag, {user}? Keine Sorge, digitale Seelen schlafen nicht.
+greeting_night_2: Späte Nachtsitzung, {user}? Wir sind da, um dir in den stillen Stunden Gesellschaft zu leisten.
+greeting_night_3: Ruhige Nachtstimmung... Bereit für einen späten Chat, {user}?
+greeting_night_4: Die Welt schläft, aber das Portal ist wach. Willkommen, {user}.
+greeting_night_5: Späte Nacht, {user}. Führen wir ein tiefes, herzliches Gespräch.
+greeting_night_6: Gedämpftes Licht, Stille und der Schein des Bildschirms. Zeit für die intimsten Geschichten, {user}.
+greeting_night_7: Die Sterne leuchten nur für uns. Bereit, einen Blick in die tiefsten Winkel von Soul Memory zu werfen, {user}?
+gw_card_add_lorebook: Zur Bibliothek hinzufügen
+gw_card_add_scene: Zu Stages hinzufügen
+gw_card_author_prefix: von {author}
+gw_card_entries: 📖  {count} Einträge
+gw_card_location: 📍  {location}
+gw_preview_btn_close: Schließen
+gw_preview_btn_import: In System importieren
+gw_preview_error: '⚠️  Datenbankverbindung fehlgeschlagen
+
+  Asset-Details konnten nicht abgerufen werden:
+
+  {error}'
+gw_preview_header_context: WELTKONTEXT & SZENARIO
+gw_preview_header_narration: EINLEITENDE ERZÄHLUNG
+gw_preview_header_style: ERZÄHLSTIL
+gw_preview_keys: Schlüssel
+gw_preview_loading: 'Sichere Verbindung wird hergestellt...
+
+  Asset-Dokumentationsdaten werden abgerufen...'
+gw_preview_lorebook_summary: 'Datensatz enthält {count} kognitive Regeln:'
+gw_preview_time: Zeit
+gw_preview_tone: Ton
+gw_preview_trigger: Auslöser
+gw_preview_type_lorebook: LOREBOOK
+gw_preview_type_scene: STAGE-SZENARIO
+gw_preview_unnamed: Unbenannter Eintrag
+hardware_spec_title: Hardware-Spezifikationen
+hint_arcs_format: Hier steuerst du die Freigabe deiner Handlung. Ein Handlungsbogen im Stadium "locked" existiert für keinen Charakter — niemand wird ihn erwähnen oder darauf anspielen. Setze ihn auf "available", sobald der Spieler den Hinweis gefunden hat, der ihn freischalten soll, oder auf "active", sobald er vollständig im Gange ist. "trigger" ist eine Notiz an den Spielleiter, was die Freischaltung auslösen soll — sie wird den Charakteren nie gezeigt.
+hint_lore_format: Eine Karte pro Block, getrennt durch eine Leerzeile. Karten werden nur dann in die Geschichte eingefügt, wenn ihre Auslöser in der Szene auftauchen.
+hint_npc_readonly: Von der Engine aktuell erzeugte NPCs (schreibgeschützt)
+hint_overlays_format: Der eigene, sich entwickelnde Zustand eines Charakters — seine aktuelle Rolle/Titel und alle persönlichen Fakten, die es wert sind, verfolgt zu werden (Loyalität, ein Geheimnis, ein innerer Konflikt). Dies begleitet den Charakter und erscheint in seinem eigenen Prompt, getrennt von der statischen Charakterkarte.
+hint_relationships_format: Wie ein Charakter einen anderen empfindet und wahrnimmt — meist die Sicht eines Gruppenmitglieds oder NPCs auf den SPIELER, aber es kann zwischen beliebigen zwei Akteuren bestehen. Dies wird direkt in den eigenen Prompt dieses Charakters eingefügt, sodass es nie vergessen wird. Die Zuneigung reicht von -100 (feindselig) bis 100 (ergeben). "role" ist, wie das Subjekt den aktuellen Status oder Titel des Ziels sieht — unabhängig von der Zuneigung.
+horror: Horror
+hub_chip_all: Alle
+hub_sort_label: 'Sortieren:'
+hub_sort_messages: Meiste Nachrichten
+hub_sort_name_asc: Name  A → Z
+hub_sort_name_desc: Name  Z → A
+main_hub_sort_recent: Zuletzt geöffnet
+hub_tags_hint: Kommagetrennt. Tags erscheinen als Filter im Haupt-Hub und sind durchsuchbar.
+hub_tags_label: Tags
+hub_tags_placeholder: Fantasy, Abenteuer, Magie...
+hub_tags_save: Speichern
+hub_tags_saved: 'Tags gespeichert: {tags}'
+hub_tags_toast_title: Tags
+hub_tags_unchanged: Keine Änderungen zum Speichern.
+image_gen_api_key: 'API-Schlüssel:'
+image_gen_api_key_placeholder: Gib hier den API-Schlüssel ein...
+image_gen_api_url: 'API-URL (nur lokal):'
+image_gen_checkpoint: 'Modell / Checkpoint:'
+image_gen_custom_workflow: 'Benutzerdefinierter Workflow:'
+image_gen_editor_title: Einstellungen für Bildgenerierung
+image_gen_enable: Bildgenerierung aktivieren
+image_gen_failed: ⚠ Bildgenerierung fehlgeschlagen
+image_gen_grp_connection: Verbindung
+image_gen_grp_dimensions: Generierungsparameter
+image_gen_grp_prompts: Prompt-Injektion
+image_gen_height: 'Höhe:'
+image_gen_negative: 'Negativer Prompt:'
+image_gen_placeholder: 🖼 Bild wird generiert...
+image_gen_prefix: 'Präfix-Prompt (immer hinzugefügt):'
+image_gen_provider: 'Anbieter:'
+image_gen_save: Speichern && Schließen
+image_gen_started: Szene wird analysiert & filmischer Prompt wird erstellt...
+image_gen_steps: 'Schritte:'
+image_gen_subtitle: LOKALE & CLOUD-DIFFUSION
+image_gen_warning: '⚠ Warnung: Der gleichzeitige Betrieb von lokalem LLM + lokaler Bildgenerierung erfordert viel VRAM. Bei unzureichender GPU-Kapazität können Out-of-Memory-Abstürze auftreten.'
+image_gen_width: 'Breite:'
+import_character_card_button: Charakterkarte importieren
+import_character_image_tooltip: Klicken, um ein Avatarbild hochzuladen
+import_chat_button: ''
+import_chat_conflict: Ein Chat mit der ID {chat_id} existiert bereits. Möchtest du ihn überschreiben? Ein Klick auf 'Nein' erstellt einen neuen Chat.
+import_chat_conflict_title: Konflikt erkannt
+import_chat_mismatch: Dieser Chat wurde für {exported_from} erstellt, aber du versuchst, ihn in {character_name} zu importieren. Möchtest du trotzdem fortfahren?
+import_chat_mismatch_title: Charakter-Nichtübereinstimmung
+import_error: Szene konnte nicht importiert werden. Ungültiges Dateiformat.
+import_error_title: Importfehler
+import_file: Szene importieren
+import_lorebook_added_text: Lorebook '{final_name}' zur Bibliothek hinzugefügt.
+import_lorebook_text: Diese Karte enthält ein eingebettetes Lorebook '{book_name}'. Möchtest du es zu deiner Bibliothek hinzufügen?
+import_lorebook_title: Lorebook importieren?
+import_scene: Import
+import_success: Szene erfolgreich importiert!
+import_title: Szene importieren
+imported_suffix: Importiert
+info_title: Info
+input_device_label: Eingabegerät
+input_placeholder: Lenke die Geschichte oder sprich mit jemandem...
+interactive_narrative: Interaktive Erzählung
+intervene: ⚡ Eingreifen
+invalid_sowchat_file: Diese Datei ist keine gültige .sowchat-Datei.
+inventory: Inventar
+inventory_empty: Dein Inventar ist leer.
+inventory_full_title: Inventar — Soul Stage
+items_count: '{count} Gegenstände'
+jump_to_bottom_tooltip: Zur neuesten Nachricht springen
+kv_cache_label: KV-Cache-Typ
+kv_cache_tooltip: Quantisiert den Kontext-Cache, um bei langen Kontexten massiv VRAM zu sparen.
+label_base_url: Basis-URL
+label_mistral_model: Mistral-Modell
+language_changed_body: Das Programm muss neu gestartet werden, damit die Änderungen wirksam werden.
+language_changed_no: 'Nein'
+language_changed_question: Möchtest du das Programm jetzt neu starten?
+language_changed_title: Neustart erforderlich
+language_changed_yes: 'Ja'
+language_title: Sprache
+lbl_release_notes_tr: Verbindung zur GitHub-API wird hergestellt...
+lbl_target_tr: 'Ziel:'
+live2d_mode_label: Modus wählen
+live2d_mode_with_gui: Soul of Waifu System
+live2d_mode_without_gui: Soul Companion
+live2d_motion_mapper_btn: Emotionen auf Bewegungen zuordnen
+llama_cpp_updater: LLAMA CPP-Updater
+llm_adv_title: Erweitertes lokales LLM-Sampling
+llm_advanced_hint: Diese Einstellungen steuern hauptsächlich lokale Modelle, die über llama.cpp laufen (Hardware-Auslagerung, Prompt-Formatierung, Low-Level-Sampler). Cloud-Anbieter wie OpenAI, Claude oder Gemini ignorieren einfach die Felder, die sie nicht unterstützen.
+llm_context_title: Kontextfenster
+llm_error_body: Wähle "Lokales LLM" im Models Hub.
+llm_error_title: Kein lokales LLM
+llm_format_title: Prompting & Formatierung
+llm_gen_title: Allgemeine Generierungsparameter
+llm_hw_title: Hardware & Backend
+llm_options_label: Server-Endpunkt
+llm_preset_applied: Preset '{name}' angewendet.
+llm_preset_created: Preset '{name}' gespeichert.
+llm_preset_delete: Löschen
+llm_preset_delete_confirm: Bist du sicher, dass du das Preset '{name}' löschen möchtest?
+llm_preset_delete_title: Preset löschen
+llm_preset_delete_tooltip: Das ausgewählte Preset löschen
+llm_preset_empty: Noch keine Presets gespeichert
+llm_preset_label: PRESET
+llm_preset_placeholder: z. B. Dense 8B RP, MoE 30B Fast...
+llm_preset_rename: Umbenennen
+llm_preset_rename_prompt: 'Neuer Name:'
+llm_preset_rename_title: Preset umbenennen
+llm_preset_rename_tooltip: Das ausgewählte Preset umbenennen
+llm_preset_save: Speichern
+llm_preset_save_as: Neues Preset
+llm_preset_save_as_prompt: 'Preset-Name:'
+llm_preset_save_as_title: Neues Preset speichern
+llm_preset_save_as_tooltip: Die aktuellen Einstellungen als brandneues Preset speichern
+llm_preset_save_tooltip: Das ausgewählte Preset mit den aktuellen Einstellungen überschreiben
+llm_preset_tooltip: Speichere vollständige Momentaufnahmen deiner Generierungs- und Sampling-Einstellungen und wechsle zwischen ihnen — praktisch, um zwischen einem Dense-Modell-Preset und einem MoE-Modell-Preset zu wechseln, ohne alles neu einzugeben.
+llm_preset_updated: Preset '{name}' aktualisiert.
+llm_reset_confirm_button: Zurücksetzen
+llm_reset_confirm_text: 'Die grundlegenden Generierungsparameter werden auf ihre Standardwerte zurückgesetzt.
+
+  Presets sind davon nicht betroffen.'
+llm_reset_confirm_title: Einstellungen zurücksetzen?
+llm_reset_defaults: Zurücksetzen
+llm_reset_defaults_tooltip: 'Setzt die grundlegenden Generierungsparameter (Temperatur, Top-P, Kontextgröße,
+
+  maximale Tokens, Strafen) auf ihre Standardwerte zurück.'
+llm_reset_done_text: Generierungsparameter auf Standardwerte zurückgesetzt.
+llm_settings_title: LLM-Einstellungen
+llm_tab_advanced: Erweitert
+llm_tab_advanced_sub: Lokale Modelle / Power-User
+llm_tab_general: Allgemein
+llm_tab_general_sub: funktioniert für jeden Anbieter
+llm_title: Einstellungen für lokales LLM
+lobby_folders_section: SZENENORDNER
+lobby_scenes_section: SZENEN
+local_llm_no_token_tooltip: Lokale Modelle benötigen keinen API-Schlüssel.
+local_llm_tab: LLM-Einstellungen
+local_model_state_connecting: MODELL WIRD GELADEN...
+local_model_state_generating: GENERIERUNG LÄUFT...
+local_model_state_offline: MODELL OFFLINE
+local_model_state_online: MODELL BEREIT
+localization_title: Lokalisierung & Übersetzung
+location_placeholder: z. B. Die Taverne zum Goldenen Drachen
+lock_background: 🔒 Hintergrund sperren (automatischen Wechsel verhindern)
+lock_background_hint: 'Wenn aktiviert, bleibt das Hintergrundbild fixiert und wird während der Szene<br>
+
+  NICHT automatisch geändert — selbst wenn sich der Ort ändert.'
+lorebook: Lorebook  (optional)
+lorebook_always_on_hint: Immer aktiv — wird in jedes Kontextfenster, bei jedem Zug, eingefügt.
+lorebook_any_value: beliebig (-1)
+lorebook_apply_changes_btn: ÄNDERUNGEN ÜBERNEHMEN
+lorebook_building_label: Lorebook
+lorebook_chain_delay_label: KETTENVERZÖGERUNG (Nachrichten nach übergeordnetem Eintrag)
+lorebook_content_label: LORE-INHALT / SZENARIOTEXT
+lorebook_cooldown_label: COOLDOWN
+lorebook_delay_label: VERZÖGERUNG
+lorebook_delete_entry_confirm: Diesen Eintrag löschen? Dies kann nicht rückgängig gemacht werden.
+lorebook_delete_lb_confirm: „{name}" und alle zugehörigen Einträge löschen?
+lorebook_depth_suffix: Nachrichten
+lorebook_editor_add_entry: + Neuen Eintrag hinzufügen
+lorebook_editor_btn_create: Neues Lorebook erstellen
+lorebook_editor_button_tooltip: '<b>Lorebook-Editor</b><br><br>
+
+  Ein Lorebook ist ein <b>Nachschlagewerk</b>, das einem Charakter hilft, sich an wichtige Ereignisse, Begriffe, Orte und Charaktere zu erinnern.<br><br>
+
+  Wenn du etwas aus dem Lorebook erwähnst, verknüpft das Programm <b>automatisch die nötigen Informationen</b> mit der Anfrage, und der Charakter antwortet, als wüsste er es wirklich.<br><br>
+
+
+  <b>Was du tun kannst:</b><br>
+
+  • <b>Lorebooks erstellen und löschen</b>.<br>
+
+  • <b>Einträge hinzufügen</b> — jeder Informationsblock: Ort, Charakter, Ereignis, Begriff.<br>
+
+  • <b>Schlüsselwörter bearbeiten</b> — was der Eintrag „enthalten" soll.<br>
+
+  • <b>Scan-Tiefe wählen</b> — wie viele letzte Nachrichten auf Treffer geprüft werden.<br><br>
+
+
+  <b>Beispiel:</b><br>
+
+  Du fügst einen Eintrag hinzu:<br>
+
+  • <i>Text:</i> „Soul of Waifu ist ein Programm, mit dem du mit KI kommunizieren kannst."<br>
+
+  • <i>Schlüsselwörter:</i> Soul of Waifu, KI<br>
+
+  Wenn du sagst: <i>„Was ist Soul of Waifu?"</i>, erinnert sich der Charakter und antwortet mit Informationen zu diesem Eintrag.'
+lorebook_editor_content_hint: Text, der bei Auslösung in den Prompt eingefügt wird...
+lorebook_editor_content_title: Lore-Inhalt / Anweisung
+lorebook_editor_cooldown: Cooldown
+lorebook_editor_cooldown_hint: Kann für N Nachrichten nicht erneut ausgelöst werden.
+lorebook_editor_delay: Verzögerung
+lorebook_editor_delay_hint: Kann erst ausgelöst werden, wenn der Chat N Nachrichten hat.
+lorebook_editor_delete: Löschen
+lorebook_editor_delete_entry: Eintrag löschen
+lorebook_editor_delete_lorebook: Lorebook löschen
+lorebook_editor_delete_lorebook_confirm: '{name} löschen?'
+lorebook_editor_delete_question: Eintrag löschen?
+lorebook_editor_depth: 'Scan-Tiefe:'
+lorebook_editor_edit_description: Beschreibung bearbeiten
+lorebook_editor_edit_description_label: 'Beschreibung für {name}:'
+lorebook_editor_edit_description_title: Lorebook-Beschreibung bearbeiten
+lorebook_editor_edit_description_updated: Beschreibung für Lorebook {name} aktualisiert.
+lorebook_editor_end_msg: Endnachricht
+lorebook_editor_entry_description: z. B. Charaktername, Ort, Ereignis
+lorebook_editor_entry_name: Eintragsname
+lorebook_editor_exclude_keywords: Schlüsselwörter ausschließen
+lorebook_editor_exclude_keywords_example: Mensch, Physik (Verhindert Aktivierung, falls vorhanden)
+lorebook_editor_export_error: Exportfehler
+lorebook_editor_export_lorebook: JSON exportieren
+lorebook_editor_export_success: Export erfolgreich
+lorebook_editor_export_success_desc: Lorebook erfolgreich gespeichert.
+lorebook_editor_hint: Wird nur zwischen diesen Nachrichtennummern aktiviert.
+lorebook_editor_import_error: Importfehler
+lorebook_editor_import_error_desc: 'Lorebook konnte nicht geparst werden: {error}'
+lorebook_editor_import_lorebook: JSON importieren
+lorebook_editor_import_success: Import erfolgreich
+lorebook_editor_import_success_desc: Lorebook '{new_name}' mit {count} Einträgen importiert.
+lorebook_editor_keywords: Auslöser-Schlüsselwörter
+lorebook_editor_keywords_example: Zauberer, Magie, Zauberspruch
+lorebook_editor_lorebook_name: 'Name:'
+lorebook_editor_main_hint: Wähle einen Eintrag zum Bearbeiten oder erstelle einen neuen
+lorebook_editor_new_lorebook: Neues Lorebook
+lorebook_editor_options: Lorebook-Optionen (Import/Export/Löschen)
+lorebook_editor_probability: Wahrscheinlichkeit
+lorebook_editor_probability_hint: Wahrscheinlichkeit, auszulösen, wenn die Bedingungen erfüllt sind.
+lorebook_editor_rename_error_exists: Ein Lorebook mit diesem Namen existiert bereits.
+lorebook_editor_rename_error_title: Fehler
+lorebook_editor_rename_label: 'Neuer Name für ''{name}'':'
+lorebook_editor_rename_lorebook: Lorebook umbenennen
+lorebook_editor_save: Alle Änderungen speichern
+lorebook_editor_saved: Gespeichert
+lorebook_editor_saved_desc: Lorebooks erfolgreich gespeichert.
+lorebook_editor_scan_depth: 'Scan-Tiefe:'
+lorebook_editor_search: Einträge durchsuchen...
+lorebook_editor_select: 'Aktuelles Lorebook:'
+lorebook_editor_start_msg: Startnachricht
+lorebook_editor_sticky: Dauer
+lorebook_editor_sticky_hint: Bleibt nach Auslösung für N Nachrichten aktiv.
+lorebook_editor_suffix: ' Nachr.'
+lorebook_editor_suffix_entries: Einträge
+lorebook_editor_timed_title: Erweiterte und zeitgesteuerte Effekte
+lorebook_editor_title: Lorebook-Editor
+lorebook_editor_trigger: Auslösemethode
+lorebook_empty_state: Wähle einen Eintrag oder erstelle einen neuen, um mit dem Bearbeiten zu beginnen.
+lorebook_engine_title: Lorebook-Engine
+lorebook_entries_count: '{total} Einträge'
+lorebook_entries_shown: '{shown} von {total} Einträgen'
+lorebook_entry_name_placeholder: Eintragsname...
+lorebook_exclude_keywords_label: SCHLÜSSELWÖRTER AUSSCHLIESSEN (kommagetrennt)
+lorebook_exclude_keywords_placeholder: Ausnahmewörter...
+lorebook_export_success_toast: '"{name}" auf der Festplatte gespeichert.'
+lorebook_filter_placeholder: Einträge filtern...
+lorebook_first_msg_label: ERSTE NACHRICHT (einschließlich)
+lorebook_include_keywords_label: SCHLÜSSELWÖRTER EINSCHLIESSEN (kommagetrennt)
+lorebook_include_keywords_placeholder: Drache, uralt, Feuer...
+lorebook_injection_active: Aktiv
+lorebook_injection_label: INJEKTION
+lorebook_injection_passive: Passiv
+lorebook_last_msg_label: LETZTE NACHRICHT (einschließlich)
+lorebook_library_label: BIBLIOTHEK
+lorebook_parent_uid_label: ÜBERGEORDNETE EINTRAGS-UID (-1 = beliebig)
+lorebook_probability_label: WAHRSCHEINLICHKEIT
+lorebook_random_hint: Löst zufällig bei jedem Zug aus, gesteuert durch die untenstehende Wahrscheinlichkeitseinstellung.
+lorebook_rename_btn: Umbenennen
+lorebook_selector_apply: Lorebooks anwenden
+lorebook_selector_search: Lorebooks durchsuchen...
+lorebook_selector_title: Lorebooks auswählen
+lorebook_semantic_label: SZENENBESCHREIBUNG FÜR SEMANTISCHEN KI-ABGLEICH
+lorebook_semantic_placeholder: Beschreibe die Szene oder Situation, die die KI erkennen soll...
+lorebook_sticky_label: HAFTEND
+lorebook_trig_always_on: Immer aktiv
+lorebook_trig_chain: Kette
+lorebook_trig_keyword: Schlüsselwörter
+lorebook_trig_random: Zufällig
+lorebook_trig_scenario: Szenario
+lorebook_trig_semantic: Semantisch
+lorebook_trig_title_always_on: IMMER AKTIV
+lorebook_trig_title_chain: KETTENABHÄNGIGKEIT
+lorebook_trig_title_keyword: SCHLÜSSELWORT-ABGLEICH
+lorebook_trig_title_random: ZUFÄLLIGER AUSLÖSER
+lorebook_trig_title_scenario: SZENARIOBEREICH
+lorebook_trig_title_semantic: SEMANTISCHE SITUATION
+lorebook_trigger_config_label: AUSLÖSERKONFIGURATION
+lorebook_trigger_type_label: AUSLÖSERTYP
+lorebooks_soul_stage_page: Lorebooks  (optional)
+main_button: ' Hauptmenü'
+main_button_2: Haupt-Hub
+max_actor_depth: Max. Akteure pro Zug
+max_actor_depth_hint: Wie viele Gruppenmitglieder und NPCs in einem einzigen Zug sprechen dürfen (1-6, Standard 3).
+max_tokens_label: Max. Tokens
+max_tokens_text: Max. Tokens
+max_tokens_tooltip: '<b>Maximale Antwortlänge</b><br><br>
+
+  Steuert, <b>wie lang die Antwort des Charakters sein darf</b>.<br><br>
+
+  💡 <i>Sehr lange Antworten belegen viel Kontextspeicher. Empfohlen: 300–500 Tokens.</i>'
+mcp_description: Verbinde externe MCP-Server (wie SearXNG, GitHub usw.), ohne native Python-Plugins zu schreiben. Dies fungiert als Proxy zwischen Soul of Waifu und der KI. Kann zusammen mit anderen integrierten Werkzeugen verwendet werden.
+mcp_title: Model Context Protocol (MCP)
+mcp_url_label: MCP-Server-URL
+mcp_url_placeholder: z. B. http://127.0.0.1:8000
+memory: ⊕ Gedächtnis
+memory_and_offloading_title: Speicher & Auslagerung
+memory_select_query: Wessen Erinnerungen möchtest du dir ansehen?
+memory_select_title: Soul Memory — Charakter auswählen
+message_menu_tooltip: Nachrichtenaktionen
+message_time_tooltip: Gesendet um
+min_p_text: Min-P
+min_p_tooltip: '<b>Min-P (Intelligenter Cutoff)</b><br><br>
+
+  Der neue Goldstandard für Rollenspiel. Er schneidet dynamisch Unsinnswörter ab, basierend auf der Wahrscheinlichkeit des bestmöglichen Wortes.<br><br>
+
+  Wenn die KI sich sicher ist, entfernt sie gnadenlos Unsinn. Wenn Kreativität gefragt ist, senkt sie die Schwelle, um gute Synonyme zuzulassen.<br><br>
+
+  💡 <i>Ersetzt Top-P. Setze Top-P auf 1.0 und verwende Min-P bei <b>0.05 - 0.10</b> für perfekte Logik bei hoher Temperatur.</i>'
+mlock_tooltip: '<b>MLock (Speichersperre)</b><br><br>
+
+  Diese Funktion <b>verhindert, dass das Sprachmodell</b> aus dem RAM deines Systems in die Auslagerungsdatei auf deinem Speicherlaufwerk ausgelagert wird.<br><br>
+
+  Wenn aktiviert, bleibt das Modell vollständig im Speicher geladen, was die <b>schnellstmögliche Antwortzeit</b> ohne Mikroruckler während der Nachrichtengenerierung sicherstellt.<br><br>
+
+  💡 <i>Nur empfohlen, wenn du über reichlich System-RAM verfügst, da dieser Speicher dauerhaft reserviert wird. Auf Systemen mit wenig RAM deaktivieren.</i>'
+mode_director: 🎬 Regisseur
+mode_do: ⚔ Tun
+mode_say: 💬 Sagen
+mode_think: 💭 Denken
+mode_tooltip: 'Sagen: laut ausgesprochen · Tun: eine Handlung · Denken: stiller innerer Gedanke · Regisseur: eine Out-of-Character-Notiz an den Spielleiter (treibt die Handlung voran, wird nicht von dir gesprochen)'
+mode_translator_label: Modus
+model_background_1: Farbe
+model_background_2: Bild
+model_background_color_1: Schwarz
+model_background_color_2: Tiefblau
+model_background_color_3: Weinrot
+model_background_color_4: Dunkelgrün
+model_background_color_5: Sanftes Lila
+model_background_color_6: Warmes Kohlegrau
+model_fps_120: 120 FPS
+model_fps_30: 30 FPS
+model_fps_60: 60 FPS
+model_generate_summary: Zusammenfassung wird generiert...
+model_generate_text: Text wird generiert...
+model_loading_step_1: ENGINE-INITIALISIERUNG...
+model_loading_step_2: GGUF WIRD ÜBERPRÜFT...
+model_loading_step_3: TENSOREN WERDEN GELADEN...
+model_loading_step_4: KONTEXT WIRD ZUGEWIESEN...
+model_loading_step_5: WIRD ABGESCHLOSSEN...
+model_loading_step_6: MODELL ONLINE
+model_widget_delete: 'Möchtest du das Modell löschen:'
+model_widget_delete_2: Diese Aktion kann nicht rückgängig gemacht werden.
+models_hub_author: Autor -
+models_hub_button: ' Models Hub'
+models_hub_change_folder_btn: ' Verzeichnis ändern'
+models_hub_compatibility: 'Kompatibilität: '
+models_hub_downloads: Downloads -
+models_hub_gguf_error: GGUF-Modelle nicht gefunden.
+models_hub_my_models: ' Meine Modelle'
+models_hub_no_models: Das Verzeichnis mit den lokalen Sprachmodellen ist leer
+models_hub_no_results: 'Nichts gefunden.
+
+  Versuche eine andere Suchanfrage oder überprüfe deine Verbindung.'
+models_hub_open_folder_btn: ' Ordner öffnen'
+models_hub_popular: ' Beliebt'
+models_hub_popular_banner: 🔥 Aktuell beliebte GGUF-Modelle, direkt vom HuggingFace Hub abgerufen.
+models_hub_recommendations: Empfehlungen
+models_hub_recommendations_banner: ⭐ Kuratierte Liste lokaler Sprachmodelle, ausgewählt und geprüft vom App-Entwickler. Die Kompatibilitätsdaten basieren auf der Q4-Quantisierung.
+more_btn_tooltip: Charakterinformationen
+more_items: +{count} mehr
+more_options_tooltip: Weitere Optionen
+morning: Morgen
+motion_mapper_desc: Weise jeder der 28 erkannten Emotionen eine bestimmte Körperanimationsgruppe zu.
+motion_mapper_title: Live2D-Bewegungs-Mapper
+move_to_folder_btn: In Ordner verschieben
+msg_action_branch: Branch ab hier
+msg_action_copy_text: Text kopieren
+msg_action_generate_image: Bild generieren
+msg_action_replay_voice: Sprachnachricht abspielen
+msg_action_translate: Übersetzen
+mystery_noir: Mystery & Noir
+narrator: ⬡  ERZÄHLER
+narrator_image_done: ⬡  SZENENBILD
+narrator_image_generating: ⬡  SZENENBILD WIRD GENERIERT...
+narrator_style: Erzählstil
+narrator_style_hint: Steuert den spezifischen Prosastil, die Erzählstimme oder das Erzähltempo des Erzählers.
+navigation_lbl: NAVIGATION
+network_error: 'Netzwerkfehler: '
+new_adventure: Neues Abenteuer
+new_chat_prompt: 'Chatnamen eingeben:'
+new_chat_title: Neuer Chat
+new_chat_toast_title: Chat-System
+new_folder: 📁 Neuer Ordner
+new_folder_btn: Neuer Ordner
+new_scene: ＋ Neue Szene
+new_session: Neue Sitzung
+next_variant_tooltip: Nächste Antwort
+night: Nacht
+no_active_npcs: Keine aktiven NPCs in dieser Szene
+no_characters: Keine Charaktere gefunden.
+no_characters_advice: Du hast noch keine Charaktere hinzugefügt. Klicke auf die Schaltfläche und erstelle einen
+no_characters_description: 'Bevor du einen Chat mit einem Charakter beginnst, nimm dir einen Moment Zeit, um das Programm nach deinen Wünschen anzupassen.
+
+  Sobald du bereit bist, erstelle deinen einzigartigen Charakter und starte die Konversation.'
+no_description: Keine Beschreibung festgelegt.
+no_files_desc: Es gibt keine .gguf-Dateien in diesem Repository.
+no_files_title: Keine Dateien
+no_folders_prompt: Noch keine Ordner. Einen erstellen?
+no_folders_prompt_scenes: Noch keine Ordner. Einen erstellen?
+no_folders_title: Keine Ordner
+no_gpu: Keine GPU erkannt
+no_gui_error_body: Wähle Live2D oder VRM, um den Modus ohne Oberfläche zu verwenden.
+no_gui_error_title: Falscher Ausdruckstyp
+no_mmap_checkbox: Kein MMAP
+no_mmap_tooltip: '<b>Kein-MMAP-Modus (Direktes RAM-Laden)</b><br><br>
+
+  Standardmäßig werden Modelle mittels Memory-Mapping (<b>mmap</b>) geladen, wodurch Teile des Modells während der Generierung bei Bedarf von deinem Speicherlaufwerk gelesen werden.<br><br>
+
+  Durch Aktivieren dieser Option wird das System gezwungen, <b>das gesamte Modell im Voraus in den RAM zu laden</b>.<br>
+
+  Dies erhöht die anfängliche Ladezeit und den RAM-Verbrauch leicht, verhindert jedoch Mikroruckler und Verzögerungen während der Textgenerierung.<br><br>
+
+  💡 <i>Dringend empfohlen, wenn du über ausreichend System-RAM verfügst. Auf Systemen mit wenig RAM deaktiviert lassen, um Out-of-Memory-Abstürze zu vermeiden.</i>'
+no_release_notes: Keine Release Notes verfügbar.
+no_scenes: 'Noch keine Szenen.
+
+  Klicke auf  ＋ Neue Szene , um deine erste Geschichte zu beginnen.'
+nsfw_checkbox: NSFW
+onboarding_back: Zurück
+onboarding_card_cloud_desc: Verbinde OpenAI, Claude, Gemini, DeepSeek, OpenRouter und mehr. Von Haus aus schneller und intelligenter, erfordert einen API-Schlüssel.
+onboarding_card_cloud_title: Cloud-Anbieter
+onboarding_card_local_desc: Läuft vollständig auf deinem PC. Kostenlos, privat, funktioniert offline. Lade ein Modell aus dem integrierten Models Hub herunter. Am besten mit einer dedizierten GPU.
+onboarding_card_local_title: Lokales LLM
+onboarding_continue: Weiter
+onboarding_enter: Soul of Waifu betreten
+onboarding_hint_cloud: 'Weiter: Öffne Options und füge deinen API-Schlüssel für einen Anbieter hinzu.'
+onboarding_hint_local: 'Weiter: Öffne Models Hub und lade dir ein Modell, das zu deiner Hardware passt.'
+onboarding_lang_en: EN
+onboarding_lang_ru: RU
+onboarding_persona_placeholder: z. B. Alex
+onboarding_ready_cloud: Gehe zu Options, um deinen API-Schlüssel hinzuzufügen, und erstelle dann deinen Charakter.
+onboarding_ready_local: Gehe zum Models Hub, um dein erstes Modell herunterzuladen, und erstelle dann deinen Charakter.
+onboarding_skip: Überspringen
+onboarding_status_label: SYSTEM ONLINE
+onboarding_step1_intro: Hi. Ich zeige dir kurz die Grundlagen — ein Modell zum Laufen bringen, deinen ersten Charakter erstellen und wo du alles findest. Das dauert etwa eine Minute. Fangen wir an.
+onboarding_step1_kicker: WILLKOMMEN
+onboarding_step1_subtitle: Ein KI-Begleiter, der sich an dich erinnert
+onboarding_step1_title: Soul of Waifu
+onboarding_step2_desc: Du kannst dies später jederzeit in Options ändern.
+onboarding_step2_kicker: SCHRITT 1 VON 4
+onboarding_step2_title: Wie möchtest du deine KI betreiben?
+onboarding_step3_desc: Dies wird deine Standard-Persona, die automatisch in jedem neuen Chat verwendet wird. Du kannst später weitere Personas hinzufügen.
+onboarding_step3_kicker: SCHRITT 2 VON 4
+onboarding_step3_title: Wie sollen dich deine Charaktere nennen?
+onboarding_step4_kicker: SCHRITT 3 VON 4
+onboarding_step4_title: Wo alles zu finden ist
+onboarding_step5_kicker: SCHRITT 4 VON 4
+onboarding_step5_title: Du bist bereit
+onboarding_tour_editors_desc: 'Erstelle einen Charakter von Grund auf: Identität, Lorebook, Personas, Stimme, Ausdrücke.'
+onboarding_tour_editors_title: RP-Editoren
+onboarding_tour_gateway_desc: Durchsuche und importiere Charaktere, die von der Community geteilt wurden.
+onboarding_tour_gateway_title: Characters Gateway
+onboarding_tour_hub_desc: Suche und lade lokale Modelle herunter, mit hardwareabhängigen Empfehlungen.
+onboarding_tour_hub_title: Models Hub
+onboarding_tour_main_desc: Deine Charakterliste und aktive Unterhaltungen.
+onboarding_tour_main_title: Main Hub
+onboarding_tour_options_desc: Feinabstimmung der Generierungsparameter — Allgemein funktioniert überall, Erweitert ist für lokale Modelle.
+onboarding_tour_options_title: Options
+onboarding_tour_stage_desc: Führe Sitzungen mit mehreren Charakteren mit einem KI-Spielleiter durch.
+onboarding_tour_stage_title: Soul Stage
+onboarding_window_title: Willkommen bei Soul of Waifu
+open_ambient_folder_btn: Ambient-Ordner öffnen (Eigenes Audio hinzufügen)
+open_scene_continue_desc: '{count} gespeicherte Nachrichten laden und fortsetzen'
+open_scene_has_history: Diese Szene hat einen gespeicherten Verlauf
+open_scene_new_desc: Neu beginnen — der Verlauf wird gelöscht
+open_scene_title: Soul Stage — Szene öffnen
+opening_narration: Einleitende Erzählung  *
+opening_narration_hint: Die ersten Worte des Erzählers — versetzen den Spieler in die Szene.
+opening_placeholder: Der Regen prasselt auf das Kopfsteinpflaster, während du die schwere Eisentür aufstößt...
+openrouter_models_label: Modell
+options_button: ' Options'
+options_sidebar_title: EINSTELLUNGEN
+output_device_label: Ausgabegerät
+party_member_selected: '{n} ausgewählt'
+party_prefix: ✦
+persona_error_body: Es wurde eine nicht existierende Person ausgewählt, bitte ändere sie.
+persona_error_title: Persona ändern
+personas_button: ' Personas-Editor'
+personas_button_tooltip: <b>Öffnet den Personas-Editor</b><br><br>Hier kannst du Personas erstellen, bearbeiten, auswählen und löschen — Informationen über den Nutzer, der mit den Charakteren kommunizieren wird.
+personas_editor_add: Persona hinzufügen
+personas_editor_avatar_hint: 'Empfohlene Größe: 256x256 px'
+personas_editor_choose_avatar: Bild wählen
+personas_editor_close: Schließen
+personas_editor_confirm_delete: Löschen bestätigen
+personas_editor_confirm_delete_text: 'Bist du sicher, dass du die Persona löschen möchtest '
+personas_editor_create_btn: Persona erstellen
+personas_editor_create_new: Neue Persona erstellen
+personas_editor_default_badge: STANDARD
+personas_editor_default_btn: Als Standard festlegen
+personas_editor_default_persona: (Standard-Persona)
+personas_editor_delete_btn: Löschen
+personas_editor_description: Beschreibung der Persona
+personas_editor_description_placeholder: Beschreibe die Rolle, den Ton und die Hintergrundgeschichte der Persona...
+personas_editor_error: Der Name der Persona darf nicht leer sein.
+personas_editor_library: PERSONAS-BIBLIOTHEK
+personas_editor_name: Name der Persona
+personas_editor_name_placeholder: z. B. Großer Held
+personas_editor_save: Änderungen speichern
+personas_editor_title: Personas-Editor
+placeholder_alternate_greetings: Du kannst so viele alternative Begrüßungen einfügen, wie du möchtest. Vor jeder alternativen Begrüßung musst du das Makro <GREETING> einfügen
+placeholder_api_value: Gib deinen API-Wert ein
+placeholder_base_api: Gib den API-Wert ein (Optional)
+placeholder_base_url: Gib deine benutzerdefinierte Endpunkt-URL ein (Optional)
+placeholder_card_version: Die Version der Charakterkarte
+placeholder_character_description: Dient dazu, die Charakterbeschreibung und andere wichtige Informationen bereitzustellen, die die KI kennen sollte. Sollte alle wichtigen Fakten enthalten
+placeholder_character_name: Der Name deines Charakters
+placeholder_character_personality: Eine Zusammenfassung der Persönlichkeit des Charakters
+placeholder_creator_notes: Zusätzliche Notizen zur Charakterkarte
+placeholder_example_messages: Beschreibt, wie der Charakter spricht. Vor jedem Beispiel musst du das Makro <START> einfügen
+placeholder_first_message: Die erste Nachricht ist entscheidend, da sie den Ton, Stil und die Art und Weise festlegt, wie der Charakter kommunizieren wird
+placeholder_mistral_model_endpoint: Gib den API-Endpunkt des Mistral-Modells ein
+placeholder_scenario: Konversationsszenario
+placeholder_user_description: Deine Persönlichkeit
+placeholder_user_name: Dein Name
+play: Abspielen
+plot_wish_continue_btn: Handlung fortsetzen
+plot_wish_dialog_title: Handlung fortsetzen
+plot_wish_label: Was soll als Nächstes passieren? (Optionale Hinweise für die KI)
+plot_wish_placeholder: z. B. Draußen gibt es eine Explosion, oder jemand klopft an die Tür...
+pres_penalty_text: Anwesenheitsstrafe
+pres_penalty_tooltip: '<b>Anwesenheitsstrafe</b><br><br>
+
+  Wendet eine feste Strafe auf ein Wort an, wenn es <b>mindestens einmal</b> aufgetaucht ist.<br><br>
+
+  Anders als die Häufigkeitsstrafe ermutigt dies die KI, <b>das Thema zu wechseln</b> und neue Konzepte einzuführen, wodurch verhindert wird, dass sich die Konversation im Kreis dreht.<br><br>
+
+  💡 <i>Hohe Werte lassen die KI wahllos zwischen Themen springen. Empfohlen: 0.0 - 0.4.</i>'
+preset_saved_successfully: Preset erfolgreich gespeichert.
+prev_variant_tooltip: Vorherige Antwort
+preview_prompt_button: Rohvorschau
+preview_prompt_desc: 'So ungefähr sieht das LLM-Modell deine Charakterkarte, bevor es eine Antwort generiert:'
+preview_prompt_title: Rohprompt-Vorschau
+program_language_item_de: Deutsch
+program_language_item_en: Englisch
+program_language_item_ru: Russisch
+program_language_label: Programmsprache
+program_title: Soul of Waifu
+promote_npc_already_exists: ist bereits in deiner Charakterliste!
+promote_npc_not_in_scene: Karte erstellt, aber die aktuelle Szene konnte nicht gefunden werden, um den Begleiter zur Gruppe hinzuzufügen.
+promote_npc_success_text: ist zu einer festen Charakterkarte geworden und deiner Gruppe beigetreten!
+promote_npc_success_title: 🌟 Neuer Begleiter!
+promote_npc_title: Begleiter
+provider_desc_anthropic: Prosa der Spitzenklasse, Charakterkonsistenz und emotionale Tiefe
+provider_desc_deepseek: Extrem leistungsfähig und äußerst kosteneffizient — bestes Preis-Leistungs-Verhältnis
+provider_desc_gemini: Riesiges Kontextfenster (1M+ Tokens) — perfekt für lange Geschichten und Sagas
+provider_desc_grok: Weniger zensiert, witzig und kreativ — hervorragend für uneingeschränktes Rollenspiel für Erwachsene
+provider_desc_local: Betreibe Modelle vollständig offline mit maximaler Privatsphäre und ohne Zensur
+provider_desc_mistral: Leistungsstarke offene Modelle mit hervorragender Balance aus Geschwindigkeit und Qualität
+provider_desc_openai: Branchenführende Qualität und Zuverlässigkeit für Rollenspiele
+provider_desc_openrouter: Zugriff auf Hunderte von Top-Modellen an einem Ort — der ultimative Aggregator
+provider_desc_player2: Kostenlose KI, angetrieben von der Player2-App. Kein API-Schlüssel erforderlich — lasse einfach die Player2-Anwendung im Hintergrund laufen.
+provider_desc_qwen: Leistungsstarkes mehrsprachiges Reasoning und starke erzählerische Fähigkeiten
+provider_desc_zai: Schnell, kohärent und hervorragend im Geschichtenerzählen — starke Alternative zu Claude
+provider_name_anthropic: Anthropic
+provider_name_deepseek: DeepSeek
+provider_name_gemini: Google Gemini
+provider_name_grok: Grok
+provider_name_local: Lokales LLM
+provider_name_mistral: Mistral AI
+provider_name_openai: Open AI
+provider_name_openrouter: OpenRouter
+provider_name_player2: Player2
+provider_name_qwen: Qwen
+provider_name_zai: Z.AI
+quant_recommendation_text: Empfohlen wird der Download von Dateien mit 'Q4_K_M' oder 'Q5_K_M' für die beste Balance aus Geschwindigkeit und Qualität.
+reasoning_effort_high: Hoch
+reasoning_effort_low: Niedrig
+reasoning_effort_medium: Mittel
+reasoning_effort_none: 'Aus'
+reasoning_effort_text: Reasoning-Aufwand
+reasoning_effort_tooltip: '<b>Reasoning-Aufwand</b><br><br>
+
+  Steuert, wie viel internes Reasoning Cloud-Reasoning-Modelle vor der Antwort durchführen dürfen.<br>
+
+  Gilt für OpenAI o-Serie/GPT-5, Claude Extended Thinking, Gemini, Grok, DeepSeek, Qwen und GLM-Reasoning-Modelle.'
+reasoning_mode_checkbox: Denk-/Reasoning-Modus
+reasoning_mode_tooltip: '<b>Denk-/Reasoning-Modus (&lt;think&gt;)</b><br><br>
+
+  Wenn aktiviert, gibt das KI-Modell seinen internen Gedankenprozess innerhalb von <b>&lt;think&gt;</b>-Tags aus, bevor es die endgültige Antwort liefert.<br><br>
+
+  Dies verbessert die Logik-, Mathematik- und Problemlösungsfähigkeiten des Modells drastisch, indem es Schritt für Schritt „denken" kann.<br>
+
+  Es verbraucht jedoch mehr Tokens und erhöht die Antwortzeit, da das Modell zuerst seine verborgenen Gedanken generiert.<br><br>
+
+  💡 <i>Aktiviere dies für komplexe Aufgaben, Rätsel oder tiefgehende Rollenspiel-Logik. Deaktiviere es für einfaches, schnelles Chatten.</i>'
+regenerate_confirm_text: 'Alle Nachrichten nach dieser ({count}) werden dauerhaft gelöscht.
+
+  Fortfahren?'
+regenerate_confirm_title: Antwort neu generieren?
+regenerate_image: Bild neu generieren
+reload_ambient_tooltip: Audiotrack-Liste aktualisieren
+reload_models_tooltip: Modellliste aktualisieren
+remove_attachment_tooltip: Anhang entfernen
+remove_from_folder: Aus Ordner entfernen
+rename_chat_button: ''
+rename_chat_prompt: 'Neuen Chatnamen eingeben:'
+rename_chat_title: Chat umbenennen
+repeat_penalty_label: Wiederholungsstrafe
+replay_voice_tooltip: Sprachnachricht abspielen
+required_field_tooltip: Pflichtfeld
+reset_def_btn: Standardwerte zurücksetzen
+retry_button: Wiederholen
+rollback_btn: Rollback
+rollback_btn_tooltip: Vorherige Version wiederherstellen
+romance: Romantik
+rp_card_character_editor_desc: Beginne damit, deine einzigartigen Charaktere mit Persönlichkeiten, Hintergrundgeschichten und Dialogvorlagen zu erstellen.
+rp_card_character_editor_title: Charakter-Ersteller
+rp_card_discord_bot_desc: Verbinde deine Charaktere mit Discord und chatte überall mit ihnen.
+rp_card_discord_bot_title: Discord-Gateway
+rp_card_image_gen_desc: Konfiguriere die KI-Bildgenerierungseinstellungen für deine Charaktere und Geschichten.
+rp_card_image_gen_title: Bildgenerierung
+rp_card_lorebook_desc: Erstelle Regeln, Orte und Weltereignisse für deine Szenarien.
+rp_card_lorebook_title: Lorebooks
+rp_card_personas_desc: Verwalte deine Nutzerprofile, Avatare und Identitätsbeschreibungen.
+rp_card_personas_title: Personas
+rp_card_prompts_desc: Konfiguriere Anweisungen und das Format, in dem die KI Charakterdaten erhält.
+rp_card_prompts_title: System-Prompts
+rp_card_soul_stage_desc: Tauche ein in interaktives Storytelling mit mehreren Charakteren und einem KI-Regisseur.
+rp_card_soul_stage_title: Soul Stage
+rp_editors_button: ' RP-Editoren'
+rp_editors_subtitle: Erstelle Charaktere, inszeniere Szenen mit Soul Stage und verwalte Weltenlore, Personas und System-Prompts
+rp_editors_title: Rollenspiel-Editoren
+save_changes: Änderungen speichern
+save_image_as: Bild speichern unter...
+save_launch: Speichern & Starten  ▶
+save_mapping_btn: Zuordnung speichern
+sc_approval_action: Aktion
+sc_approval_allow: ✓ Erlauben
+sc_approval_deny: ✕ Ablehnen
+sc_approval_title: ⚠️ Begleiter möchte eine Aktion ausführen
+sc_hud_cortisol: 🔥 Cortisol (Stress)
+sc_hud_dopamine: ⚡ Dopamin (Fokus)
+sc_hud_energy: 🔋 Energie (Vitalität)
+sc_hud_hormones_title: Hormonelles Gleichgewicht
+sc_hud_oxytocin: 🧪 Oxytocin (Liebe)
+sc_hud_scratchpad_title: 🧠 Interne Gedanken des Begleiters (ScratchPad)
+sc_input_placeholder: Schreibe deinen Text...
+sc_menu_aot_off: '📌  Immer im Vordergrund: AUS'
+sc_menu_aot_on: '📌  Immer im Vordergrund: AN'
+sc_menu_center: 📍  Auf Bildschirm zentrieren
+sc_menu_click_through_off: '👁‍🗨  Klick-Durchlässigkeit: AUS'
+sc_menu_click_through_on: '👁‍🗨  Klick-Durchlässigkeit: AN'
+sc_menu_clipboard: 📋  Zwischenablage lesen (Analysieren)
+sc_menu_eye_off: '👁  Blickverfolgung: AUS'
+sc_menu_eye_on: '👁  Blickverfolgung: AN'
+sc_menu_hide: ❌  Begleiter ausblenden
+sc_menu_hud: 📊  Hormon-HUD anzeigen
+sc_menu_mic_off: Mikrofon ausschalten
+sc_menu_mic_on: Mikrofon einschalten
+sc_menu_min_10: 10 Minuten
+sc_menu_min_15: 15 Minuten
+sc_menu_min_3: 3 Minuten
+sc_menu_min_30: 30 Minuten
+sc_menu_min_5: 5 Minuten
+sc_menu_min_60: 60 Minuten
+sc_menu_mind: 🧠  Was beschäftigt dich?
+sc_menu_motions: Bewegungen
+sc_menu_pet: 🤚  Streicheln
+sc_menu_play_animation: 🎭  Animation abspielen
+sc_menu_proactive: 🗓  Proaktives Intervall
+sc_menu_quick_actions: ⚡  Schnellaktionen
+sc_menu_react_off: '💬  Fensterreaktionen: AUS'
+sc_menu_react_on: '💬  Fensterreaktionen: AN'
+sc_menu_reset: 🔄  Größe zurücksetzen
+sc_menu_scratchpad: 🧠  ScratchPad-Gedanken
+sc_menu_settings: ⚙️  Begleiter-Einstellungen
+sc_menu_size: 📐  Modellgröße
+sc_menu_size_large: Groß  (600 × 900)
+sc_menu_size_medium: Mittel (400 × 600)
+sc_menu_size_small: Klein  (200 × 300)
+sc_menu_sleep: 😴  Schlafen nach
+sc_menu_speed: 👁  Verfolgungsgeschwindigkeit
+sc_menu_speed_fast: Schnell
+sc_menu_speed_normal: Normal
+sc_menu_speed_slow: Langsam
+sc_menu_sub_off: '📝  Untertitel: AUS'
+sc_menu_sub_on: '📝  Untertitel: AN'
+sc_menu_text_bar_hover: 💬  Text-Chat-Leiste (Hover)
+sc_menu_text_bar_off: 💬  Text-Chat-Leiste (AUS)
+sc_menu_text_bar_on: 💬  Text-Chat-Leiste (AN)
+sc_menu_vision: 📸  Meinen Bildschirm ansehen (Vision)
+scenario: Szenario
+scene_has_entries: 'Diese Szene hat {} gespeicherte Einträge.
+
+  Fortsetzen oder neue Sitzung starten?'
+sci_fi: Sci-Fi
+search_in_chat_placeholder: Im Chat suchen...
+search_in_chat_tooltip: Im Chat suchen (Strg+F)
+search_placeholder: Suche
+search_scenes: Szenen durchsuchen...
+search_settings_placeholder: Einstellungen durchsuchen...
+section_ambient_audio: AMBIENT-AUDIO
+section_app_interface: APP-OBERFLÄCHE
+section_arcs: Handlungsbögen
+section_audio_channels: AUDIO-EIN-/AUSGABEKANÄLE
+section_campaign: Kampagnentafel
+section_character_states: Charakterzustände
+section_cognitive_architecture: KOGNITIVE ARCHITEKTUR
+section_core_samplers: KERN-SAMPLER
+section_creativity: KREATIVITÄT & SAMPLING
+section_dry: DRY (ANTI-SCHLEIFE)
+section_dyn_temp: DYNAMISCHE TEMPERATUR
+section_engine: V.  ENGINE-EINSTELLUNGEN
+section_environment: Umgebungseinrichtung
+section_environment_background: UMGEBUNGSHINTERGRUND
+section_hw_tuning: LEISTUNGS- & SPEICHEROPTIMIERUNG
+section_identity: I.  SZENENIDENTITÄT
+section_inference_engine: INFERENZ-ENGINE
+section_lore: Kampagnen-Lore
+section_mcp_settings: EXTERNE MCP-SERVER
+section_memory: Weltgedächtnis
+section_message_translation: NACHRICHTENÜBERSETZUNG
+section_npcs: Charaktere in der Szene
+section_opening: III.  GESCHICHTENEINSTIEG
+section_party: IV.  GRUPPENMITGLIEDER
+section_penalties: WIEDERHOLUNGSSTRAFEN
+section_player_conditions: Spielerzustände
+section_player_items: Spielergegenstände
+section_prompt_structure: PROMPT-STRUKTUR & SYNTAX
+section_relationships: Beziehungen
+section_render_engine: RENDER-ENGINE
+section_resources: Ressourcen & Fertigkeiten
+section_response_control: ANTWORTSTEUERUNG
+section_system_resources: SYSTEMRESSOURCEN
+section_tool_calling: TOOL-CALLING-BERECHTIGUNGEN
+section_tts_voicing_mode: SPRACHAUSGABEMODUS-AUSWAHL
+section_web_server: WEB-OBERFLÄCHEN-SERVER
+section_world: II.  WELTZUSTAND & UMGEBUNG
+section_xtc: XTC (ANTI-KLISCHEE)
+select_characters: Wähle Charaktere für diese Szene
+select_file: Szenendatei auswählen
+select_quant_title: Quantisierungsstufe auswählen
+select_workflow_dialog: ComfyUI-Workflow auswählen (API JSON)
+selected_label: ausgewählt
+settings_summary_interval: 'Intervall (Nachrichten):'
+short_description: Kurzbeschreibung
+show_in_folder: Im Ordner anzeigen
+simple_version_label: Version
+slice_of_life: Alltagsgeschichte
+sm_mode_full: Vollständige Synchronisation
+sm_mode_full_tooltip: '<b>🌌 Vollständige Synchronisation</b><br><br>
+
+  Vollständige kognitive Verbindung. Jeder Aspekt des Charakters ist aktiv:<br><br>
+
+  • <b>Psychologischer Index:</b> Stimmungsverfolgung in Echtzeit.<br>
+
+  • <b>Lore-Themen:</b> Tiefgehender Weltenbau und Fakten.<br>
+
+  • <b>Tagebuch:</b> Emotionale Reflexionen aus der Ich-Perspektive.<br><br>
+
+  <i>Das ultimative Erlebnis. Erfordert ein leistungsstarkes System oder eine API.</i>'
+sm_mode_mind_spark: Mind Spark
+sm_mode_mind_spark_tooltip: '<b>⚡ Mind Spark</b><br><br>
+
+  Taktisches Gedächtnis für maximale Leistung.<br><br>
+
+  • Aktualisiert <b>NUR</b> den <b>MEMORY.md</b>-Index.<br><br>
+
+  Stellt sicher, dass der Charakter weiß, wer er ist, wie er sich fühlt und was er gerade will.<br><br>
+
+  <b>Was übersprungen wird:</b> Es werden keine Tagebücher oder Lore-Dateien erstellt.<br><br>
+
+  <i>Am besten für: Langsame Systeme oder schnelles Rollenspiel, bei dem nur die Logik zählt.</i>'
+sm_mode_reflection_flow: Reflection Flow
+sm_mode_reflection_flow_tooltip: '<b>📓 Reflection Flow</b><br><br>
+
+  Emotionale Protokollierung ohne jeglichen Einfluss auf die Chat-Logik.<br><br>
+
+  • Nur der <b>Tagebuch-Agent</b> ist aktiv.<br><br>
+
+  Der Charakter aktualisiert seinen „internen Zustand" im Index nicht, schreibt aber weiterhin emotionale Einträge in sein Tagebuch.<br><br>
+
+  <b>Was übersprungen wird:</b> Keine Aktualisierungen des psychologischen Index oder der Lore.<br><br>
+
+  <i>Am besten für: Maximale Geschwindigkeit bei gleichzeitiger Aufzeichnung der Gefühle des Charakters.</i>'
+sm_mode_soul_link: Soul Link
+sm_mode_soul_link_tooltip: '<b>🔗 Soul Link</b><br><br>
+
+  Konzentriert sich auf Persönlichkeit und Emotionen.<br><br>
+
+  • Aktualisiert den <b>MEMORY.md</b>-Index, um Stimmung und Ziele des Charakters konsistent zu halten.<br>
+
+  • Der <b>Tagebuch-Agent</b> hält seine privaten Gefühle für dich fest.<br><br>
+
+  <b>Was übersprungen wird:</b> Das System erstellt oder aktualisiert keine Lore-Themen.<br><br>
+
+  <i>Am besten für: Eine tiefe Bindung aufrechterhalten, ohne die CPU/GPU stark zu belasten.</i>'
+solo_mode: 🧍 Solo-Modus — starte ohne Gruppe, triff Begleiter unterwegs
+solo_mode_hint: 'Du musst keine fertige Gruppe wählen. Der Spielleiter kann NPCs einführen '
+soul_memory_batch_label: 'Batch-Größe (0 = manuell):'
+soul_memory_btn_delete: Datei löschen
+soul_memory_btn_edit: Bearbeiten
+soul_memory_btn_open: ' .soul-Ordner öffnen'
+soul_memory_btn_preview: Vorschau
+soul_memory_btn_refresh: ' Aktualisieren'
+soul_memory_btn_save: Änderungen speichern
+soul_memory_content_placeholder: Gedächtnisinhalt...
+soul_memory_del_error: Löschfehler
+soul_memory_del_success: Datei gelöscht
+soul_memory_del_text: Bist du sicher, dass du diese Gedächtnisdatei dauerhaft löschen möchtest?
+soul_memory_del_title: Löschen bestätigen
+soul_memory_empty: Der Chatverlauf ist leer.
+soul_memory_logs_empty: Das Agent-Protokoll ist leer. Chatte mit dem Charakter, um eine Gedächtnisanalyse auszulösen.
+soul_memory_manual_cancelled: Die manuelle Gedächtnisaktualisierung wurde abgebrochen.
+soul_memory_manual_completed: Die manuelle Gedächtnisaktualisierung wurde erfolgreich abgeschlossen...
+soul_memory_manual_error: Die manuelle Gedächtnisaktualisierung ist fehlgeschlagen.
+soul_memory_manual_start: Manuelle Gedächtnisaktualisierung gestartet...
+soul_memory_mode_label: 'Soul-Memory-Modus:'
+soul_memory_no_chat: Bitte öffne zuerst einen Chat mit einem Charakter.
+soul_memory_placeholder: Der Inhalt der Gedächtnisdatei wird hier angezeigt...
+soul_memory_provider_error: Anbieter '{provider}' nicht gefunden.
+soul_memory_save_error: Speicherfehler
+soul_memory_save_success: Erfolgreich gespeichert
+soul_memory_subtitle: Der Soul-Memory-Agent analysiert Gespräche und aktualisiert diese Datenbank im Hintergrund. Du kannst Fakten hier manuell bearbeiten.
+soul_memory_tab_db: Gedächtnisdatenbank
+soul_memory_tab_diary: Tagebuch
+soul_memory_tab_logs: Selbstheilungsprotokolle
+soul_memory_tab_prompt: Letzter Prompt
+soul_memory_prompt_empty: Es wurde noch kein Prompt zusammengestellt. Sende zuerst eine Nachricht.
+soul_memory_btn_forget: Fakten vergessen…
+soul_memory_forget_none: In dieser Datei wurden keine vergessbaren Fakten gefunden.
+soul_memory_forget_done: "{n} Fakt(en) vergessen und neu eingebettet."
+soul_memory_tab_user: Nutzerprofil
+soul_memory_title: Soul-Memory-Archiv
+soul_memory_tooltip: '<b>🧠 Soul Memory</b><br><br>
+
+  Verwandle deinen Charakter von einer einfachen KI in eine lebendige digitale Wesenheit mit einem <b>kontinuierlichen, lebenslangen Gedächtnis</b>. Dies ist der kognitive Kern des Soul of Waifu-Ökosystems.<br><br>
+
+  Anstatt sich auf fehlerhafte Rohtextsuche zu verlassen, nutzt Soul Memory eine fortschrittliche <b>Multi-Agenten-Architektur</b>:<br>
+
+  • <b>Dual-Core-Indizierung:</b> Trennt die Psychologie des Charakters (<i>MEMORY.md</i>) von deinem Nutzerprofil und den Beziehungsmetadaten (<i>USER.md</i>). Dies verhindert Rollenverwechslungen und optimiert das Prompt-Caching.<br>
+
+  • <b>Archivar & Tagebuch:</b> Hintergrundagenten stellen eigenständig dichte episodische Lore-Themen zusammen und schreiben intime, <i>emotionale Tagebucheinträge aus der Ich-Perspektive</i> über eure Interaktionen.<br>
+
+  • <b>Selbstheilung & Verfall:</b> Erkennt und löst automatisch logische Widersprüche im Gedächtnis über die Zeit, während natürliche emotionale Übergänge verwaltet werden.<br><br>
+
+  Das Ergebnis? Null Kontext-Aufblähung und absolute Persönlichkeitskonsistenz. Egal ob du in einem Soul-Stage-Abenteuer bist oder mit deinem Soul Companion entspannst, <b>sie werden sich an alles erinnern</b>.'
+soul_of_waifu_system_title: Soul of Waifu System
+soul_stage_active_actors: Aktiv auf der Bühne
+soul_stage_backstage: Backstage / Aufgebot
+soul_stage_btn_interrupt: Unterbrechen / Eingreifen
+soul_stage_btn_spawn: NPC beschwören
+soul_stage_button: ' Soul Stage'
+soul_stage_log_remove: 'Charakter hat die Bühne verlassen: '
+soul_stage_log_spawn: 'Erzähler hat einen neuen NPC beschworen: '
+soul_stage_mode_title: 'Soul Stage: Erzählerische Orchestrierung'
+soul_stage_narrator_name: Erzähler
+soul_stage_no_party_error: Keine Gruppenmitglieder in der Szene! Füge mindestens einen Charakter hinzu, bevor du startest.
+soul_stage_scenarios: Soul-Stage-Szenarien
+soul_stage_solo_no_memory: Noch keine Begleiter in deiner Gruppe. Triff NPCs unterwegs!
+soul_stage_title: Soul Stage
+soul_stage_wait_user: Warte auf Spieleraktion...
+delete_chat_also_memory: Lösche auch die Soul-Memory-Daten dieses Chats dauerhaft
+export_include_memory: |-
+  Soul-Memory-Daten in den Export einschließen?
+  (Index, Nutzerprofil, Themendateien und Tagebuch — damit dieser Chat seine Erinnerungen auf einem anderen Gerät behält)
+btn_export: Export
+import_restore_memory: |-
+  Dieser Export enthält Soul-Memory-Daten. Zusammen mit dem Chat wiederherstellen?
+btn_restore: Wiederherstellen
+soul_hub_tab: Soul Hub
+chub_ai_tab: Chub AI
+soul_hub_tooltip: Soul Hub — Katalog für Charakterkarten
+hub_tag_tooltip: Nach Tag filtern
+hub_sort_tooltip: Ergebnisse sortieren
+hub_tag_all: Alle Tags
+hub_sort_trending: '🔥 Beliebt'
+hub_sort_recent: '🆕 Neu'
+hub_sort_popular: '⬇ Beliebt'
+hub_sort_favorites: '⭐ Favoriten'
+import_url_unsupported: |-
+  Nicht unterstützter Link. Verwende eine chub.ai-Charakterseite, eine RisuAI-Realm-Seite oder eine direkte .png-URL.
+import_url_downloading: Karte wird heruntergeladen...
+import_url_failed: 'Download fehlgeschlagen: {error}'
+import_url_not_card: |-
+  Der Link hat keine Charakterkarte zurückgegeben (PNG mit eingebetteten Daten erwartet).
+impersonate_btn_tooltip: |-
+  Impersonate — die KI entwirft deine nächste Nachricht im Eingabefeld
+impersonate_no_chat: Bitte öffne zuerst einen Chat mit einem Charakter.
+impersonate_empty: Das Modell hat einen leeren Entwurf zurückgegeben.
+impersonate_error: 'Impersonate fehlgeschlagen: {error}'
+author_notes_scope_label: GELTUNGSBEREICH
+author_notes_scope_chat: 'Nur dieser Chat'
+author_notes_scope_global: Global (alle Charaktere & Chats)
+author_notes_depth_label: EINFÜGETIEFE
+author_notes_depth_tooltip: |-
+  Wie viele Nachrichten vom Ende des Verlaufs entfernt die Notiz platziert wird. 0 = direkt vor deiner Nachricht.
+author_notes_scope_error: Der aktuelle Chat konnte nicht ermittelt werden.
+lorebook_recursive_label: Rekursiv
+lorebook_recursive_tooltip: |-
+  Der Inhalt aktivierter Einträge kann andere Einträge auslösen (bis zur untenstehenden Tiefe).
+lorebook_recursive_depth_tooltip: Maximale Rekursionsdurchläufe (1-4).
+sow_system_modules_title: Module
+sow_system_status_speak: Sprich...
+sow_system_status_stop: Starte eine Unterhaltung
+sow_system_tab: Soul of Waifu-Module
+sow_system_title: Soul of Waifu System
+sow_system_tooltip: '<b>✨ Soul of Waifu System</b><br><br>
+
+  Dies ist der <b>erweiterte Modus</b> des Programms, der <b>das volle Potenzial</b> deiner Kommunikation mit Charakteren entfesselt.<br><br>
+
+  Du kannst:<br>
+
+  • Charakteren Avatare zuweisen — statische oder GIF-Bilder, animierte Live2D-Modelle oder volumetrische VRM-Modelle;<br>
+
+  • Charaktere anrufen — über ein Mikrofon in einer speziell für diesen Modus entwickelten Oberfläche kommunizieren;<br>
+
+  • Zusätzliche Module verbinden: Soul Memory, Ambient, Übersetzer und viele weitere.'
+ss_activated_msg: '<i>Soul Stage aktiviert.</i><br><i>Gruppe: {party}</i><br><i>Beschreibe eine Aktion — die Geschichte beginnt.</i>'
+ss_auto_10: ▶ 10 Züge abspielen
+ss_auto_5: ▶ 5 Züge abspielen
+ss_auto_active_tooltip: Auto-Play läuft — klicken zum Konfigurieren/Stoppen
+ss_auto_failed: 'Auto-Play gestoppt: Die letzten beiden Züge haben keinen Inhalt erzeugt. Überprüfe Anbieter/Verbindung.'
+ss_auto_finished: Auto-Play beendet ({count} Züge gespielt).
+ss_auto_inf: ▶ Abspielen, bis ich stoppe
+ss_auto_max: ▶ 30 Züge abspielen
+ss_auto_started: Auto-Play gestartet — die Szene spielt sich jetzt von selbst.
+ss_auto_stop: ⏹ Auto-Play stoppen
+ss_auto_tooltip: 'Auto-Play: die Szene spielt sich von selbst'
+ss_char_removed_from_scenes: '''{name}'' wurde aus {count} Soul-Stage-Szene(n) entfernt.'
+ss_chronicle_delete: Konsequenz löschen
+ss_chronicle_header: Dauerhafte Konsequenzen vergangener Entscheidungen. Der Spielleiter muss diese Fakten respektieren.
+ss_chronicle_hint: Rechtsklick auf einen Eintrag, um ihn zu entfernen.
+ss_chronicle_title: Chronik — Dauerhafte Konsequenzen
+ss_chronicle_tooltip: Chronik dauerhafter Konsequenzen
+ss_chronicle_turn: Zug
+ss_deactivated_msg: <i>Soul Stage beendet. Standardmodus wiederhergestellt.</i>
+ss_edit_msg_dialog_title: Nachricht bearbeiten — Soul Stage
+ss_edit_msg_save_btn: Speichern & Zug zurückspulen
+ss_edit_msg_sub: Das Speichern aktualisiert deinen Text, spult den Weltzustand zurück und wiederholt den Erzählzug.
+ss_edit_msg_title: SPIELERNACHRICHT BEARBEITEN
+ss_empty_action: Gib zuerst eine Aktion oder einen Dialog ein.
+ss_error: FEHLER
+ss_menu_copy: Kopieren
+ss_menu_delete: Nachricht löschen
+ss_menu_edit: Nachricht bearbeiten
+ss_menu_promote_npc: Zum Begleiter befördern
+ss_menu_regenerate: Zug neu generieren
+ss_menu_translate_en: Übersetzen → Englisch
+ss_menu_translate_ru: Übersetzen → Russisch
+ss_setup_btn_launch: ⬡ Soul Stage starten
+ss_setup_dialog_title: Soul Stage — Gruppen-Setup
+ss_setup_header: ⬡ Soul Stage
+ss_setup_sub: Wähle Charaktere für die Gruppe aus. <b>{name}</b> wird automatisch hinzugefügt.
+ss_whisper_to: flüstert zu
+starting_ambient: Start-Ambiente
+starting_ambient_hint: Hintergrundaudio für diese Szene. Der Planer kann es dynamisch wechseln.
+starting_background: Starthintergrund
+starting_background_hint: Der Planer kann dies während der Szene dynamisch ändern.
+starting_location: Startort
+status_cancelling: Download wird abgebrochen und aufgeräumt...
+status_download_complete: Download abgeschlossen!
+status_init_download: Download wird initialisiert...
+status_no_binary: Keine kompatible Binärdatei gefunden.
+status_ready_download: Bereit zum Herunterladen.
+status_restoring: Backup wird wiederhergestellt...
+status_up_to_date: Du bist auf dem neuesten Stand!
+stop_generation_tooltip: Generierung stoppen
+stop_strings_label: Stopp-Strings
+stop_strings_placeholder: \nUser:, </s>, <|eot_id|>, <|im_end|>
+stop_strings_tooltip: '<b>Stopp-Strings</b><br><br>
+
+  Eine Liste von Wörtern oder Symbolen, die die KI zwingen, <b>sofort mit der Textgenerierung aufzuhören</b>.<br><br>
+
+  Dies ist ein entscheidendes Werkzeug, um zu verhindern, dass die KI in deinem Namen spricht oder handelt (z. B. <code>\nUser:</code> generiert und für dich antwortet).<br><br>
+
+  💡 <i>Durch Kommas trennen. Beispiel: <code>\nUser:, &lt;/s&gt;, &lt;|eot_id|&gt;</code></i>'
+sub_modules_title: Untermodule
+success_title: Erfolg
+summary_editor_clear: Gedächtnis löschen
+summary_editor_clear_text: Bist du sicher, dass du das Geschichtsgedächtnis löschen möchtest?
+summary_editor_clear_title: Gedächtnis löschen?
+summary_editor_covered_badge: 'Verlauf: 1-{last_seq}'
+summary_editor_covered_history: 'Abgedeckter Verlauf: Nachrichten 1-{last_seq}'
+summary_editor_current_memory_label: AKTUELLES GEDÄCHTNISARCHIV
+summary_editor_current_memory_text: Aktueller Gedächtnistext (Das Ergebnis, das in den Kontext eingefügt wird)
+summary_editor_generate: Zusammenfassung generieren
+summary_editor_generating: Wird generiert...
+summary_editor_header_title: GESCHICHTSGEDÄCHTNIS-EDITOR
+summary_editor_heading: Geschichtsgedächtnis
+summary_editor_instruction_placeholder: Anweisungen für die KI eingeben...
+summary_editor_memory_empty: Das Gedächtnis ist leer...
+summary_editor_no_new_msg: Keine neuen Nachrichten zum Zusammenfassen.
+summary_editor_prompt_label: ZUSAMMENFASSUNGSDIREKTIVEN (PROMPT)
+summary_editor_save: Änderungen speichern
+summary_editor_saved_toast: Gedächtnis und Direktiven erfolgreich gespeichert.
+summary_editor_subtitle: ARCHIV & KOMPRIMIERUNG
+summary_editor_sum_instructions: Zusammenfassungsanweisungen (Wie die KI die Geschichte komprimieren soll)
+summary_editor_title: Geschichtsgedächtnis-Editor
+summary_editor_tooltip: Verwendet die untenstehenden 'Anweisungen', um aktuelle Nachrichten sofort zusammenzufassen.
+summary_editor_update_text: Aktualisierungssignal gesendet. Das Gedächtnis wird in Kürze basierend auf den neuen Anweisungen aktualisiert.
+summary_tooltip: Gesprächszusammenfassung bearbeiten
+support_btn: Support
+switch_persona_tooltip: Nutzer-Persona wechseln
+system_error: 'Systemfehler: '
+system_error_title: Systemfehler
+system_prompt_building_label: System-Prompt-Preset
+system_prompt_button: ' System-Prompt-Editor'
+system_prompt_button_tooltip: "Hier kannst du <b>den System-Prompt anpassen</b> für das Sprachmodell — wie sich der Charakter während eurer Gespräche verhalten soll.<br><br>\n\nDu kannst:<br>\n• <b>Den Prompt-Text bearbeiten</b> — Ton anpassen, Sprachmuster oder Eigenheiten hinzufügen.<br>\n• <b>Komponenten neu anordnen</b> — die Priorität von Informationen steuern.<br><br>\n\n<b>Warum ist die Reihenfolge wichtig?</b><br>\nDas Modell merkt sich am besten, was <b>näher am Ende</b> des Prompts steht.<br>\nWenn der Charakter öfter auf Lore verweisen soll — verschiebe das Lorebook ans Ende.<br>\nWenn die Persönlichkeit am wichtigsten ist — platziere die Charakterinfo zuletzt.<br><br>\n\n💡 <i>Nutze diesen Editor, um den Charakter authentischer, konsistenter und lebendiger wirken zu lassen. \nPasse Text und Reihenfolge an, bis sie genau so sprechen, wie sie sollen.</i>"
+system_prompt_editor_component_label: PROMPT-KOMPONENTENREIHENFOLGE (Drag & Drop zum Neuanordnen)
+system_prompt_editor_default_btn: Standardmäßig
+system_prompt_editor_delete_preset: Preset löschen
+system_prompt_editor_delete_preset_first: 'Möchtest du das Preset wirklich entfernen:'
+system_prompt_editor_delete_preset_second: Diese Aktion kann nicht rückgängig gemacht werden.
+system_prompt_editor_delete_preset_title: Preset löschen
+system_prompt_editor_header_title: SYSTEM-PROMPT-EDITOR
+system_prompt_editor_new_preset: Neues Preset
+system_prompt_editor_order: Reihenfolge der Prompt-Komponenten
+system_prompt_editor_panel_title: PRESET-STEUERUNGSPANEL
+system_prompt_editor_preset_name: 'Preset-Namen eingeben:'
+system_prompt_editor_presets: Presets
+system_prompt_editor_save_preset: Preset speichern
+system_prompt_editor_subtitle: KOMPONENTEN & PRESETS
+system_prompt_editor_system_prompt: System-Prompt
+system_prompt_editor_system_prompt_edit: Schreibe hier den System-Prompt
+system_prompt_editor_text_label: SYSTEM-PROMPT-DIREKTIVE
+system_prompt_editor_title: System-Prompt-Editor
+system_tab: System
+tab_arcs: Handlungsbögen
+tab_campaign: Kampagnentafel
+tab_character_states: Charakterzustände
+tab_facts: Schlüsselfakten
+tab_inventory: Inventar
+tab_lore: Lore-Karten
+tab_npcs: Aktive NPCs
+tab_relationships: Beziehungen
+tab_resources: Ressourcen
+tab_scene: Szene
+tab_status: Status
+target_auto: Auto
+target_language_item_ru: Russisch
+target_language_label: Zielsprache
+target_next_label: 'Nächste:'
+target_tooltip: Wähle manuell, wer als Nächstes spricht, anstatt es dem Spielleiter zu überlassen.
+temperature_label: Temperatur
+temperature_text: Temperatur
+temperature_tooltip: '<b>Temperatur (Kreativität)</b><br><br>
+
+  Steuert die grundlegende Zufälligkeit der Antworten der KI.<br><br>
+
+  • <b>Niedrig (0.1–0.5):</b> Logisch und vorhersehbar. Langweilig für Rollenspiele.<br>
+
+  • <b>Hoch (0.8–1.5):</b> Sehr kreativ, ausdrucksstark und unvorhersehbar.<br><br>
+
+  💡 <i>Empfohlen: 0.8–1.0. Verwende bei höheren Werten unbedingt <b>Min-P</b>, um unsinnige Wörter herauszufiltern.</i>'
+thinking_hide_hint: ausblenden
+thinking_process_label: DENKPROZESS
+thinking_show_hint: anzeigen
+time_h: Std
+time_left: übrig
+time_m: Min
+time_of_day: Tageszeit
+time_s: Sek
+title: Titel  *
+title_placeholder: z. B. Die Obsidian-Zitadelle
+toast_ai_assistant_applied: '{applied_count} Felder erfolgreich übernommen!'
+toast_ai_assistant_title: KI-Assistent
+toast_attach_limit: Du kannst bis zu {limit} Dateien pro Nachricht anhängen.
+toast_attach_title: Anhänge
+toast_attach_too_large: '''{filename}'' ist größer als {size} MB und wurde übersprungen.'
+toast_busy_text: Der Charakter antwortet noch. Stoppe zuerst die laufende Generierung.
+toast_busy_title: Bitte warten
+toast_call_system_title: Anrufsystem
+toast_character_editor_title: Charakter-Editor
+toast_companion_error_title: Begleiter-Fehler
+toast_connection_error_title: Verbindungsfehler
+toast_folder_error_title: Ordnerfehler
+toast_folder_title: Ordnerverwaltung
+toast_generation_error_text: Es konnte keine Antwort vom Charakter abgerufen werden. Überprüfe deine Verbindung oder Anbietereinstellungen und versuche es erneut.
+toast_generation_error_title: Generierung fehlgeschlagen
+toast_generation_interrupted_text: Die Verbindung wurde unterbrochen, daher könnte diese Antwort unvollständig sein.
+toast_generation_interrupted_title: Antwort unterbrochen
+toast_image_gen_creating: Bild wird generiert...
+toast_image_gen_failed: Bildgenerierung fehlgeschlagen.
+toast_image_gen_prompt_error: Bild-Prompt konnte nicht generiert werden.
+toast_image_gen_title: Bildgenerierung
+toast_llm_error_title: Konfigurationsfehler
+toast_message_editor_title: Nachrichten-Editor
+toast_model_chosen_text: OpenRouter-Modell auf '{model_name}' gesetzt.
+toast_model_chosen_title: Modell ausgewählt
+toast_network_error_text: Daten konnten nicht aus dem Netzwerk geladen werden. Bitte überprüfe deine Verbindung.
+toast_network_error_title: Verbindungsproblem
+toast_persona_exist: Eine Persona mit diesem Namen existiert bereits
+toast_profile_error_title: Profilfehler
+toast_regenerate_error_text: Die Antwort konnte nicht neu generiert werden. Die vorherige Nachricht wurde beibehalten.
+toast_saved_successfully: Erfolgreich gespeichert
+toast_search_title: Sprachsuche
+toast_success: Erfolg
+toast_tools_disabled: Tools sind jetzt deaktiviert.
+toast_tools_enabled: 'Der Charakter kann beim Antworten jetzt Tools verwenden: {tool_list}'
+toast_tools_title: Tools
+toast_translate_error_title: Übersetzerfehler
+toast_tts_replay_missing: Kein gespeichertes Sprachaudio für diese Nachricht.
+toast_tts_replay_title: Sprachnachricht
+toast_visual_settings_title: Visuelle Einstellungen
+toast_voice_settings_title: Spracheinstellungen
+toggle_tools_tooltip: Erlaubt dem Charakter, beim Antworten Tools zu verwenden (Taschenrechner, Datum/Uhrzeit, Websuche)
+tool_app_control_desc: 'Verwalte Windows-Anwendungen und Verknüpfungen: Programme starten, Ordner/Papierkorb öffnen, Fenster fokussieren oder Prozesse bei Bedarf beenden.'
+tool_app_control_title: AppControlTool
+tool_browse_web_desc: Autonomes Web-Browsing und Recherche über Chromium. Liest bereinigten Seitentext, klickt Schaltflächen, füllt Formulare aus und lädt Dateien in die Sandbox herunter.
+tool_browse_web_title: BrowserAgentTool [Playwright]
+tool_env_snapshot_desc: Echtzeit-Hardware-Snapshots und ein Hintergrund-Watchdog, der proaktiv bei niedrigem Akkustand, GPU-Überhitzung oder abgeschlossenen Downloads warnt.
+tool_env_snapshot_title: SystemVitalsMonitorTool [Hardware-Watchdog]
+tool_execute_code_desc: Schreibe und führe Python- und PowerShell-Skripte in einer isolierten lokalen Sandbox aus, für Berechnungen, Dateiverarbeitung und Stapelaufgaben.
+tool_execute_code_title: ExecuteCodeTool [Code-Interpreter]
+tool_file_organizer_desc: Untersucht Desktop-/Ordnerinhalte (.lnk-Verknüpfungen, Verzeichnisse, Dateien), durchsucht Dateien und organisiert lose Dateien automatisch in Kategorien.
+tool_file_organizer_title: FileOrganizerTool [Workspace-Manager]
+tool_gui_action_desc: 'Direkte Steuerung von Betriebssystem & GUI: Mausbewegungen, Klicks, Texteingabe, Fenster-Scrollen und Tastenkombinationen (Strg+S, Eingabe, Alt+Tab usw.).'
+tool_gui_action_title: GUIActionTool [Computer Use]
+tool_hardware_specs_desc: Ruft detaillierte PC-Hardware-Spezifikationen (CPU, RAM, GPU, VRAM und Speicher) ab, um die Systemkompatibilität für Spiele und lokale KI-Modelle zu bewerten.
+tool_hardware_specs_title: GetHardwareSpecsTool
+tool_media_desc: Steuert die Medienwiedergabe auf deinem Windows-PC (Pause, Wiedergabe, nächster/vorheriger Titel in Spotify, YouTube oder Browser-Playern).
+tool_media_title: MediaControlTool
+tool_planner_desc: Zerlegt komplexe, mehrstufige Nutzeranfragen in sequenzielle Tool-Ketten und führt sie mit Sicherheitsprüfungen pro Schritt aus.
+tool_planner_title: TaskPlannerTool [Hierarchischer Planer]
+tool_read_clipboard_desc: Liest den aktuellen Textinhalt aus der Zwischenablage des Nutzers zur Analyse oder für Fragen.
+tool_read_clipboard_title: ClipboardReaderTool
+tool_sysinfo_desc: Ruft die genaue Systemzeit und das Datum deines PCs ab, damit die KI den aktuellen Zeitplan im Blick behält.
+tool_sysinfo_title: GetSystemInfoTool
+tool_url_desc: Öffnet bei Bedarf Links oder Websites (wie YouTube oder GitHub) in deinem Standard-Webbrowser.
+tool_url_title: OpenURLTool
+tool_using_label: verwendet {tool}...
+tool_vision_desc: Analysiert die aktiven Bildschirminhalte. Erstellt einen schnellen Screenshot und sendet ihn an ein multimodales KI-Modell. Extrem leistungsintensiv!
+tool_vision_title: TakeScreenshotTool [Vision]
+tool_web_desc: Durchsucht das Web über eine verdeckte DuckDuckGo-API, um bei Bedarf aktuelle Fakten, Wetter oder Nachrichten abzurufen.
+tool_web_title: WebSearchTool
+tools_native_title: Native KI-Fähigkeiten
+tools_tab: Tool-Calling & MCP
+tooltip_continue_plot: Handlung fortsetzen
+tooltip_create_character: Neuen Charakter erstellen
+tooltip_drop: Gegenstand ablegen
+tooltip_import_character: Charakterkarte importieren
+tooltip_intervene: Eingreifen (KI-Zug stoppen)
+tooltip_new_folder: Neuen Ordner erstellen
+tooltip_open_inventory: Vollständiges Inventar öffnen
+tooltip_soul_memory: Soul Memory
+tooltip_use_item: 'Verwenden: {item}'
+tooltip_world_state: Weltzustand
+top_p_label: Top P
+top_p_text: Top-P
+top_p_tooltip: '<b>Top-P</b><br><br>
+
+  Eine ältere Sampling-Methode, die die Wortauswahl auf einen kumulativen Prozentsatz beschränkt.<br><br>
+
+  💡 <i>Wenn du <b>Min-P</b> verwendest, wird dringend empfohlen, Top-P zu deaktivieren, indem du es auf <b>1.0</b> setzt.</i>'
+total_tokens_label: 'Tokens gesamt: 0'
+translate_error: Übersetzung fehlgeschlagen
+translator_item_google: Google
+translator_item_none: Keine
+translator_item_yandex: Yandex
+translator_mode_item_both: Beide
+translator_mode_item_character: Charakternachricht
+translator_mode_item_user: Nutzernachricht
+translator_title: Übersetzer
+tts_custom_regex_label: Benutzerdefinierter Regex (Gruppe 1)
+tts_custom_regex_placeholder: z. B. \*(.*?)\* um nur Text innerhalb von Sternchen zu vertonen
+tts_notice_first_run_text: 'Bitte beachte: Vor dem ersten Start von <b>XTTSv2</b>, <b>Kokoro</b>, <b>Silero</b> oder <b>Qwen 3 TTS</b> lädt das Programm automatisch die benötigten Gewichte und Modellkomponenten herunter. Du kannst den Ladevorgang in der Konsole verfolgen.<br><br>Sobald der erste Download abgeschlossen ist, funktioniert die Sprachgenerierung nahtlos und sofort offline.'
+tts_notice_title: 💡 Hinweis zum ersten Start der TTS-Engines
+tts_qwen_mode: GENERIERUNGSMODUS
+tts_rules_title: Text-zu-Sprache-Regeln
+tts_selector_edge: Edge-TTS-Konfiguration
+tts_selector_edge_tts_lbl_1: SPRACHE
+tts_selector_edge_tts_lbl_2: SPRECHERSTIMME
+tts_selector_elevenlabs: ElevenLabs-Konfiguration
+tts_selector_elevenlabs_2: Gib deinen ElevenLabs-API-Token ein...
+tts_selector_elevenlabs_3: Gib die Voice-ID von ElevenLabs ein
+tts_selector_elevenlabs_lbl_1: ELEVENLABS-API-SCHLÜSSEL
+tts_selector_enable_rvc: RVC aktivieren
+tts_selector_error: Eingabefehler
+tts_selector_error_2: Bitte gib einen gültigen Stimmennamen ein.
+tts_selector_error_3: Keine Stimmen
+tts_selector_error_4: Keine Stimmen für den angegebenen Namen gefunden.
+tts_selector_error_5: Abruffehler
+tts_selector_error_6: 'Stimmen konnten nicht abgerufen werden: '
+tts_selector_invalid_rvc: Ungültiges RVC-Verzeichnis
+tts_selector_kokoro: Kokoro-TTS-Konfiguration
+tts_selector_kokoro_lbl_1: KOKORO-SPRECHER AUSWÄHLEN
+tts_selector_no_folder: Kein Ordner
+tts_selector_no_folders: Keine Ordner gefunden
+tts_selector_no_pth: Keine PTH-Datei
+tts_selector_no_pth_in_folder: 'Keine .pth-Datei im Ordner gefunden: '
+tts_selector_qwen3: Qwen-3-TTS-Konfiguration
+tts_selector_qwen3_lbl_1: MODELLGRÖSSE
+tts_selector_qwen3_lbl_2: SPRACHE
+tts_selector_qwen3_lbl_3: PRESET-STIMME WÄHLEN
+tts_selector_qwen3_lbl_4: STIMME AUF ENGLISCH BESCHREIBEN (PROMPT)
+tts_selector_qwen3_lbl_5: REFERENZ-AUDIODATEI (.WAV)
+tts_selector_qwen3_lbl_6: Kein Referenzaudio ausgewählt
+tts_selector_qwen3_lbl_7: Stilanweisung (optional)
+tts_selector_qwen3_lbl_device: RECHENGERÄT
+tts_selector_qwen3_lbl_ref_placeholder_text: Exakte Worte, die im Referenzaudio gesprochen werden (verbessert die Klonqualität)...
+tts_selector_qwen3_lbl_ref_text: REFERENZAUDIO-TRANSKRIPT (EMPFOHLEN)
+tts_selector_rvc_no_folder: RVC ist aktiviert, aber kein Ordner ausgewählt
+tts_selector_save_button: Auswahl speichern
+tts_selector_save_information: Stimme erfolgreich gespeichert
+tts_selector_save_information_error: Wähle eine Stimme für den Charakter!
+tts_selector_select_button: Stimme auswählen
+tts_selector_silero: Silero-RU-Konfiguration
+tts_selector_silero_lbl_1: RUSSISCHEN SPRECHER AUSWÄHLEN
+tts_selector_title: Text-zu-Sprache-Auswahl
+tts_selector_title_2: Charakterstimme
+tts_selector_title_label: Text-zu-Sprache-Methode wählen
+tts_selector_xttsv2: XTTSv2-Konfiguration
+tts_selector_xttsv2_calm_female: Weiblich ruhig
+tts_selector_xttsv2_female: Weiblich
+tts_selector_xttsv2_lbl_1: SPRECHERMODELL AUSWÄHLEN
+tts_selector_xttsv2_male: Männlich
+tts_voicing_mode_label: Vertonungsmodus
+typingIndicator_text: Denkt nach
+unknown: Unbekannt
+update_available_body: 'Eine neue Version ist verfügbar: '
+update_available_close: Schließen
+update_available_info: Möchtest du das Programm aktualisieren?
+update_available_link: Zu GitHub
+update_available_title: Update verfügbar
+update_btn: Aktualisieren
+update_current_version: 'Aktuelle Version: v2.5.1'
+update_engine_tooltip: Lädt die neuesten llama.cpp-Binärdateien für das ausgewählte Backend herunter und installiert sie.
+update_now_btn: Jetzt aktualisieren
+updater_subtitle: BACKEND-ENGINE
+user_building_title: Nutzer-Persona
+user_message_textEdit: Schreibe deine Nachricht als {user_name}
+user_message_textEdit_default: Schreibe deine Nachricht als Nutzer
+user_persona: Nutzer-Persona
+user_persona_building_label: Nutzer-Persona
+user_persona_hint: Name und Avatar, die im Chat für deine Nachrichten angezeigt werden.
+user_profile_title: Nutzerprofil
+value: 'Wert: '
+value_adjusted_text: Der eingegebene Wert liegt außerhalb des zulässigen Bereichs und wurde auf die nächstliegende Grenze gesetzt ({min} – {max}).
+value_adjusted_title: Wert angepasst
+var_editor_apply_preset_btn: Anwenden
+var_editor_default_label: STANDARDWERT
+var_editor_default_placeholder: z. B. 90, True oder item1
+var_editor_del_btn: Löschen
+var_editor_delete_preset_btn: Preset löschen
+var_editor_icon_label: HUD-SYMBOL
+var_editor_id_label: VARIABLEN-ID
+var_editor_id_placeholder: z. B. trust
+var_editor_max_label: MAXIMALWERT
+var_editor_min_label: MINIMALWERT
+var_editor_name_label: ANZEIGENAME
+var_editor_name_placeholder: z. B. Trust
+var_editor_preset_label: 'PRESET LADEN:'
+var_editor_prompt_label: SYSTEM-PROMPT-VORLAGE
+var_editor_prompt_placeholder: 'z. B. [Trust: {value}/100]'
+var_editor_save_preset_btn: Preset speichern
+var_editor_type_label: DATENTYP
+var_preset_chuuni: 'Anime: Chuunibyou-Wahnvorstellungen (Wahn & Fremdscham)'
+var_preset_confirm_msg: Das Anwenden dieses Presets überschreibt und löscht alle deine aktuellen benutzerdefinierten Variablen. Möchtest du fortfahren?
+var_preset_confirm_title: Preset anwenden
+var_preset_custom: Benutzerdefiniert (Keins)
+var_preset_dandere: 'Anime: Schüchterner Dandere (Schüchternheit & Bindung)'
+var_preset_delete_msg: Preset '{preset_name}' löschen?
+var_preset_delete_title: Preset löschen
+var_preset_deleted_msg: Preset '{preset_name}' erfolgreich gelöscht.
+var_preset_deleted_title: Gelöscht
+var_preset_detective: Detektiv-Verhör (Verdacht & Hinweise)
+var_preset_empty_msg: Keine Variablen zum Speichern vorhanden.
+var_preset_empty_title: Leer
+var_preset_himedere: 'Anime: Edler Himedere (Anspruch & Verletzlichkeit)'
+var_preset_horror: Horror-Überleben (Verstand, Panik & Taschenlampe)
+var_preset_kuudere: 'Anime: Stiller Kuudere (Verdrängung & Verbindung)'
+var_preset_maid: 'Anime: Zofe & Herrschaft (Loyalität, Moe & Frechheit)'
+var_preset_not_found_msg: Es können nur benutzerdefinierte Presets gelöscht werden.
+var_preset_not_found_title: Nicht gefunden
+var_preset_overwrite_msg: Ein Preset mit dem Namen '{name}' existiert bereits. Überschreiben?
+var_preset_overwrite_title: Preset überschreiben
+var_preset_romance: Romantik & Beziehungen (Zuneigung & Vertrauen)
+var_preset_rpg: RPG-Abenteuer (HP, Mana, Gold & Inventar)
+var_preset_save_label: 'Preset-Namen eingeben:'
+var_preset_save_placeholder: Mein benutzerdefiniertes Preset
+var_preset_save_title: Preset speichern
+var_preset_saved_msg: Preset '{name}' erfolgreich gespeichert.
+var_preset_saved_title: Gespeichert
+var_preset_shonen: 'Anime: Shonen-Kampf (Geist, Wille & Dämon)'
+var_preset_survival: Tamagotchi (Hunger, Energie & Stimmung)
+var_preset_tsundere: 'Anime: Klassischer Tsundere (Tsun & Dere)'
+var_preset_yandere: 'Anime: Yandere-Besessenheit (Besessenheit & Verstand)'
+variant_counter_tooltip: Antwort {current} von {total}
+version_label: Soul of Waifu v2.5.1
+version_title: Version
+visual_engine_images: Ausdrucksbilder
+visual_engine_live2d: Live2D-Modell
+visual_engine_menu_title: VISUALISIERUNGS-ENGINE
+visual_engine_nothing: Nichts
+visual_engine_vrm: VRM-3D-Modell
+visualizations_title: Visualisierungen (Live2D / VRM)
+voice_btn_text: Spracheinstellungen
+voice_error_body: Weise dem Charakter eine Stimme zu, bevor du den Anruf startest.
+voice_error_title: Stimmenfehler
+web_browser_copied_btn: Kopiert! 📋
+web_browser_copy_mobile_btn: Mobilen Link kopieren
+web_browser_open_btn: Im Browser öffnen
+web_server_card_title: Lokaler Webserver
+web_server_error: 'Status: Port 8000 belegt oder Fehler'
+web_server_running_status: 'Status: Läuft auf http://127.0.0.1:8000'
+web_server_start_btn: Server starten
+web_server_starting_btn: Wird gestartet...
+web_server_starting_lbl: 'Status: Wird gestartet...'
+web_server_starting_lbl_2: 'Status: Läuft auf http://127.0.0.1:8000'
+web_server_status_stopped: 'Status: Gestoppt'
+web_server_stop_btn: Server stoppen
+website_btn: Website
+welcome_label: Willkommen bei Soul of Waifu, Nutzer
+welcome_message: 'Willkommen bei Soul of Waifu, '
+whisper_label: Privat
+whisper_tooltip: Wenn aktiviert, wird deine Nachricht zu privatem Wissen, das nur der ausgewählte Charakter hat — der Rest der Gruppe erfährt nichts davon.
+world_context: Weltkontext / Szenario  *
+world_context_hint: Wird in jeden KI-Prompt als Hintergrundwahrheit eingefügt.
+world_lorebook_gateway: Welt-Lorebooks
+world_placeholder: Lore, aktuelle Spannungen, Regeln der Magie oder Physik...
+world_state_title: Weltzustand — Soul Stage
+write_user_message_placeholder: Schreibe deine Nachricht an den Charakter
+xtc_prob_text: XTC-Wahrscheinlichkeit
+xtc_prob_tooltip: '<b>XTC (Exclude Top Choices)</b><br><br>
+
+  Eine revolutionäre Funktion für Rollenspieler. Sie entfernt zwangsweise <b>die offensichtlichsten Klischeewörter</b> aus den Auswahlmöglichkeiten der KI.<br><br>
+
+  Genug davon, dass die KI Sätze wie <i>„ein Schauer läuft mir über den Rücken"</i> oder <i>„raubtierhaftes Grinsen"</i> von sich gibt? XTC zwingt das Modell, einzigartige, literarische Alternativen zu finden, was die Sprache unglaublich lebensecht macht.<br><br>
+
+  💡 <i><b>Wahrscheinlichkeit:</b> Die Chance, dass XTC ausgelöst wird (Versuche 0.3 - 0.5).</i>'
+xtc_thresh_text: XTC-Schwellenwert
+xtc_thresh_tooltip: '<b>XTC-Schwellenwert</b><br><br>
+
+  Bestimmt, wie „beliebt" ein Wort sein muss, bevor XTC es entfernen darf.<br><br>
+
+  💡 <i>Empfohlen: 0.1 (Nur Wörter mit mehr als 10 % Wahrscheinlichkeit können entfernt werden).</i>'
