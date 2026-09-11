@@ -124,6 +124,9 @@ class MainWindow(QMainWindow):
             case 1:
                 self.load_translation("ru")
                 self.apply_translations()
+            case 2:
+                self.load_translation("de")
+                self.apply_translations()
 
         self.interface_signals = interface_signals.InterfaceSignals(self.ui, self)
         self.local_server_manager = LocalServerManager(self.ui)
@@ -321,6 +324,7 @@ class MainWindow(QMainWindow):
         self.ui.lineEdit_base_url_options.setPlaceholderText(self.translations.get("placeholder_base_url", "Write your custom endpoint url here (Optional)"))
         self.ui.comboBox_program_language.setItemText(0, self.translations.get("program_language_item_en", "English"))
         self.ui.comboBox_program_language.setItemText(1, self.translations.get("program_language_item_ru", "Russian"))
+        self.ui.comboBox_program_language.setItemText(2, self.translations.get("program_language_item_de", "German"))
         self.ui.input_device_label.setText(self.translations.get("input_device_label", "Input device"))
         self.ui.output_device_label.setText(self.translations.get("output_device_label", "Output device"))
         self.ui.program_language_label.setText(self.translations.get("program_language_label", "App Language"))

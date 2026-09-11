@@ -125,7 +125,7 @@ def _load_translations() -> dict:
         lang = configuration.ConfigurationSettings().get_main_setting("program_language") or 0
     except Exception:
         lang = 0
-    lang_code = {0: "en", 1: "ru"}.get(int(lang), "en")
+    lang_code = {0: "en", 1: "ru", 2: "de"}.get(int(lang), "en")
     path = f"app/translations/{lang_code}.yaml"
     if os.path.exists(path) and yaml:
         try:

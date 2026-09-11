@@ -33,6 +33,8 @@ class LocalServerManager:
                 self.load_translation("en")
             case 1:
                 self.load_translation("ru")
+            case 2:
+                self.load_translation("de")
 
         self.server_process = None
         self.SERVER_PORT = 48596

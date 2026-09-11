@@ -30,6 +30,9 @@
   🌐 <a href="https://jofizcd.github.io/soul-of-waifu-site/"><b>Website</b></a>
 </p>
 <p align="center">
+  🌍 <b>English</b> &nbsp;•&nbsp; <a href="README_RU.md">Русский</a> &nbsp;•&nbsp; <a href="README_DE.md">Deutsch</a>
+</p>
+<p align="center">
   <a href="https://github.com/jofizcd/Soul-of-Waifu/releases/latest">
     <img src="https://img.shields.io/badge/ENTER A NEW REALITY-2EA043?style=for-the-badge&logo=windows&logoColor=white" alt="Download Latest">
   </a>

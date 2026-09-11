@@ -345,6 +345,8 @@ class InterfaceSignals():
                 self.load_translation("en")
             case 1:
                 self.load_translation("ru")
+            case 2:
+                self.load_translation("de")
 
         self.ui.toggle_sidebar_btn.clicked.connect(self.toggle_sidebar)
         s = self.get_chat_appearance()
@@ -16464,6 +16466,9 @@ class InterfaceSignals():
                 description = model_data.get("description_en", "No description available.").strip()
             case 1:
                 description = model_data.get("description_ru", "No description available.").strip()
+            case 2:
+                # Model data only ships English/Russian texts; use German when it appears.
+                description = (model_data.get("description_de") or model_data.get("description_en", "No description available.")).strip()
             case _:
                 description = model_data.get("description_en", "No description available.").strip()
 

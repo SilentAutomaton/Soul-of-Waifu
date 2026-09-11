@@ -65,7 +65,7 @@ def _load_translations() -> dict:
         lang = configuration.ConfigurationSettings().get_main_setting("program_language") or 0
     except Exception:
         lang = 0
-    lang_code = {0: "en", 1: "ru"}.get(int(lang), "en")
+    lang_code = {0: "en", 1: "ru", 2: "de"}.get(int(lang), "en")
     path = f"app/translations/{lang_code}.yaml"
     if os.path.exists(path) and yaml:
         try:
@@ -1108,6 +1108,8 @@ class GatewayPreviewDialog(QDialog):
                 self.load_translation("en")
             case 1:
                 self.load_translation("ru")
+            case 2:
+                self.load_translation("de")
             case _:
                 self.load_translation("en")
         
@@ -1469,6 +1471,8 @@ class ModelListItemWidget(QWidget):
                 self.load_translation("en")
             case 1:
                 self.load_translation("ru")
+            case 2:
+                self.load_translation("de")
             case _:
                 self.load_translation("en")
 
@@ -2751,7 +2755,7 @@ class TypingIndicatorWidget(QWidget):
 
         self.translations = {}
         self.selected_language = self.configuration_settings.get_main_setting("program_language")
-        self.load_translation("ru" if self.selected_language == 1 else "en")
+        self.load_translation({1: "ru", 2: "de"}.get(self.selected_language, "en"))
 
         self.character_name = character_name
         

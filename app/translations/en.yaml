@@ -1505,6 +1505,7 @@ prev_variant_tooltip: Previous response
 preview_prompt_button: Preview Raw
 preview_prompt_desc: 'This is approximately how the LLM model sees your character card before generating a response:'
 preview_prompt_title: Raw Prompt Preview
+program_language_item_de: German
 program_language_item_en: English
 program_language_item_ru: Russian
 program_language_label: Program language

@@ -1507,6 +1507,7 @@ prev_variant_tooltip: Предыдущий вариант ответа
 preview_prompt_button: Промпт
 preview_prompt_desc: 'Примерно так языковая модель видит карточку персонажа перед генерацией ответа:'
 preview_prompt_title: Предпросмотр сырого промпта
+program_language_item_de: Немецкий
 program_language_item_en: Английский
 program_language_item_ru: Русский
 program_language_label: Язык программы

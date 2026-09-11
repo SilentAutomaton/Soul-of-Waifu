@@ -105,6 +105,7 @@ To use CUDA, pick one of these:
 | Idle detection (sleep/drowsy) | ⚠️ X11 (`xprintidle`) and GNOME only. Disabled on KDE Wayland. |
 | Screenshots / mouse and keyboard automation (`mss`, `pyautogui`) | ⚠️ X11 only. On Wayland they reach XWayland windows only. |
 | Code execution tool | ✅ Python and **Bash** (PowerShell on Windows) |
+| Program language | ✅ English, Russian and **German** (`app/translations/de.yaml`, added in this fork) |
 
 ## Staying up to date with upstream
 

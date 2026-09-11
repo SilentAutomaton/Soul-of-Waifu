@@ -29,7 +29,9 @@ class Ui_MainWindow(object):
                 self.load_translation("en")
             case 1:
                 self.load_translation("ru")
-    
+            case 2:
+                self.load_translation("de")
+
     def load_translation(self, language):
         """
         Loads translation strings from a YAML file based on the program language.
@@ -2058,7 +2060,7 @@ class Ui_MainWindow(object):
         self.comboBox_program_language.setFont(font_input)
         self.comboBox_program_language.setFixedHeight(40)
         self.comboBox_program_language.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-        self.comboBox_program_language.addItems(["English", "Russian"])
+        self.comboBox_program_language.addItems(["English", "Russian", "German"])
         self.comboBox_program_language.setObjectName("comboBox_program_language")
         form_app_lang.addRow(self.program_language_label, self.comboBox_program_language)
 

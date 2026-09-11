@@ -101,6 +101,8 @@ class Soul_Of_Waifu_System(QtCore.QObject):
                 self.load_translation("en")
             case 1:
                 self.load_translation("ru")
+            case 2:
+                self.load_translation("de")
 
         self.prompt_engine = PromptEngine()
         self.local_server_manager = LocalServerManager(self.ui)
@@ -2514,6 +2516,25 @@ class Soul_Of_Waifu_System(QtCore.QObject):
                     "А? Уже пора просыпаться?",
                     "Так скоро вернулся? Мне нравится~",
                     "Ой! Я тебя заставила ждать?",
+                ]
+            case 2:
+                self._WAKE_REACTIONS = [
+                    "Ah, du bist schon zurück!",
+                    "Oh, du bist da!",
+                    "Bin kurz eingenickt...",
+                    "Hm? Da ist jemand.",
+                    "Aah, hallo!",
+                    "Mmm... hab ich geschlafen?",
+                    "Oh! Du hast mich beim Nickerchen erwischt~",
+                    "Mmmf... noch fünf Minuten... oh, du bist's!",
+                    "Willkommen zurück! Ich hab dich vermisst!",
+                    "Du bist da! Meine Lieblingsbenachrichtigung~",
+                    "Hallo, hallo! Lust zu plaudern?",
+                    "Oh, hey! Was gibt's?",
+                    "Ich hab gerade an dich gedacht!",
+                    "Hm? Schon Zeit aufzuwachen?",
+                    "So schnell zurück? Gefällt mir~",
+                    "Oh! Hab ich dich warten lassen?",
                 ]
 
         if hasattr(self, 'tts_worker') and self.tts_worker and self.interaction_state == "STOPPED":
