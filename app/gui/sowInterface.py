@@ -5645,6 +5645,18 @@ class Ui_MainWindow(object):
         card_height = 210
         spacing = 30
 
+        # Longer translations (e.g. German) need more than 210px; give every card the
+        # height of the tallest one so the grid stays uniform and nothing gets clipped.
+        # Measure only after the card is parented and polished, so inherited
+        # stylesheets (theme fonts) are part of the calculation.
+        for card in visible_cards:
+            if card.parent() != self.rp_container:
+                card.setParent(self.rp_container)
+            card.ensurePolished()
+            for child in card.findChildren(QtWidgets.QWidget):
+                child.ensurePolished()
+            card_height = max(card_height, card.heightForWidth(card_width))
+
         available_width = self.rp_editors_page.width() - 100
         if available_width <= 0:
             available_width = 1000

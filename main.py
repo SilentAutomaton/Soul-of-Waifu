@@ -360,6 +360,9 @@ class MainWindow(QMainWindow):
 
             item4 = self.ui.options_menu.item(4)
             if item4: item4.setText(self.translations.get("sow_system_tab", "SoW Modules"))
+
+            item5 = self.ui.options_menu.item(5)
+            if item5: item5.setText(self.translations.get("appearance_tab_name", "Appearance"))
         
         # Chat
         self.ui.character_name_chat.setText(self.translations.get("character_name_chat", "Character name"))

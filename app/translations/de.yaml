@@ -1415,7 +1415,7 @@ onboarding_tour_hub_title: Models Hub
 onboarding_tour_main_desc: Deine Charakterliste und aktive Unterhaltungen.
 onboarding_tour_main_title: Main Hub
 onboarding_tour_options_desc: Feinabstimmung der Generierungsparameter — Allgemein funktioniert überall, Erweitert ist für lokale Modelle.
-onboarding_tour_options_title: Options
+onboarding_tour_options_title: Optionen
 onboarding_tour_stage_desc: Führe Sitzungen mit mehreren Charakteren mit einem KI-Spielleiter durch.
 onboarding_tour_stage_title: Soul Stage
 onboarding_window_title: Willkommen bei Soul of Waifu
@@ -2087,7 +2087,7 @@ tool_vision_title: TakeScreenshotTool [Vision]
 tool_web_desc: Durchsucht das Web über eine verdeckte DuckDuckGo-API, um bei Bedarf aktuelle Fakten, Wetter oder Nachrichten abzurufen.
 tool_web_title: WebSearchTool
 tools_native_title: Native KI-Fähigkeiten
-tools_tab: Tool-Calling & MCP
+tools_tab: Tool-Aufrufe & MCP
 tooltip_continue_plot: Handlung fortsetzen
 tooltip_create_character: Neuen Charakter erstellen
 tooltip_drop: Gegenstand ablegen
