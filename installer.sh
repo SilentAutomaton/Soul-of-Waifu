@@ -21,8 +21,9 @@ declare -A TORCH_INDEX=(
     [rocm]="https://download.pytorch.org/whl/rocm7.1"
     [cpu]="https://download.pytorch.org/whl/cpu"
 )
-# Packages that need a compiler / may fail to build; installed separately so they cannot block the rest.
-FRAGILE_PKGS='^(fairseq|rvc-python|faiss-cpu|pyworld|praat-parselmouth|PyAudio)'
+# Installed separately with --no-deps so they cannot block the rest: packages that need a
+# compiler, plus en-core-web-sm whose metadata (spacy<3.8) contradicts the pinned spacy==3.8.14.
+FRAGILE_PKGS='^(fairseq|rvc-python|faiss-cpu|pyworld|praat-parselmouth|PyAudio|en-core-web-sm)'
 
 GREEN=$'\e[0;32m'; YELLOW=$'\e[0;33m'; RED=$'\e[0;31m'; BOLD=$'\e[1m'; RESET=$'\e[0m'
 info() { echo "${GREEN}==>${RESET} ${BOLD}$*${RESET}"; }
@@ -72,7 +73,7 @@ if [[ ${#missing[@]} -gt 0 ]]; then
     echo "   Arch/CachyOS:  sudo pacman -S --needed ffmpeg espeak-ng sox git base-devel portaudio xcb-util-cursor"
     echo "   Debian/Ubuntu: sudo apt install ffmpeg espeak-ng sox git build-essential portaudio19-dev libxcb-cursor0"
     echo "   Fedora:        sudo dnf install ffmpeg espeak-ng sox git gcc gcc-c++ portaudio-devel xcb-util-cursor"
-    ask "Continue anyway?" n || exit 1
+    ask "Continue anyway? (the related features will not work)" y || exit 1
 else
     echo "   All required system packages found."
 fi
@@ -109,7 +110,9 @@ else
     fi
     [[ -f $RELEASE_ARCHIVE ]] || fail "Archive not found: $RELEASE_ARCHIVE"
 
-    tmp="$(mktemp -d "${TMPDIR:-/tmp}/sow-release.XXXXXX")"
+    # Extract next to the checkout: /tmp is often a small RAM-backed tmpfs.
+    mkdir -p app/data
+    tmp="$(mktemp -d "$PWD/app/data/_extract.XXXXXX")"
     trap 'rm -rf "$tmp"' EXIT
     echo "   Extracting with $extractor (needs a few GB of temporary space)..."
     case "$extractor" in
@@ -123,11 +126,18 @@ else
     src="${found%/app/gui/icons/resources.py}"
 
     echo "   Copying icons and assets (files from this repository are never overwritten)..."
+    # Keep the copied files out of `git status` in this checkout without touching .gitignore.
+    exclude_file=""
+    if [[ -d .git/info ]]; then
+        exclude_file=".git/info/exclude"
+        echo "# files copied from the release archive by installer.sh" >> "$exclude_file"
+    fi
     copied=0
     while IFS= read -r -d '' f; do
         [[ -e $f ]] && continue
         mkdir -p "$(dirname "$f")"
         cp -p "$src/$f" "$f"
+        if [[ -n $exclude_file ]]; then printf '/%s\n' "${f#./}" >> "$exclude_file"; fi
         copied=$((copied + 1))
     done < <(cd "$src" && find . -type f \
                 ! -path './app/data/*' ! -path './app/utils/ai_clients/backend/*' \
@@ -195,6 +205,8 @@ req_main="$(mktemp)"; req_fragile="$(mktemp)"
 grep -vE '^(torch|torchvision|torchaudio)==' requirements.txt | grep -vE "$FRAGILE_PKGS" > "$req_main" || true
 grep -E "$FRAGILE_PKGS" requirements.txt > "$req_fragile" || true
 echo "pyautogui" >> "$req_main"
+# pyworld (RVC) still imports pkg_resources, which setuptools>=81 no longer ships.
+echo "setuptools<81" >> "$req_main"
 
 failed=()
 if ! pip_install -r "$req_main"; then
@@ -212,6 +224,8 @@ while IFS= read -r line; do
     pip_install --no-deps "$line" >/dev/null 2>&1 || failed+=("${line%%[=; @]*}")
 done < "$req_fragile"
 rm -f "$req_main" "$req_fragile"
+# fairseq 0.12.2 (used by RVC) has mutable dataclass defaults that Python 3.11 rejects.
+"$PY" tools/patch_fairseq.py >/dev/null || warn "Could not patch fairseq - RVC may be unavailable."
 
 "$PY" -m playwright install chromium >/dev/null 2>&1 \
     || warn "Playwright browser download failed (only needed for web automation tools)."
