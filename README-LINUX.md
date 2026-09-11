@@ -86,6 +86,13 @@ distributions:
 | SYCL | `llama-*-bin-ubuntu-sycl-fp16-x64` |
 | CUDA | **no official Linux build.** See below. |
 
+`installer.sh` downloads the Vulkan build (the CPU build for `--torch cpu`). To fetch another backend later, run
+`app/data/envs/sow/bin/python tools/fetch_llama_backend.py cpu|vulkan|hip|sycl`, or use the backend updater in the app.
+
+If you have **more than one GPU** (e.g. an NVIDIA card plus an integrated Radeon), llama.cpp splits the model across
+all Vulkan devices, and the slower one holds it back. Put `--device Vulkan0` into **Options -> LLM Settings ->
+Custom Args** to use only the first GPU. `llama-server --list-devices` shows the numbering.
+
 To use CUDA, pick one of these:
 - Choose the **Vulkan** backend. It is fast on NVIDIA cards too.
 - Install a system `llama-server` with CUDA, for example the AUR package `llama.cpp-cuda`. If no bundled binary is

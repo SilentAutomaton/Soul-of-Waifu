@@ -8656,7 +8656,7 @@ class InterfaceSignals():
         devices = sd.query_devices()
         host_apis = sd.query_hostapis()
 
-        for dev in devices:
+        for dev in self._selectable_audio_devices(devices):
             if dev["max_input_channels"] > 0:
                 host_api_name = host_apis[dev["hostapi"]]["name"]
                 full_name = f"{dev['name']} ({host_api_name})"
@@ -8671,7 +8671,7 @@ class InterfaceSignals():
         elif self.input_device_list:
              self.configuration_settings.update_main_setting("input_device_real_index", self.input_device_list[0])
 
-        for dev in devices:
+        for dev in self._selectable_audio_devices(devices):
             if dev["max_output_channels"] > 0:
                 host_api_name = host_apis[dev["hostapi"]]["name"]
                 full_name = f"{dev['name']} ({host_api_name})"
@@ -8687,6 +8687,19 @@ class InterfaceSignals():
             real_index = self.output_device_list[0] if self.output_device_list else None
             self.configuration_settings.update_main_setting("output_device_real_index", real_index)
             self.configuration_settings.update_main_setting("output_device_combo_index", 0)
+
+    @staticmethod
+    def _selectable_audio_devices(devices):
+        """
+        On Linux, raw ALSA "hw" devices only accept their native sample rates, which
+        breaks TTS playback ("Invalid sample rate"). Offer the sound-server devices
+        instead - they resample and follow the output chosen in the desktop settings.
+        """
+        if not sys.platform.startswith("linux"):
+            return list(devices)
+        order = {"default": 0, "pipewire": 1, "pulse": 2}
+        virtual = sorted((d for d in devices if d["name"] in order), key=lambda d: order[d["name"]])
+        return virtual or list(devices)
 
     def set_combobox_to_device(self, combobox, index):
         if index != -1 and index < combobox.count():

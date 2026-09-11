@@ -231,6 +231,18 @@ rm -f "$req_main" "$req_fragile"
 "$PY" -m playwright install chromium >/dev/null 2>&1 \
     || warn "Playwright browser download failed (only needed for web automation tools)."
 
+# Local LLMs: the Windows release ships llama.cpp .exe files; fetch the official Linux build.
+# Vulkan runs on NVIDIA, AMD and Intel GPUs; CPU-only installs get the CPU build.
+llama_backend=vulkan
+[[ $TORCH_VARIANT == cpu ]] && llama_backend=cpu
+if [[ -x app/utils/ai_clients/backend/$llama_backend/llama-server ]]; then
+    echo "   llama.cpp ($llama_backend) already installed."
+else
+    echo "   Downloading llama.cpp ($llama_backend) for local models..."
+    "$PY" tools/fetch_llama_backend.py "$llama_backend" \
+        || warn "Could not download llama.cpp - use Options -> LLM settings -> backend updater later."
+fi
+
 # --------------------------------------------------------------------------- 6
 info "[6/6] Smoke test..."
 "$PY" -c "import torch, numpy, transformers, PyQt6; print('   Core imports OK - torch', torch.__version__, '| GPU available:', torch.cuda.is_available())"
