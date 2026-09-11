@@ -224,8 +224,9 @@ while IFS= read -r line; do
     pip_install --no-deps "$line" >/dev/null 2>&1 || failed+=("${line%%[=; @]*}")
 done < "$req_fragile"
 rm -f "$req_main" "$req_fragile"
-# fairseq 0.12.2 (used by RVC) has mutable dataclass defaults that Python 3.11 rejects.
-"$PY" tools/patch_fairseq.py >/dev/null || warn "Could not patch fairseq - RVC may be unavailable."
+# Compatibility patches: fairseq on Python 3.11 (RVC), pyworld's pkg_resources
+# warning, and qwen_tts' flash-attn banner (see tools/patch_venv.py).
+"$PY" tools/patch_venv.py >/dev/null || warn "Could not patch venv packages - RVC may be unavailable."
 
 "$PY" -m playwright install chromium >/dev/null 2>&1 \
     || warn "Playwright browser download failed (only needed for web automation tools)."
