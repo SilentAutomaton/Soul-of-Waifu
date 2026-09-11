@@ -1,8 +1,10 @@
 import os
 import re
 import json
+import random
 import logging
 import asyncio
+import datetime
 from pathlib import Path
 
 import tiktoken
@@ -191,7 +193,6 @@ class PromptEngine:
         self.configuration_settings = configuration.ConfigurationSettings()
         self.configuration_characters = configuration.ConfigurationCharacters()
         self.lorebook_state = {}
-        self.embedding_cache = {}
 
         try:
             self.encoder = tiktoken.get_encoding("cl100k_base")
@@ -232,6 +233,30 @@ class PromptEngine:
                 merged.append({"role": role, "content": content})
         return merged
 
+    @staticmethod
+    def _inject_chat_author_note(history: list, note_content: str, depth: int, final_user_message: str):
+        if not note_content or not note_content.strip():
+            return history, final_user_message
+
+        note_tag = f"[AUTHOR'S NOTE: {note_content.strip()}]"
+        d = int(depth or 0)
+
+        if d <= 0 or not history:
+            if isinstance(final_user_message, str):
+                final_user_message = f"{final_user_message}\n\n{note_tag}".strip()
+            return history, final_user_message
+
+        target_idx = max(0, len(history) - d)
+        target_msg = history[target_idx]
+
+        content = target_msg.get("content", "")
+        if isinstance(content, str):
+            target_msg["content"] = f"{content}\n\n{note_tag}".strip()
+        elif isinstance(content, list):
+            target_msg["content"].append({"type": "text", "text": f"\n\n{note_tag}"})
+
+        return history, final_user_message
+
     def get_activated_lorebook_entries(self, lorebook_name, chat_messages, character_name, user_name, user_message):
         config = self.configuration_settings.load_configuration()
         lorebooks = config.get("user_data", {}).get("lorebooks", {})
@@ -244,7 +269,14 @@ class PromptEngine:
         
         global_scan_depth = lorebook.get("n_depth", 3)
         total_messages_count = len(chat_messages) + 1
-        
+
+        try:
+            recursion_depth = int(lorebook.get("recursion_depth", 2) or 2)
+        except (TypeError, ValueError):
+            recursion_depth = 2
+        recursion_depth = max(0, min(4, recursion_depth))
+        max_passes = 1 + (recursion_depth if lorebook.get("recursive_scanning", True) else 0)
+
         if lorebook_name not in self.lorebook_state:
             self.lorebook_state[lorebook_name] = {"tension": 0}
             
@@ -258,37 +290,44 @@ class PromptEngine:
             "classic": [],
             "scenario":[]
         }
-        
+
         semantic_context = ""
         model = None
 
-        for idx, entry in enumerate(entries):
-            entry_uid = entry.get("uid", idx) 
-            
+        def _process_entry(entry, entry_uid, recursive_extra):
+            """One activation attempt. Returns (content, injection_behavior) or None."""
+            nonlocal semantic_context, model
+
             if not entry.get("enabled", True):
-                continue
-                
+                return None
+
             probability = entry.get("probability", 100)
             if probability < 100:
-                import random
-                if random.randint(1, 100) > probability:
-                    continue
+                if entry_uid not in prob_rolls:
+                    prob_rolls[entry_uid] = random.randint(1, 100) <= probability
+                if not prob_rolls[entry_uid]:
+                    return None
 
             delay = entry.get("delay", 0)
             if total_messages_count < delay:
-                continue
+                return None
 
-            entry_state = book_state.get(entry_uid, {"last_active": -999, "sticky_until": -1})
+            entry_state = book_state.get(
+                entry_uid, {"last_active": -999, "sticky_until": -1, "chain_fired_at": -1}
+            )
             cooldown = entry.get("cooldown", 0)
-            
+
             time_since_last = total_messages_count - entry_state["last_active"]
-            if time_since_last < cooldown:
-                continue
+            in_sticky_window = total_messages_count <= entry_state["sticky_until"]
+
+            if time_since_last < cooldown and not in_sticky_window:
+                return None
 
             trigger_type = entry.get("trigger_type", "keyword")
             injection_behavior = entry.get("injection_behavior", "passive")
-            
+
             is_triggered = False
+            via_sticky = False
 
             if trigger_type == "always_on":
                 is_triggered = True
@@ -312,22 +351,35 @@ class PromptEngine:
                 depends_on_uid = entry.get("depends_on", -1)
                 chain_delay = entry.get("chain_delay", 0)
                 dep_state = book_state.get(depends_on_uid, {"last_active": -999})
-                if dep_state["last_active"] > 0 and total_messages_count >= dep_state["last_active"] + chain_delay:
+                dep_last = dep_state["last_active"]
+                already_fired_at = entry_state.get("chain_fired_at", -1)
+
+                if entry.get("chain_repeat", False):
+                    ready = dep_last > already_fired_at
+                else:
+                    ready = already_fired_at < 0 and dep_last > 0
+
+                if ready and total_messages_count >= dep_last + chain_delay:
                     is_triggered = True
-                    
-            elif total_messages_count <= entry_state["sticky_until"]:
+
+            elif in_sticky_window:
                 is_triggered = True
+                via_sticky = True
 
             else:
                 local_depth = entry.get("depth", global_scan_depth)
                 msgs_slice = chat_messages[-local_depth:] if local_depth > 0 else []
-                relevant_text = " ".join([str(msg.get("content", "")) for msg in msgs_slice])
-                full_text_to_scan = (relevant_text + " " + user_message).lower()
+                full_text_to_scan = (
+                    " ".join(str(msg.get("content", "")) for msg in msgs_slice)
+                    + " " + user_message
+                ).lower()
+                if recursive_extra:
+                    full_text_to_scan += " " + recursive_extra
 
                 if trigger_type == "keyword" or trigger_type not in ["semantic"]:
-                    keys = entry.get("key",[])
+                    keys = entry.get("key", [])
                     has_key = any(key.lower() in full_text_to_scan for key in keys) if keys else False
-                    exclude_keys = entry.get("exclude_key",[])
+                    exclude_keys = entry.get("exclude_key", [])
                     has_exclude = any(ex_key.lower() in full_text_to_scan for ex_key in exclude_keys) if exclude_keys else False
                     if has_key and not has_exclude:
                         is_triggered = True
@@ -346,28 +398,57 @@ class PromptEngine:
                             if sim > 0.72:
                                 is_triggered = True
 
-            if is_triggered:
-                if trigger_type == "random" and book_state["tension"] >= 100:
-                    book_state["tension"] = 0
-                    
-                sticky_duration = entry.get("sticky", 0)
-                book_state[entry_uid] = {
-                    "last_active": total_messages_count,
-                    "sticky_until": total_messages_count + sticky_duration if sticky_duration > 0 else -1
-                }
-                
-                content = entry.get("content", "")
-                if content:
-                    processed_content = (content
-                                         .replace("{{char}}", character_name)
-                                         .replace("{{user}}", user_name)
-                                         .replace("{{Char}}", character_name)
-                                         .replace("{{User}}", user_name))
-                    
-                    if injection_behavior == "active":
-                        activated_entries["scenario"].append(processed_content)
-                    else:
-                        activated_entries["classic"].append(processed_content)
+            if not is_triggered:
+                return None
+
+            if trigger_type == "random" and book_state["tension"] >= 100:
+                book_state["tension"] = 0
+
+            sticky_duration = entry.get("sticky", 0)
+            book_state[entry_uid] = {
+                "last_active": total_messages_count,
+                "sticky_until": entry_state["sticky_until"] if via_sticky
+                                else (total_messages_count + sticky_duration if sticky_duration > 0 else -1),
+                "chain_fired_at": total_messages_count if trigger_type == "chain"
+                                  else entry_state.get("chain_fired_at", -1),
+            }
+
+            content = entry.get("content", "")
+            if not content:
+                return None
+
+            processed = (content
+                         .replace("{{char}}", character_name)
+                         .replace("{{user}}", user_name)
+                         .replace("{{Char}}", character_name)
+                         .replace("{{User}}", user_name))
+            return processed, injection_behavior
+
+        pending = list(enumerate(entries))
+        activated_contents = []
+        prob_rolls = {}
+        for pass_num in range(max_passes):
+            if not pending:
+                break
+            recursive_extra = " ".join(activated_contents)
+            still_pending = []
+            activated_this_pass = 0
+            for idx, entry in pending:
+                entry_uid = entry.get("uid", idx)
+                result = _process_entry(entry, entry_uid, recursive_extra if pass_num > 0 else "")
+                if result is None:
+                    still_pending.append((idx, entry))
+                    continue
+                content, injection_behavior = result
+                activated_this_pass += 1
+                if injection_behavior == "active":
+                    activated_entries["scenario"].append(content)
+                else:
+                    activated_entries["classic"].append(content)
+                activated_contents.append(content.lower()[:1500])
+            pending = still_pending
+            if activated_this_pass == 0:
+                break
 
         self.lorebook_state[lorebook_name] = book_state
         return activated_entries
@@ -448,6 +529,45 @@ class PromptEngine:
         
         logger.info("\n".join(log_output))
 
+    LAST_PROMPT_BLOCK_CHAR_CAP = 6000
+
+    def _dump_last_prompt(self, mem_dir, messages):
+        if not mem_dir:
+            return
+        try:
+            mem_dir = Path(mem_dir)
+            mem_dir.mkdir(parents=True, exist_ok=True)
+            out = [
+                f"=== LAST ASSEMBLED PROMPT | {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')} ===",
+                "",
+            ]
+            for i, msg in enumerate(messages):
+                role = str(msg.get("role", "unknown")).upper()
+                content = msg.get("content", "")
+                if isinstance(content, list):
+                    text_parts, img_n = [], 0
+                    for block in content:
+                        if not isinstance(block, dict):
+                            continue
+                        if block.get("type") == "text":
+                            text_parts.append(str(block.get("text", "")))
+                        elif block.get("type") in ("image_url", "image"):
+                            img_n += 1
+                    display = "\n".join(text_parts)
+                    suffix = f" + {img_n} image(s)" if img_n else ""
+                else:
+                    display = str(content or "")
+                    suffix = ""
+                if len(display) > self.LAST_PROMPT_BLOCK_CHAR_CAP:
+                    display = display[: self.LAST_PROMPT_BLOCK_CHAR_CAP] + "\n…[truncated]"
+                header = f"--- BLOCK {i + 1} | {role} | {len(display)} chars{suffix} ---"
+                out.append(header)
+                out.append(display.strip())
+                out.append("")
+            (mem_dir / "last_prompt.txt").write_text("\n".join(out), encoding="utf-8")
+        except Exception as e:
+            logger.debug(f"[Soul Memory] last_prompt dump skipped: {e}")
+
     def build_system_prompt_blocks(self, character_name, user_name, user_description, chat_messages, user_message, activated_lorebook=None, image_attachments=None, provider_style="openai"):
         """
         Builds a robust system prompt list with structured blocks, memory, and lore integration.
@@ -478,11 +598,11 @@ class PromptEngine:
                 if template:
                     val = variables_state.get(var_id, var["default"])
                     if isinstance(val, list):
-                        val_str = ", ".join(val) if val else "Empty"
+                        val_str = ", ".join(str(v) for v in val) if val else "Empty"
                     else:
                         val_str = str(val)
                     
-                    formatted_line = template.format(value=val_str)
+                    formatted_line = template.replace("{value}", val_str)
                     state_lines.append(f"{formatted_line} (Use Variable ID: \"{var_id}\")")
             
             if state_lines:
@@ -502,7 +622,7 @@ class PromptEngine:
                     "1. Only include keys that actually changed this turn. Use ONLY keys from the ALLOWED JSON KEYS list above, spelled exactly as shown.\n"
                     "2. For numerical variables (int), output the CHANGE (delta), not the new total (e.g., -10 or 5 to add 5).\n"
                     "3. For boolean variables (bool), output the new value as true or false (not the change).\n"
-                    "4. For lists (inventory), prefix each changed item with '+' to add it or '-' to remove it (e.g., \"+Key\" or \"-Sword\"). To change several list items in one turn, still use only ONE key with ONE string value — pick the single most important change.\n"
+                    "4. For lists (inventory), prefix each changed item with '+' to add it or '-' to remove it (e.g., \"+Key\" or \"-Sword\"). To change several list items in one turn, output a JSON array of changes: [\"+Sword\", \"-Key\", \"+Rope\"]. A single change may be a plain string.\n"
                     "5. For text variables (str), output the new value directly, as plain text (no + or - prefix).\n"
                     "6. Write STRICT JSON: double-quoted keys and string values, no trailing commas, no comments, no markdown code fences.\n"
                     "7. The <state_update> tag must appear exactly once, fully closed, at the absolute end of your response, with NO narration, dialogue, or any other text after the closing tag.\n\n"
@@ -531,6 +651,16 @@ class PromptEngine:
         personas = user_data.get("personas", {})
         presets = user_data.get("presets", {})
         author_notes = user_data.get("author_notes", "")
+
+        chat_note_content = ""
+        chat_note_depth = 3
+        try:
+            raw_note = current_chat_data.get("author_notes", {})
+            if isinstance(raw_note, dict):
+                chat_note_content = str(raw_note.get("content", "") or "").strip()
+                chat_note_depth = max(0, min(20, int(raw_note.get("depth", 3) or 0)))
+        except Exception:
+            pass
 
         if selected_preset == "By default":
             system_prompt_template = (
@@ -585,8 +715,7 @@ class PromptEngine:
                         content = f"[WORLD LORE & KNOWLEDGE]\n{lore_text}"
                 case "Author's notes":
                     if author_notes.strip():
-                        content = f"[AUTHOR NOTES]\n{author_notes}"
-            
+                        content = f"[AUTHOR NOTES]\n{author_notes}"            
             if content:
                 for key, value in replacements.items():
                     content = content.replace(key, str(value))
@@ -615,20 +744,19 @@ class PromptEngine:
             final_user_message += scenario_injection
 
         # Soul Memory Processing
+        mem_dir = None
         if self.is_soul_memory_enabled():
             try:
                 from app.utils.soul_memory import SoulMemoryAgent
                 agent = SoulMemoryAgent(None)
-                _, index_path, usr_path, topics_dir, *_ = agent.get_memory_paths(character_name, current_chat_id)
-                
+                mem_dir, index_path, usr_path, topics_dir, *_ = agent.get_memory_paths(character_name, current_chat_id)
+
                 memory_index = agent.get_memory_index(character_name, current_chat_id)
                 user_profile = agent.get_user_profile(character_name, current_chat_id)
-                explicit_topics = []
-                
+
                 soul_memory_content = ""
                 if memory_index:
                     soul_memory_content += f"[CHARACTER PSYCHOLOGY & COGNITIVE CACHE]\n{memory_index}\n"
-                    explicit_topics = [t.lower().strip() for t in re.findall(r'\[TOPIC FILE:\s*(.*?\.md)\]', memory_index)]
 
                 if user_profile:
                     if soul_memory_content:
@@ -650,40 +778,30 @@ class PromptEngine:
                         query_vec = model.encode([f"query: {safe_query_context}"])[0]
                         topic_vectors = []
                         topic_contents = []
-                        
+
+                        from app.utils.soul_memory import encode_topic_cached
                         for topic_file in topic_files:
                             t_name = topic_file.name.lower()
                             full_text = topic_file.read_text(encoding="utf-8")
-                            
-                            if t_name in explicit_topics:
-                                if t_name.startswith("diary_"):
-                                    display_content = "... " + full_text[-2500:] if len(full_text) > 2500 else full_text
-                                    found_topics.append(f"--- [DIARY ENTRY: {topic_file.stem}] ---\n{display_content}")
-                                else:
-                                    found_topics.append(f"--- [DEEP MEMORY: {topic_file.stem}] ---\n{full_text}")
-                                continue
-                            
+
                             if t_name.startswith("diary_"):
                                 content_preview = full_text[-600:]
                                 encoding_target = f"Diary: {topic_file.stem}. Recent thoughts: {content_preview}"
                             else:
                                 content_preview = full_text[:200]
                                 encoding_target = f"Topic: {topic_file.stem}. Content: {content_preview}"
-                            
-                            target_hash = f"topic_{character_name}_{t_name}"
-                            if target_hash in self.embedding_cache:
-                                t_vec = self.embedding_cache[target_hash]
-                            else:
-                                t_vec = model.encode([f"passage: {encoding_target}"])[0]
-                                self.embedding_cache[target_hash] = t_vec
-                            
+
+                            t_vec = encode_topic_cached(
+                                f"topic_{character_name}_{t_name}", encoding_target, model
+                            )
+
                             topic_vectors.append(t_vec)
                             topic_contents.append((topic_file.stem, full_text))
 
                         if topic_vectors:
                             similarities = cosine_similarity([query_vec], topic_vectors)[0]
                             top_indices = np.argsort(similarities)[::-1]
-                            
+
                             for idx in top_indices:
                                 if similarities[idx] > 0.42:
                                     t_name, t_full_content = topic_contents[idx]
@@ -693,7 +811,7 @@ class PromptEngine:
                                             found_topics.append(f"--- [DIARY ENTRY: {t_name}] ---\n{display_content}")
                                         else:
                                             found_topics.append(f"--- [DEEP MEMORY: {t_name}] ---\n{t_full_content}")
-                                
+
                                 if len(found_topics) >= 3:
                                     break
 
@@ -701,11 +819,11 @@ class PromptEngine:
                         if soul_memory_content:
                             soul_memory_content += "\n\n"
                         soul_memory_content += "[RELEVANT DEEP MEMORY TOPICS]\n" + "\n\n".join(found_topics)
-                
+
                 if soul_memory_content:
                     system_blocks.append({"role": "system", "content": soul_memory_content})
                     current_token_count += self.count_tokens(soul_memory_content)
-                    
+
             except Exception as e:
                 logger.error(f"[Soul Memory] Semantic Search Error: {e}", exc_info=True)
 
@@ -734,11 +852,15 @@ class PromptEngine:
 
             if final_history and final_history[0]["role"] == "assistant":
                 final_history.insert(0, {"role": "user", "content": "..."})
-            if final_history and final_history[-1]["role"] == "user":
-                final_history.append({"role": "assistant", "content": "..."})
+
+            final_history, final_user_message = self._inject_chat_author_note(
+                final_history, chat_note_content, chat_note_depth, final_user_message
+            )
+            final_user_content = self._build_final_user_content(final_user_message, image_attachments, provider_style)
 
             final_messages = system_blocks + final_history + [{"role": "user", "content": final_user_content}]
             self.log_prompt_structure(final_messages)
+            self._dump_last_prompt(mem_dir, final_messages)
             return final_messages, activated_entries
 
         available_tokens = max_context_tokens - current_token_count - self.response_reserve
@@ -747,6 +869,7 @@ class PromptEngine:
             logger.warning("Context full! Drastic compression triggered: sending only system blocks + last message.")
             final_messages = system_blocks + [{"role": "user", "content": final_user_content}]
             self.log_prompt_structure(final_messages)
+            self._dump_last_prompt(mem_dir, final_messages)
             return final_messages, activated_entries
         
         # Short-Term Memory filtering
@@ -779,11 +902,14 @@ class PromptEngine:
         if final_history and final_history[0]["role"] == "assistant":
             final_history.insert(0, {"role": "user", "content": "..."})
 
-        if final_history and final_history[-1]["role"] == "user":
-            final_history.append({"role": "assistant", "content": "..."})
+        final_history, final_user_message = self._inject_chat_author_note(
+            final_history, chat_note_content, chat_note_depth, final_user_message
+        )
+        final_user_content = self._build_final_user_content(final_user_message, image_attachments, provider_style)
 
         final_messages = system_blocks + final_history + [{"role": "user", "content": final_user_content}]
         self.log_prompt_structure(final_messages)
+        self._dump_last_prompt(mem_dir, final_messages)
 
         return final_messages, activated_entries
 
@@ -900,8 +1026,13 @@ class PromptEngine:
     async def update_memory_after_response(self, provider, new_messages: list, character_name: str, user_name: str, activated_lorebook: dict = None, force: bool = False):
         if not self.is_soul_memory_enabled():
             return
-            
+
         from app.utils.soul_memory import SoulMemoryAgent
 
-        agent = SoulMemoryAgent(lambda msgs: self._memory_llm_call(provider, msgs))
+        agent = getattr(self, "_memory_agent", None)
+        if agent is None or getattr(self, "_memory_agent_provider", None) is not provider:
+            agent = SoulMemoryAgent(lambda msgs: self._memory_llm_call(provider, msgs))
+            self._memory_agent = agent
+            self._memory_agent_provider = provider
+
         await agent.update_memory_after_response(new_messages, character_name, user_name, activated_lorebook, force)

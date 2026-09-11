@@ -215,12 +215,13 @@ class EmotionState:
     current: str = "neutral"
     last_updated: datetime = field(default_factory=datetime.now)
     history: list = field(default_factory=list)
-    
+
     _ema_scores: dict = field(default_factory=lambda: {
         "neutral": 0.3, "curious": 0.1, "warm": 0.1, "amused": 0.1,
         "concerned": 0.1, "playful": 0.1, "relaxed": 0.1, "sleepy": 0.0,
         "melancholy": 0.0, "excited": 0.0
     })
+    _lock: threading.Lock = field(default_factory=threading.Lock, repr=False, compare=False)
 
     VALID_EMOTIONS = {
         "neutral", "curious", "warm", "amused", "concerned",
@@ -228,14 +229,15 @@ class EmotionState:
     }
 
     def set(self, emotion: str) -> None:
-        if emotion not in self.VALID_EMOTIONS:
-            emotion = "neutral"
-        if emotion != self.current:
-            self.history.append((self.current, self.last_updated))
-            if len(self.history) > 20:
-                self.history.pop(0)
-            self.current = emotion
-            self.last_updated = datetime.now()
+        with self._lock:
+            if emotion not in self.VALID_EMOTIONS:
+                emotion = "neutral"
+            if emotion != self.current:
+                self.history.append((self.current, self.last_updated))
+                if len(self.history) > 20:
+                    self.history.pop(0)
+                self.current = emotion
+                self.last_updated = datetime.now()
 
     def from_hormones(self, h: NeurohormoneSystem) -> str:
         if h.is_sleeping:
@@ -252,26 +254,28 @@ class EmotionState:
             "neutral":    0.25,
         }
 
-        alpha = 0.30
-        for emo, raw_val in raw_scores.items():
-            prev = self._ema_scores.get(emo, 0.0)
-            self._ema_scores[emo] = (1.0 - alpha) * prev + alpha * raw_val
+        with self._lock:
+            alpha = 0.30
+            for emo, raw_val in raw_scores.items():
+                prev = self._ema_scores.get(emo, 0.0)
+                self._ema_scores[emo] = (1.0 - alpha) * prev + alpha * raw_val
 
-        winning_emotion = max(self._ema_scores, key=self._ema_scores.get)
-        return winning_emotion
+            return max(self._ema_scores, key=self._ema_scores.get)
 
     def to_dict(self) -> dict:
-        return {
-            "current": self.current,
-            "ema_scores": self._ema_scores
-        }
+        with self._lock:
+            return {
+                "current": self.current,
+                "ema_scores": dict(self._ema_scores)
+            }
 
     def from_dict(self, data: dict):
         if not data:
             return
-        self.current = data.get("current", "neutral")
-        if "ema_scores" in data and isinstance(data["ema_scores"], dict):
-            self._ema_scores.update(data["ema_scores"])
+        with self._lock:
+            self.current = data.get("current", "neutral")
+            if "ema_scores" in data and isinstance(data["ema_scores"], dict):
+                self._ema_scores.update(data["ema_scores"])
 
 class Scratchpad:
     MAX_ENTRIES = 8
@@ -429,8 +433,6 @@ class WebSearchTool(BaseTool):
     name = "web_search"
     description = "Search the web for up-to-date information, news, and queries."
 
-    _BRAVE_API_KEY: str = os.environ.get("BRAVE_SEARCH_API_KEY", "")
-
     _SEARXNG_INSTANCES = [
         "https://searx.be",
         "https://search.disroot.org",
@@ -483,10 +485,11 @@ class WebSearchTool(BaseTool):
             return None
 
     async def _search_brave(self, query: str) -> list[dict] | None:
-        if not self._BRAVE_API_KEY:
+        api_key = os.environ.get("BRAVE_SEARCH_API_KEY", "")
+        if not api_key:
             logger.info("[WebSearch] BRAVE_SEARCH_API_KEY environment variable is empty. Skipping Strategy 2.")
             return None
-            
+
         logger.info("[WebSearch] BRAVE_SEARCH_API_KEY detected. Sending request...")
         try:
             import aiohttp
@@ -494,7 +497,7 @@ class WebSearchTool(BaseTool):
             headers = {
                 "Accept":               "application/json",
                 "Accept-Encoding":      "gzip",
-                "X-Subscription-Token": self._BRAVE_API_KEY,
+                "X-Subscription-Token": api_key,
             }
             params = {"q": query, "count": 5, "text_decorations": False}
             async with aiohttp.ClientSession() as session:
@@ -1758,7 +1761,6 @@ class SoulCompanion:
         self.sys       = system_ref
         self.hormones  = NeurohormoneSystem()
         self.emotion   = EmotionState()
-        self.scratchpad = Scratchpad()
         self.plugins   = PluginLoader()
         self.event_bus = SoulCompanionEventBus()
         self.narrative = DeterministicNarrative()
@@ -1794,8 +1796,9 @@ class SoulCompanion:
 
         self._char_info_cache:    dict     = {}
         self._char_info_ts:       float    = 0.0
-        self._memory_cache:       str      = ""
-        self._memory_cache_ts:    float    = 0.0
+        self._memory_cache:       dict     = {}
+        self._memory_cache_lock   = threading.Lock()
+        self._last_hormone_save   = time.monotonic()
 
         self._os_poll_timer   = QTimer()
         self._os_poll_timer.timeout.connect(self._qt_poll_os)
@@ -1980,6 +1983,8 @@ class SoulCompanion:
 
         self.event_bus.emit_threadsafe("heartbeat_proactive", heartbeat_payload)
 
+    HORMONE_SAVE_INTERVAL_SEC = 600
+
     def _qt_hormone_tick(self):
         user_active = (datetime.now() - self._last_user_input).total_seconds() < 120
         self.hormones.tick(user_active=user_active)
@@ -1988,6 +1993,10 @@ class SoulCompanion:
         if derived != self.emotion.current:
             self.emotion.set(derived)
             self._apply_emotion_to_avatar(derived)
+
+        if time.monotonic() - self._last_hormone_save >= self.HORMONE_SAVE_INTERVAL_SEC:
+            self._last_hormone_save = time.monotonic()
+            self._save_hormones()
 
     def _qt_idle_check(self):
         elapsed = (datetime.now() - self._last_user_input).total_seconds()
@@ -2015,9 +2024,7 @@ class SoulCompanion:
                 continue
             except Exception as e:
                 logger.error(f"Event loop error: {e}", exc_info=True)
-        
-        if bus._loop and bus._loop.is_running():
-            bus._loop.stop()
+
         logger.info("Soul Companion event loop ended.")
 
     async def _handle_event(self, event: dict):
@@ -2085,6 +2092,17 @@ class SoulCompanion:
                 "Speak in the first person. Honestly share what you are thinking about (refer to your Scratchpad/thoughts) "
                 "or reflect on your current relationship, mood, and feelings toward the user in a cozy, intimate way."
             )
+
+        if etype in ("manual_screenshot", "manual_clipboard", "manual_scratchpad") and user_text:
+            try:
+                self.sys.configuration_characters.add_message_to_config(
+                    self.sys.character_name, "User", True, user_text, str(uuid.uuid4())
+                )
+                self._session_history.append({"role": "user", "text": user_text})
+                if len(self._session_history) > 10:
+                    self._session_history.pop(0)
+            except Exception as e:
+                logger.warning(f"Failed to log manual interaction to chat history: {e}")
 
         if not is_explicit and not self._can_speak(is_explicit=False):
             logger.debug(f"Skipping proactive LLM generation for '{etype}' to save hardware resources (cool-down active).")
@@ -2286,6 +2304,22 @@ class SoulCompanion:
                         self._session_history.pop(0)
                     self._speak(spoken_response.strip())
 
+                elif action == "use_tool":
+                    fallback = (spoken_response or "").strip() or (thought or "").strip()
+                    if not fallback:
+                        fallback = (
+                            "I tried to work on that, but I couldn't pick the right tool for it. "
+                            "Could you rephrase it, or should I try a different way?"
+                        )
+                    char_msg_id = str(uuid.uuid4())
+                    self.sys.configuration_characters.add_message_to_config(
+                        self.sys.character_name, self.sys.character_name, False, fallback.strip(), char_msg_id
+                    )
+                    self._session_history.append({"role": "assistant", "text": fallback.strip()})
+                    if len(self._session_history) > 10:
+                        self._session_history.pop(0)
+                    self._speak(fallback.strip())
+
         elif action == "speak":
             is_explicit_val = etype in ("vad_trigger", "user_click", "tool_complete", "manual_screenshot", "manual_clipboard", "manual_scratchpad")
             was_streamed = companion_result.get("_was_streamed", False)
@@ -2366,7 +2400,7 @@ class SoulCompanion:
                               time_str: str, user_text: str = "", 
                               tool_result: str = None, b64_image: str = None, 
                               proactive_directive: str = None) -> Optional[dict]:
-        mem_snap     = self._get_memory_snapshot(force=True)
+        mem_snap     = self._get_memory_snapshot(query_text=user_text or "")
         last_spoke_m = int((datetime.now() - self._last_spoke).total_seconds() / 60)
 
         narrative_hint = self.narrative.build(
@@ -2479,6 +2513,25 @@ class SoulCompanion:
         if parsed_json:
             parsed_json["_was_streamed"] = len(streamed_sentences) > 0
             return parsed_json
+
+        if streamed_sentences:
+            joined = " ".join(s.strip() for s in streamed_sentences if s.strip()).strip()
+            if joined:
+                try:
+                    char_msg_id = str(uuid.uuid4())
+                    self.sys.configuration_characters.add_message_to_config(
+                        self.sys.character_name, self.sys.character_name, False, joined, char_msg_id
+                    )
+                    self._session_history.append({"role": "assistant", "text": joined})
+                    if len(self._session_history) > 10:
+                        self._session_history.pop(0)
+                    self.hormones.on_spoke()
+                    logger.warning(
+                        f"[Companion] JSON parse failed; salvaged {len(streamed_sentences)} "
+                        f"streamed sentence(s) into chat history."
+                    )
+                except Exception as e:
+                    logger.error(f"Failed to record streamed speech after parse failure: {e}")
 
         return None
     
@@ -2807,17 +2860,24 @@ class SoulCompanion:
         except Exception:
             return self._char_info_cache or {}
 
+    _MEMORY_CACHE_MAX_ENTRIES = 4
+
     def _get_memory_snapshot(self, force: bool = False, query_text: str = "") -> str:
         now = time.monotonic()
-        if not force and (now - self._memory_cache_ts < self._CACHE_TTL_SEC) and self._memory_cache:
-            return self._memory_cache
+        cache_key = re.sub(r"\s+", " ", str(query_text or "")).strip().lower()[:200] or "_default_"
+
+        if not force:
+            with self._memory_cache_lock:
+                hit = self._memory_cache.get(cache_key)
+                if hit and (now - hit[0] < self._CACHE_TTL_SEC):
+                    return hit[1]
 
         try:
-            char_info    = self._get_char_info(force=force)
+            char_info    = self._get_char_info()
             current_chat = char_info.get("current_chat", "default")
             safe_name    = re.sub(r"[^\w _-]", "_", self.sys.character_name).strip()
             safe_chat    = re.sub(r"[^\w _-]", "_", str(current_chat)).strip()
-            
+
             mem_dir = Path(f".soul/{safe_name}/chats/{safe_chat}/memory")
             idx_path = mem_dir / "MEMORY.md"
             usr_path = mem_dir / "USER.md"
@@ -2846,8 +2906,12 @@ class SoulCompanion:
             logger.warning(f"Error fetching RAG memory snapshot: {e}")
             result = "(memory system offline)"
 
-        self._memory_cache    = result
-        self._memory_cache_ts = now
+        with self._memory_cache_lock:
+            if len(self._memory_cache) >= self._MEMORY_CACHE_MAX_ENTRIES:
+                oldest_key = min(self._memory_cache, key=lambda k: self._memory_cache[k][0])
+                self._memory_cache.pop(oldest_key, None)
+            self._memory_cache[cache_key] = (now, result)
+
         return result
 
     def _get_user_name(self) -> str:

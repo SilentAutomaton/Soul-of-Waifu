@@ -42,6 +42,7 @@ from app.utils.translator import Translator
 from app.utils.text_to_speech import TTSWorker, PipelinedTTSWorker
 from app.utils.speech_to_text import AudioInputWorker, STTWorker
 from app.utils.vrm_server import VRMServerThread
+from app.utils.discord_rpc import DiscordRPCManager
 from app.gui.custom_widgets import sow_toast, safe_paint
 
 import sys
@@ -290,6 +291,8 @@ class Soul_Of_Waifu_System(QtCore.QObject):
             self.tts_worker.deleteLater()
 
     def safe_close(self):
+        DiscordRPCManager().set_menu_presence()
+
         self.stop_all_workers()
         self._stop_companion_systems()
         self.ui.stop_call_timer()
@@ -461,6 +464,8 @@ class Soul_Of_Waifu_System(QtCore.QObject):
         if live2d_mode == 0:
             self.ui.show()
 
+            DiscordRPCManager().set_call_presence()
+
             try:
                 personas_data = self.configuration_settings.get_user_data("personas")
                 current_persona = character_info.get("selected_persona")
@@ -535,41 +540,15 @@ class Soul_Of_Waifu_System(QtCore.QObject):
                         border-bottom-right-radius: 10px;
                         border-bottom-left-radius: 10px;
                     """)
+                    
             elif current_sow_system_mode == "Expressions Images":
-                if model_background_type == 0:
-                    match model_background_color:
-                        case 0:
-                            background_color = 0x000000
-                        case 1:
-                            background_color = 0x1A202F
-                        case 2:
-                            background_color = 0x2C1A22
-                        case 3:
-                            background_color = 0x222B24
-                        case 4:
-                            background_color = 0x2E2232
-                        case 5:
-                            background_color = 0x292929
-                        
-                    css_background = f"#{background_color:06X}"
+                bg_type = self.configuration_settings.get_main_setting("model_background_type") or 0
+                bg_color = self.configuration_settings.get_main_setting("model_background_color") or 0
+                bg_image = self.configuration_settings.get_main_setting("model_background_image")
 
-                    self.ui.avatar_widget.setStyleSheet(f"""
-                        background-color: {css_background}; 
-                        border-top-right-radius: 10px;
-                        border-top-left-radius: 10px;
-                        border-bottom-right-radius: 10px;
-                        border-bottom-left-radius: 10px;
-                    """)
-                elif model_background_type == 1:
-                    model_background_image = model_background_image.replace("\\", "/")
+                if hasattr(self.ui, "set_model_background"):
+                    self.ui.set_model_background(bg_type, bg_color, bg_image)
 
-                    self.ui.avatar_widget.setStyleSheet(f"""
-                        border-image: url({model_background_image}); 
-                        border-top-right-radius: 10px;
-                        border-top-left-radius: 10px;
-                        border-bottom-right-radius: 10px;
-                        border-bottom-left-radius: 10px;
-                    """)
             elif current_sow_system_mode == "Live2D Model":
                 if model_background_type == 0:
                     match model_background_color:
@@ -827,6 +806,7 @@ class Soul_Of_Waifu_System(QtCore.QObject):
                 return
             
             try:
+                DiscordRPCManager().set_companion_presence()
                 await self.initialize_sow_system_no_gui(current_sow_system_mode)
             except Exception as e:
                 return
@@ -2984,6 +2964,7 @@ class Live2DWidget(QOpenGLWidget):
 
     def closeEvent(self, event):
         logger.info("Closing widget...")
+        DiscordRPCManager().set_menu_presence()
         self.cleanup()
         super().closeEvent(event)
     
@@ -3641,6 +3622,7 @@ class Live2DWidget_NoGUI(QOpenGLWidget):
             QtCore.QTimer.singleShot(0, self.sow_system_ref.stop_all_workers)
 
         if self.parent_main:
+            DiscordRPCManager().set_menu_presence()
             self.parent_main.show()
         super().closeEvent(event)
 

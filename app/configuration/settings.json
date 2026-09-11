@@ -17,7 +17,7 @@
         "llm_backend": 0,
         "gpu_layers": 30,
         "mlock_status": false,
-		"no_mmap_status": false,
+	"no_mmap_status": false,
         "flash_attention_status": false,
         "context_size": 2048,
         "temperature": 0.8,
@@ -115,7 +115,15 @@
         "soul_memory_mode": 0,
         "enable_mcp": false,
         "enable_tool_calling": true,
-		"chat_tools_enabled": false
+	"chat_tools_enabled": false,
+        "reasoning_effort": "low",
+        "auto_translate_new_messages": false,
+        "tts_voicing_mode": 0,
+        "tts_custom_regex": "",
+	"active_llm_preset": null,
+        "ambient_volume": 10,
+        "image_checkpoint": "",
+        "comfyui_custom_workflow_path": ""
     },
     "user_data": {
         "default_persona": "None",
@@ -186,7 +194,10 @@
             "accent": "#3D5AFE",
             "text": "#E3E3E3"
         },
-        "custom_variable_presets": {}
+        "custom_variable_presets": {},
+	"llm_presets": {},
+        "hub_sort_mode": "name_asc",
+        "hub_tag_filter": ""
     },
     "character_groups": {}
 }

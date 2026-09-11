@@ -63,10 +63,6 @@ class MCPClient:
         self._message_id += 1
         return req_id
 
-    # ------------------------------------------------------------------
-    # Connection lifecycle
-    # ------------------------------------------------------------------
-
     async def start(self) -> bool:
         self.session = aiohttp.ClientSession()
         try:
@@ -217,10 +213,6 @@ class MCPClient:
         self.protocol_version = None
         self.transport = None
 
-    # ------------------------------------------------------------------
-    # Legacy HTTP+SSE stream reading
-    # ------------------------------------------------------------------
-
     async def _read_sse_stream(self):
         if not self._sse_response:
             return
@@ -268,10 +260,6 @@ class MCPClient:
             return None
 
         return await asyncio.wait_for(_read(), timeout=timeout)
-
-    # ------------------------------------------------------------------
-    # Request / notification sending
-    # ------------------------------------------------------------------
 
     async def _send_request(self, method: str, params: dict = None, timeout: float = 30.0) -> Any:
         if not self.post_url or not self.session:
@@ -382,10 +370,6 @@ class MCPClient:
                 pass
         except Exception as e:
             logger.error(f"Failed to send notification to MCP server '{self.name}': {e}")
-
-    # ------------------------------------------------------------------
-    # Public tool API
-    # ------------------------------------------------------------------
 
     async def get_tools(self) -> List[dict]:
         try:

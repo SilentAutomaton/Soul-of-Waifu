@@ -1,11 +1,16 @@
 import os
 import shutil
 import re
+import uuid as uuid_lib
 import uuid
 import json
 import logging
 import datetime
+import hashlib
+import threading
 import traceback
+from typing import Optional
+import copy
 
 logger = logging.getLogger("Configuration")
 
@@ -223,27 +228,228 @@ class ConfigurationAPI():
 
 class ConfigurationCharacters():
     """
-    A class for managing character data stored in a JSON configuration file.
+    Manages character data with SHARDED storage.
     """
+    INDEX_VERSION = 2
+
+    _cache: Optional[dict] = None
+    _serialized: dict = {}
+    _shard_rels: dict = {}
+    _loaded_index_mtime: Optional[float] = None
+    _lock = threading.RLock()
+
     def __init__(self):
         self.characters_path = "app/configuration/characters.json"
+        self.shards_dir = os.path.join("app", "configuration", "characters")
         self.configuration_data = self.load_configuration()
 
+    def _shard_abs(self, rel: str) -> str:
+        return os.path.join("app", "configuration", *rel.split("/"))
+
+    def _new_shard_rel(self, name: str) -> str:
+        safe = re.sub(r'[^A-Za-z0-9_-]', '_', name).strip('_') or "character"
+        digest = hashlib.md5(name.encode("utf-8")).hexdigest()[:8]
+        return f"characters/{safe}_{digest}.json"
+
+    @staticmethod
+    def _atomic_write_text(path: str, text: str):
+        tmp = f"{path}.tmp{os.getpid()}"
+        os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
+        with open(tmp, "w", encoding="utf-8") as f:
+            f.write(text)
+        os.replace(tmp, path)
+
     def load_configuration(self):
-        """
-        Loads the characters configuration data from the JSON file.
-        """
+        cls = ConfigurationCharacters
+        with cls._lock:
+            try:
+                idx_mtime = os.path.getmtime(self.characters_path)
+            except OSError:
+                idx_mtime = None
+
+            if cls._cache is not None and cls._loaded_index_mtime == idx_mtime:
+                return cls._cache
+
+            return self._reload_from_disk(idx_mtime)
+
+    def _reload_from_disk(self, idx_mtime):
+        cls = ConfigurationCharacters
+
         if not os.path.exists(self.characters_path):
+            cls._cache = {}
+            cls._serialized = {}
+            cls._shard_rels = {}
+            cls._loaded_index_mtime = idx_mtime
             return {}
-        with open(self.characters_path, 'r', encoding='utf-8') as file:
-            return json.load(file)
+
+        try:
+            with open(self.characters_path, 'r', encoding='utf-8') as file:
+                index = json.load(file)
+        except Exception as e:
+            logger.error(f"[Characters] Failed to read index: {e}")
+            cls._cache = {}
+            cls._serialized = {}
+            cls._shard_rels = {}
+            cls._loaded_index_mtime = idx_mtime
+            return {}
+
+        if not isinstance(index, dict):
+            index = {}
+        char_index = index.get("character_list", {})
+        if not isinstance(char_index, dict):
+            char_index = {}
+
+        if index.get("version") != self.INDEX_VERSION or any(
+            not (isinstance(v, dict) and v.get("__shard__")) for v in char_index.values()
+        ):
+            return self._migrate_legacy(char_index)
+
+        merged = {"character_list": {}}
+        serialized = {}
+        shard_rels = {}
+        for name, meta in char_index.items():
+            rel = meta.get("__shard__")
+            if not rel:
+                continue
+            shard_path = self._shard_abs(rel)
+            try:
+                with open(shard_path, 'r', encoding='utf-8') as f:
+                    cdata = json.load(f)
+            except FileNotFoundError:
+                logger.warning(f"[Characters] Shard missing for '{name}' ({rel}) — skipped.")
+                continue
+            except Exception as e:
+                logger.error(f"[Characters] Failed to read shard for '{name}': {e}")
+                continue
+            if not isinstance(cdata, dict):
+                continue
+            merged["character_list"][name] = cdata
+            shard_rels[name] = rel
+            try:
+                serialized[name] = json.dumps(cdata, ensure_ascii=False, indent=2)
+            except Exception:
+                pass
+
+        cls._cache = merged
+        cls._serialized = serialized
+        cls._shard_rels = shard_rels
+        cls._loaded_index_mtime = idx_mtime
+        return merged
+
+    def _migrate_legacy(self, char_index: dict) -> dict:
+        cls = ConfigurationCharacters
+        logger.info(f"[Characters] Migrating {len(char_index)} character(s) to sharded storage...")
+
+        try:
+            backup_path = self.characters_path + ".legacy_backup"
+            if os.path.exists(self.characters_path) and not os.path.exists(backup_path):
+                shutil.copy2(self.characters_path, backup_path)
+        except Exception as e:
+            logger.warning(f"[Characters] Could not keep a legacy backup copy: {e}")
+
+        os.makedirs(self.shards_dir, exist_ok=True)
+
+        merged = {"character_list": {}}
+        serialized = {}
+        shard_rels = {}
+        new_index = {"version": self.INDEX_VERSION, "character_list": {}}
+
+        for name, cdata in char_index.items():
+            if not isinstance(cdata, dict):
+                continue
+            rel = self._new_shard_rel(name)
+            try:
+                text = json.dumps(cdata, ensure_ascii=False, indent=2)
+                self._atomic_write_text(self._shard_abs(rel), text)
+            except Exception as e:
+                logger.error(f"[Characters] Migration write failed for '{name}': {e}")
+                continue
+            new_index["character_list"][name] = {"__shard__": rel}
+            merged["character_list"][name] = cdata
+            serialized[name] = text
+            shard_rels[name] = rel
+
+        try:
+            self._atomic_write_text(
+                self.characters_path,
+                json.dumps(new_index, ensure_ascii=False, indent=2),
+            )
+        except Exception as e:
+            logger.error(f"[Characters] Failed to write sharded index: {e}")
+
+        cls._cache = merged
+        cls._serialized = serialized
+        cls._shard_rels = shard_rels
+        try:
+            cls._loaded_index_mtime = os.path.getmtime(self.characters_path)
+        except OSError:
+            cls._loaded_index_mtime = None
+
+        logger.info(f"[Characters] Migration complete ({len(merged['character_list'])} shard(s) written).")
+        return merged
 
     def save_configuration_edit(self, data):
-        """
-        Saves the provided character configuration data directly to the JSON file.
-        """
-        with open(self.characters_path, 'w', encoding="utf-8") as file:
-            json.dump(data, file, ensure_ascii=False, indent=4)
+        cls = ConfigurationCharacters
+        with cls._lock:
+            if not isinstance(data, dict):
+                logger.error("[Characters] save_configuration_edit expects a dict — skipped.")
+                return
+
+            if cls._cache is None:
+                self.load_configuration()
+
+            new_list = data.get("character_list", {}) or {}
+            if not isinstance(new_list, dict):
+                new_list = {}
+
+            new_serialized = {}
+            new_rels = {}
+
+            for name, cdata in new_list.items():
+                rel = cls._shard_rels.get(name) or self._new_shard_rel(name)
+                try:
+                    text = json.dumps(cdata, ensure_ascii=False, indent=2)
+                except Exception as e:
+                    logger.error(f"[Characters] Serialization failed for '{name}': {e}")
+                    continue
+                if text != cls._serialized.get(name):
+                    try:
+                        self._atomic_write_text(self._shard_abs(rel), text)
+                    except Exception as e:
+                        logger.error(f"[Characters] Shard write failed for '{name}': {e}")
+                        continue
+                new_serialized[name] = text
+                new_rels[name] = rel
+
+            for name in list(cls._shard_rels.keys()):
+                if name not in new_list:
+                    rel = cls._shard_rels.pop(name)
+                    try:
+                        os.remove(self._shard_abs(rel))
+                    except OSError:
+                        pass
+                    cls._serialized.pop(name, None)
+
+            index = {
+                "version": self.INDEX_VERSION,
+                "character_list": {n: {"__shard__": r} for n, r in new_rels.items()},
+            }
+            try:
+                self._atomic_write_text(
+                    self.characters_path,
+                    json.dumps(index, ensure_ascii=False, indent=2),
+                )
+            except Exception as e:
+                logger.error(f"[Characters] Failed to write index: {e}")
+                return
+
+            cls._serialized = new_serialized
+            cls._shard_rels = new_rels
+            cls._cache = data
+            try:
+                cls._loaded_index_mtime = os.path.getmtime(self.characters_path)
+            except OSError:
+                cls._loaded_index_mtime = None
 
     def save_character_card(self, character_name, character_title, character_avatar, 
                             character_description, character_personality, first_message, 
@@ -438,7 +644,8 @@ class ConfigurationCharacters():
         
         self.save_configuration_edit(configuration_data)
 
-    def add_message_to_config(self, character_name, author_name, is_user, text, message_id):
+    def add_message_to_config(self, character_name, author_name, is_user, text, message_id,
+                              variables_state_before=None):
         """
         Adds a new message to the chat content of a specific character in the configuration.
         """
@@ -478,7 +685,12 @@ class ConfigurationCharacters():
         for extra_key in ("image", "image_status", "image_prompt", "tts_audio", "attachments"):
             if extra_key in existing_entry:
                 new_message[extra_key] = existing_entry[extra_key]
-        
+
+        if variables_state_before is None and "variables_state_before" in existing_entry:
+            variables_state_before = existing_entry.get("variables_state_before")
+        if isinstance(variables_state_before, dict) and variables_state_before:
+            new_message["variables_state_before"] = dict(variables_state_before)
+
         chat_content[message_id] = new_message
         chat_data["chat_content"] = chat_content
 
@@ -490,7 +702,8 @@ class ConfigurationCharacters():
         self.renumber_sequence_numbers(character_name)
         self.update_chat_history(character_name)
 
-    def regenerate_message_in_config(self, character_name, message_id, text):
+    def regenerate_message_in_config(self, character_name, message_id, text,
+                                     variables_state_before=None):
         """
         Regenerates a message by adding a new variant to the same message_id.
         """
@@ -525,6 +738,9 @@ class ConfigurationCharacters():
 
         msg["current_variant_id"] = new_variant_id
 
+        if isinstance(variables_state_before, dict) and variables_state_before:
+            msg["variables_state_before"] = dict(variables_state_before)
+
         chat_content[message_id] = msg
         chat_data["chat_content"] = chat_content
         character_data["chats"][current_chat_id] = chat_data
@@ -537,7 +753,7 @@ class ConfigurationCharacters():
 
     def edit_chat_message(self, message_id, character_name, edited_text):
         """
-        Edits the text of an existing chat message (only the current variant) inside the currently selected chat of a character.
+        Edits the text of an existing chat message inside the currently selected chat of a character.
         """
         try:
             configuration_data = self.load_configuration()
@@ -635,7 +851,11 @@ class ConfigurationCharacters():
             chat_content = chat_data.get("chat_content", {})
             
             if message_id in chat_content:
-                del chat_content[message_id]
+                removed = chat_content.pop(message_id)
+                snap = removed.get("variables_state_before")
+                if isinstance(snap, dict) and snap:
+                    chat_data["variables_state"] = dict(snap)
+                    logger.info(f"[State] Rolled back variables_state after deleting message {message_id}.")
                 
             chat_data["chat_content"] = chat_content
             char_data["chats"][current_chat_id] = chat_data
@@ -674,6 +894,17 @@ class ConfigurationCharacters():
 
             chat_data = char_data["chats"][current_chat_id]
             chat_content = chat_data.get("chat_content", {})
+
+            ids_set = set(message_ids or [])
+            candidates = [
+                chat_content[mid] for mid in ids_set
+                if mid in chat_content and isinstance(chat_content[mid].get("variables_state_before"), dict)
+                and chat_content[mid].get("variables_state_before")
+            ]
+            if candidates:
+                earliest = min(candidates, key=lambda m: m.get("sequence_number", 0))
+                chat_data["variables_state"] = dict(earliest["variables_state_before"])
+                logger.info(f"[State] Rolled back variables_state after deleting {len(candidates)} message(s).")
 
             for message_id in message_ids:
                 if message_id in chat_content:
@@ -819,6 +1050,122 @@ class ConfigurationCharacters():
         self.save_configuration_edit(configuration_data)
         logger.info(f"Created new chat '{chat_name}' for character '{character_name}'")
     
+    def branch_chat(self, character_name: str, source_chat_id: str,
+                    fork_message_id: Optional[str] = None, new_name: Optional[str] = None) -> Optional[str]:
+        """
+        Creates a branch: a full copy of `source_chat_id` truncated UP TO AND
+        INCLUDING `fork_message_id` (or the whole chat when fork_message_id is
+        None). The original chat is never modified.
+
+        Returns the new chat_id, or None on any problem.
+        """
+        try:
+            configuration_data = self.load_configuration()
+            char_data = configuration_data.get('character_list', {}).get(character_name)
+            if not char_data:
+                logger.error(f"[Branch] Character '{character_name}' not found.")
+                return None
+
+            chats = char_data.get("chats", {})
+            source = chats.get(source_chat_id)
+            if not source:
+                logger.error(f"[Branch] Source chat '{source_chat_id}' not found for '{character_name}'.")
+                return None
+
+            content = source.get("chat_content", {})
+
+            if fork_message_id is not None:
+                fork_entry = content.get(fork_message_id)
+                if not fork_entry:
+                    logger.error(f"[Branch] fork_message_id '{fork_message_id}' not in source chat.")
+                    return None
+                fork_seq = fork_entry.get("sequence_number", 0)
+                kept = {
+                    mid: copy.deepcopy(msg)
+                    for mid, msg in content.items()
+                    if msg.get("sequence_number", 0) <= fork_seq
+                }
+            else:
+                kept = copy.deepcopy(content)
+
+            if not kept:
+                logger.error("[Branch] Fork point produced an empty chat — refusing.")
+                return None
+
+            new_chat_id = str(uuid.uuid4())
+
+            new_chat = copy.deepcopy(source)
+            new_chat["name"] = (new_name or f"{source.get('name', 'Chat')} (branch)").strip()
+            new_chat["chat_content"] = kept
+            new_chat["is_branch"] = True
+            new_chat["parent_chat_id"] = source_chat_id
+            new_chat["fork_message_id"] = fork_message_id
+            new_chat["created_at"] = datetime.datetime.now().isoformat()
+
+            history = []
+            user_turn = {"user": "", "character": ""}
+            for mid, msg in sorted(kept.items(), key=lambda x: x[1].get("sequence_number", 0)):
+                current_variant_id = msg.get("current_variant_id", "default")
+                current_text = next(
+                    (v["text"] for v in msg.get("variants", [])
+                     if v["variant_id"] == current_variant_id),
+                    ""
+                )
+                if msg.get("is_user"):
+                    if user_turn["user"] or user_turn["character"]:
+                        history.append(user_turn)
+                        user_turn = {"user": current_text, "character": ""}
+                    else:
+                        user_turn["user"] = current_text
+                else:
+                    if user_turn["user"] or not user_turn["character"]:
+                        user_turn["character"] = current_text
+                    else:
+                        user_turn["character"] += "\n" + current_text
+            if user_turn["user"] or user_turn["character"]:
+                history.append(user_turn)
+            new_chat["chat_history"] = history
+
+            chats[new_chat_id] = new_chat
+            char_data["chats"] = chats
+
+            char_data["current_chat"] = new_chat_id
+            configuration_data['character_list'][character_name] = char_data
+
+            self.save_configuration_edit(configuration_data)
+            logger.info(
+                f"[Branch] Created branch '{new_chat['name']}' ({new_chat_id}) "
+                f"from '{source_chat_id}' at message '{fork_message_id or 'END'}' "
+                f"({len(kept)} messages kept)."
+            )
+            return new_chat_id
+
+        except Exception as e:
+            logger.error(f"[Branch] branch_chat failed: {e}", exc_info=True)
+            return None
+
+    def cleanup_branch_links(self, character_name: str, deleted_chat_id: str) -> int:
+        """
+        After deleting `deleted_chat_id`, clears parent links of its branches.
+        Returns the number of affected branches.
+        """
+        try:
+            configuration_data = self.load_configuration()
+            char_data = configuration_data.get('character_list', {}).get(character_name)
+            if not char_data:
+                return 0
+            affected = 0
+            for chat in char_data.get("chats", {}).values():
+                if chat.get("parent_chat_id") == deleted_chat_id:
+                    chat["parent_chat_id"] = None
+                    affected += 1
+            if affected:
+                self.save_configuration_edit(configuration_data)
+            return affected
+        except Exception as e:
+            logger.error(f"[Branch] cleanup_branch_links failed: {e}", exc_info=True)
+            return 0
+
     def get_character_data(self, name, key):
         """
         Retrieves a specific value from a character's configuration data.
@@ -837,6 +1184,118 @@ class ConfigurationCharacters():
             logger.info(f"Character '{character_name}' has been deleted successfully.")
         else:
             logger.error(f"Character '{character_name}' not found in the configuration.")
+
+    @staticmethod
+    def _apply_single_state_update(var_schema: dict, current_val, delta_or_val,
+                                   operation: str = "add"):
+        var_type = var_schema.get("type", "int")
+        if isinstance(delta_or_val, list):
+            val = current_val
+            for item in delta_or_val:
+                val = ConfigurationCharacters._apply_single_state_update(
+                    var_schema, val, item, operation
+                )
+            return val
+
+        if var_type == "int":
+            min_val = var_schema.get("min", 0)
+            max_val = var_schema.get("max", 100)
+            try:
+                if operation == "add":
+                    new_val = int(float(current_val)) + int(float(delta_or_val))
+                else:
+                    new_val = int(float(delta_or_val))
+            except (ValueError, TypeError):
+                logging.getLogger("Configuration").warning(
+                    f"[State] Unparseable int delta {delta_or_val!r} for "
+                    f"'{var_schema.get('id')}' — keeping {current_val!r}"
+                )
+                return current_val
+            return max(min_val, min(max_val, new_val))
+
+        if var_type == "bool":
+            if isinstance(delta_or_val, str):
+                return delta_or_val.strip().lower() in ("true", "1", "yes", "да", "on")
+            return bool(delta_or_val)
+
+        if var_type == "list":
+            if not isinstance(current_val, list):
+                current_val = []
+            val_str = str(delta_or_val).strip()
+            if val_str.startswith("+"):
+                item_name = val_str[1:].strip()
+                if item_name and item_name not in current_val:
+                    current_val = current_val + [item_name]
+            elif val_str.startswith("-"):
+                item_name = val_str[1:].strip()
+                if item_name in current_val:
+                    current_val = [x for x in current_val if x != item_name]
+            elif val_str:
+                if val_str not in current_val:
+                    current_val = current_val + [val_str]
+            return current_val
+
+        return str(delta_or_val)
+
+    def apply_state_updates(self, character_name: str, updates: dict,
+                            operation: str = "add") -> dict:
+        cls = ConfigurationCharacters
+        applied = {}
+        if not isinstance(updates, dict) or not updates:
+            return applied
+
+        with cls._lock:
+            config = self.load_configuration()
+            char_data = config.get("character_list", {}).get(character_name)
+            if not char_data:
+                return applied
+
+            current_chat_id = char_data.get("current_chat", "default")
+            chat_obj = char_data.get("chats", {}).get(current_chat_id)
+            if not isinstance(chat_obj, dict):
+                return applied
+
+            variables_state = chat_obj.setdefault("variables_state", {})
+            sow_variables = char_data.get("sow_variables", [])
+
+            for var_id, delta_or_val in updates.items():
+                var_schema = next((v for v in sow_variables if v.get("id") == var_id), None)
+                if not var_schema:
+                    logger.warning(f"[State] No schema for variable '{var_id}' — skipped.")
+                    continue
+                current_val = variables_state.get(var_id, var_schema.get("default"))
+                new_val = self._apply_single_state_update(
+                    var_schema, current_val, delta_or_val, operation
+                )
+                variables_state[var_id] = new_val
+                applied[var_id] = new_val
+
+            if applied:
+                self.save_configuration_edit(config)
+        return applied
+
+    def set_variables_state(self, character_name: str, state: dict) -> bool:
+        cls = ConfigurationCharacters
+        with cls._lock:
+            config = self.load_configuration()
+            char_data = config.get("character_list", {}).get(character_name)
+            if not char_data:
+                return False
+            current_chat_id = char_data.get("current_chat", "default")
+            chat_obj = char_data.get("chats", {}).get(current_chat_id)
+            if not isinstance(chat_obj, dict):
+                return False
+            chat_obj["variables_state"] = dict(state or {})
+            self.save_configuration_edit(config)
+            return True
+
+    def get_variables_state(self, character_name: str) -> dict:
+        config = self.load_configuration()
+        char_data = config.get("character_list", {}).get(character_name, {})
+        current_chat_id = char_data.get("current_chat", "default")
+        chat_obj = char_data.get("chats", {}).get(current_chat_id, {})
+        state = chat_obj.get("variables_state", {})
+        return dict(state) if isinstance(state, dict) else {}
 
     def renumber_sequence_numbers(self, character_name, conversation_method=None):
         config = self.load_configuration()
