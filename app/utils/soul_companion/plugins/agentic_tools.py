@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Optional
 
 from app.utils.soul_companion.soul_companion import BaseTool
+from app.utils.platform_compat import user_dir, type_text, LINUX_PROTECTED_ROOTS
 
 logger = logging.getLogger("SoulCompanion.Agentic")
 
@@ -30,6 +31,8 @@ def _strip_plan_json(raw: str) -> str:
 
 PROJECT_ROOT = Path(__file__).resolve().parents[4] if len(Path(__file__).resolve().parents) >= 5 else Path.cwd()
 SANDBOX_DIR = (PROJECT_ROOT / "app" / "data" / "sandbox").resolve()
+
+_SHELL_LANGUAGE = "powershell" if sys.platform == "win32" else "bash"
 
 DOWNLOAD_WATCH_EXT_IN_PROGRESS = {".crdownload", ".part", ".tmp", ".download"}
 
@@ -56,12 +59,12 @@ _CATEGORY_MAP = {
 def _resolve_friendly_folder(raw: str) -> Optional[Path]:
     raw = (raw or "").strip()
     if not raw:
-        return Path.home() / "Desktop"
+        return user_dir("Desktop")
 
     key = raw.lower()
     if key in _FOLDER_ALIASES:
         mapped = _FOLDER_ALIASES[key]
-        return Path(mapped) if os.path.isabs(mapped) else Path.home() / mapped
+        return Path(mapped) if os.path.isabs(mapped) else user_dir(mapped)
 
     candidate = Path(raw).expanduser()
     return candidate if candidate.is_absolute() else Path.home() / raw
@@ -84,6 +87,8 @@ def _is_protected_path(p: Path) -> bool:
         Path.home() / "AppData" / "Local" / "Microsoft",
         Path.home() / "AppData" / "Roaming" / "Microsoft",
     ]
+    if sys.platform != "win32":
+        protected_roots += LINUX_PROTECTED_ROOTS
 
     for prot in protected_roots:
         try:
@@ -269,6 +274,9 @@ class GUIActionTool(BaseTool):
         time.sleep(0.14)
 
         if sys.platform != "win32":
+            # wtype/ydotool (Wayland) or xdotool (X11) handle Unicode; pyautogui is the fallback.
+            if type_text(text):
+                return
             import pyautogui
             pyautogui.write(text, interval=0.01)
             return
@@ -604,7 +612,9 @@ class BrowserAgentTool(BaseTool):
 class ExecuteCodeTool(BaseTool):
     name = "execute_code"
     description = (
-        "Write and run a short Python or PowerShell script for a concrete, well-defined "
+        "Write and run a short Python or "
+        + ("PowerShell" if sys.platform == "win32" else "Bash")
+        + " script for a concrete, well-defined "
         "chore (batch-convert/compress files, sum a CSV column, init a git repo, rename a "
         "batch of files, etc). Runs sandboxed in a dedicated working folder with a timeout. "
         "Not for open-ended or long-running programs."
@@ -620,7 +630,7 @@ class ExecuteCodeTool(BaseTool):
                 "parameters": {
                     "type": "object",
                     "properties": {
-                        "language": {"type": "string", "enum": ["python", "powershell"]},
+                        "language": {"type": "string", "enum": ["python", _SHELL_LANGUAGE]},
                         "code": {"type": "string", "description": "The full script source."},
                         "timeout_seconds": {"type": "integer", "description": "Max runtime, default 20, hard cap 60."},
                     },
@@ -641,17 +651,15 @@ class ExecuteCodeTool(BaseTool):
 
         if not code.strip():
             return {"success": False, "result": "No code provided.", "speak": None}
-        if language not in ("python", "powershell"):
-            return {"success": False, "result": f"Unsupported language '{language}'.", "speak": None}
-        if language == "powershell" and sys.platform != "win32":
-            return {"success": False, "result": "PowerShell execution is only available on Windows.", "speak": None}
+        if language not in ("python", _SHELL_LANGUAGE):
+            return {"success": False, "result": f"Unsupported language '{language}' on this system (use python or {_SHELL_LANGUAGE}).", "speak": None}
 
         try:
             SANDBOX_DIR.mkdir(parents=True, exist_ok=True)
         except Exception as e:
             return {"success": False, "result": f"Could not prepare sandbox folder: {e}", "speak": None}
 
-        suffix = ".py" if language == "python" else ".ps1"
+        suffix = {"python": ".py", "powershell": ".ps1", "bash": ".sh"}[language]
         script_path = SANDBOX_DIR / f"_run_{uuid.uuid4().hex[:8]}{suffix}"
 
         try:
@@ -659,6 +667,8 @@ class ExecuteCodeTool(BaseTool):
 
             if language == "python":
                 cmd = [sys.executable, str(script_path)]
+            elif language == "bash":
+                cmd = ["bash", str(script_path)]
             else:
                 cmd = ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(script_path)]
 

@@ -17,7 +17,16 @@ import sounddevice as sd
 from typing import Optional
 
 from TTS.api import TTS
-from kokoro import KPipeline
+try:
+    from kokoro import KPipeline
+except Exception as _kokoro_import_error:
+    # Optional on Linux: keep the app usable if kokoro failed to install.
+    _kokoro_error = str(_kokoro_import_error)
+    logging.getLogger("Text-To-Speech Module").warning(f"Kokoro TTS unavailable: {_kokoro_error}")
+
+    class KPipeline:
+        def __init__(self, *args, **kwargs):
+            raise RuntimeError(f"Kokoro TTS is not installed: {_kokoro_error}")
 from pydub import AudioSegment
 from elevenlabs.client import AsyncElevenLabs
 from qwen_tts import Qwen3TTSModel
@@ -25,13 +34,23 @@ from qwen_tts import Qwen3TTSModel
 from PyQt6.QtCore import QThread, pyqtSignal
 
 from app.configuration import configuration
-from rvc_python.infer import RVCInference
+try:
+    from rvc_python.infer import RVCInference
+except Exception as _rvc_import_error:
+    # Optional on Linux: rvc-python (and fairseq) may fail to build.
+    _rvc_error = str(_rvc_import_error)
+    logging.getLogger("Text-To-Speech Module").warning(f"RVC unavailable: {_rvc_error}")
+
+    class RVCInference:
+        def __init__(self, *args, **kwargs):
+            raise RuntimeError(f"RVC is not installed: {_rvc_error}")
 
 import torch.serialization
 try:
     from fairseq.data.dictionary import Dictionary
     torch.serialization.add_safe_globals([Dictionary])
-except ImportError:
+except Exception:
+    # fairseq can also fail with non-ImportErrors on newer Python/omegaconf versions.
     pass
 
 logger = logging.getLogger("Text-To-Speech Module")

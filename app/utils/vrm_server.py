@@ -18,7 +18,9 @@ class SecureVRMRequestHandler(SimpleHTTPRequestHandler):
         "/main.py",
         "/patch.bat",
         "/start.bat",
-        "/installer.bat"
+        "/installer.bat",
+        "/start.sh",
+        "/installer.sh"
     )
 
     ALLOWED_EXTENSIONS = (

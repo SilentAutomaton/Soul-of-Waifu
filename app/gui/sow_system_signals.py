@@ -46,11 +46,12 @@ from app.gui.custom_widgets import sow_toast, safe_paint
 
 import sys
 import ctypes
-from ctypes import wintypes
 from datetime import datetime
 import random
 
 if sys.platform == "win32":
+    from ctypes import wintypes
+
     class _LASTINPUTINFO(ctypes.Structure):
         _fields_ = [
             ("cbSize", wintypes.UINT),
@@ -63,6 +64,8 @@ if sys.platform == "win32":
         if ctypes.windll.user32.GetLastInputInfo(ctypes.byref(lii)):
             return ctypes.windll.kernel32.GetTickCount64() - lii.dwTime
         return 0
+else:
+    from app.utils.platform_compat import get_idle_time_ms as _get_system_idle_time_ms
 
 logger = logging.getLogger("SOW System Interface Signals")
 
@@ -151,7 +154,7 @@ class Soul_Of_Waifu_System(QtCore.QObject):
         self.emotion_resources = {
             emotion: {
                 "image": emotion,
-                "live2d_emotion": f"{emotions_path}\\{emotion}_animation.exp3.json",
+                "live2d_emotion": f"{emotions_path}/{emotion}_animation.exp3.json",
             }
             for emotion in [
                 "admiration", "amusement", "anger", "annoyance", "approval", "caring",

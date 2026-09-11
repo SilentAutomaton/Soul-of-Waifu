@@ -89,7 +89,11 @@ class ConfigurationSettings():
             value (any): The value associated with the specified key, or None if the key is not found.
         """
         configuration_data = self.load_configuration()
-        return configuration_data["main_settings"].get(setting, None)
+        value = configuration_data["main_settings"].get(setting, None)
+        if os.name != "nt" and isinstance(value, str) and value.startswith(("assets\\", "app\\")):
+            # Default settings.json (and configs from the Windows version) store backslash paths.
+            value = value.replace("\\", "/")
+        return value
 
     def update_user_data(self, key, value):
         """

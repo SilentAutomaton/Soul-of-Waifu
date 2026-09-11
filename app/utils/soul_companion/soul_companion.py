@@ -21,6 +21,12 @@ from typing import Optional, Dict, Any
 from PyQt6 import QtCore
 from PyQt6.QtCore import QTimer
 
+from app.utils.platform_compat import (
+    open_path, user_dir, TRASH_URI, send_media_key, read_clipboard_text,
+    get_active_window_title, focus_window, launch_application,
+    get_os_description, get_cpu_name, get_gpu_names,
+)
+
 logger = logging.getLogger("SoulCompanion")
 
 _PRIVACY_KEYWORDS = [
@@ -417,6 +423,8 @@ class MediaControlTool(BaseTool):
                 vk = VK_MEDIA.get(action, 0xB3)
                 ctypes.windll.user32.keybd_event(vk, 0, 0, 0)
                 ctypes.windll.user32.keybd_event(vk, 0, 2, 0)
+            else:
+                await asyncio.to_thread(send_media_key, action)
             return {"success": True, "result": f"Media action '{action}' sent.", "speak": None}
         except Exception as e:
             return {"success": False, "result": str(e), "speak": None}
@@ -743,7 +751,7 @@ class GetHardwareSpecsTool(BaseTool):
         import platform
 
         if sys.platform != "win32":
-            return f"{platform.system()} {platform.release()} ({platform.architecture()[0]}, Build {platform.version()})"
+            return get_os_description()
 
         try:
             import winreg
@@ -813,6 +821,8 @@ class GetHardwareSpecsTool(BaseTool):
                     cpu_name = val.strip()
             except Exception:
                 pass
+        else:
+            cpu_name = get_cpu_name() or cpu_name
 
         cpu_phys = psutil.cpu_count(logical=False) or 0
         cpu_log = psutil.cpu_count(logical=True) or 0
@@ -867,6 +877,10 @@ class GetHardwareSpecsTool(BaseTool):
                             gpu_entries.append(f"{name} ({vram_str}, Driver {drv})")
             except Exception:
                 pass
+
+        # 4.3. Fallback for Linux via lspci
+        if not gpu_entries and sys.platform != "win32":
+            gpu_entries = get_gpu_names()
 
         gpu_info_str = " | ".join(gpu_entries) if gpu_entries else "Standard Graphics / Generic Adapter"
 
@@ -1009,7 +1023,8 @@ class ClipboardReaderTool(BaseTool):
 
     async def execute(self, args: dict, context: dict) -> dict:
         try:
-            text = await asyncio.to_thread(self._read_win32_clipboard)
+            reader = self._read_win32_clipboard if sys.platform == "win32" else read_clipboard_text
+            text = await asyncio.to_thread(reader)
             if not text or not text.strip():
                 return {"success": False, "result": "Clipboard is currently empty.", "speak": None}
             return {"success": True, "result": text[:2000].strip(), "speak": None}
@@ -1060,25 +1075,25 @@ class AppControlTool(BaseTool):
     }
 
     KNOWN_FOLDER_ALIASES = {
-        "downloads": lambda: Path.home() / "Downloads",
-        "загрузки": lambda: Path.home() / "Downloads",
-        "desktop": lambda: Path.home() / "Desktop",
-        "рабочий стол": lambda: Path.home() / "Desktop",
-        "стол": lambda: Path.home() / "Desktop",
-        "documents": lambda: Path.home() / "Documents",
-        "документы": lambda: Path.home() / "Documents",
-        "pictures": lambda: Path.home() / "Pictures",
-        "изображения": lambda: Path.home() / "Pictures",
-        "картинки": lambda: Path.home() / "Pictures",
-        "фото": lambda: Path.home() / "Pictures",
-        "music": lambda: Path.home() / "Music",
-        "музыка": lambda: Path.home() / "Music",
-        "videos": lambda: Path.home() / "Videos",
-        "видео": lambda: Path.home() / "Videos",
+        "downloads": lambda: user_dir("Downloads"),
+        "загрузки": lambda: user_dir("Downloads"),
+        "desktop": lambda: user_dir("Desktop"),
+        "рабочий стол": lambda: user_dir("Desktop"),
+        "стол": lambda: user_dir("Desktop"),
+        "documents": lambda: user_dir("Documents"),
+        "документы": lambda: user_dir("Documents"),
+        "pictures": lambda: user_dir("Pictures"),
+        "изображения": lambda: user_dir("Pictures"),
+        "картинки": lambda: user_dir("Pictures"),
+        "фото": lambda: user_dir("Pictures"),
+        "music": lambda: user_dir("Music"),
+        "музыка": lambda: user_dir("Music"),
+        "videos": lambda: user_dir("Videos"),
+        "видео": lambda: user_dir("Videos"),
         "sandbox": lambda: (Path.cwd() / "app" / "data" / "sandbox").resolve(),
         "песочница": lambda: (Path.cwd() / "app" / "data" / "sandbox").resolve(),
-        "recycle bin": lambda: "shell:RecycleBinFolder",
-        "корзина": lambda: "shell:RecycleBinFolder",
+        "recycle bin": lambda: TRASH_URI,
+        "корзина": lambda: TRASH_URI,
         "папка проекта": lambda: Path.cwd(),
         "project": lambda: Path.cwd(),
     }
@@ -1126,12 +1141,12 @@ class AppControlTool(BaseTool):
         if action not in {"open", "focus", "close"}:
             return {"success": False, "result": f"Unsupported action: '{action}'.", "speak": None}
 
-        if sys.platform != "win32":
-            return {"success": False, "result": "App control is only supported on Windows.", "speak": None}
+        is_windows = sys.platform == "win32"
 
         try:
             if action == "open":
-                return await asyncio.to_thread(self._open_target, raw_target)
+                opener = self._open_target if is_windows else self._open_target_posix
+                return await asyncio.to_thread(opener, raw_target)
 
             processes = await asyncio.to_thread(self._find_processes, raw_target, raw_target)
             if not processes:
@@ -1142,7 +1157,8 @@ class AppControlTool(BaseTool):
                 }
 
             if action == "focus":
-                return await asyncio.to_thread(self._focus_process_window, processes, raw_target)
+                focuser = self._focus_process_window if is_windows else self._focus_process_window_posix
+                return await asyncio.to_thread(focuser, processes, raw_target)
             return await asyncio.to_thread(self._close_processes, processes, raw_target)
 
         except Exception as e:
@@ -1253,6 +1269,36 @@ class AppControlTool(BaseTool):
             return {"success": False, "result": f"Failed to open '{raw_target}': {final_err}", "speak": None}
 
     @classmethod
+    def _open_target_posix(cls, raw_target: str) -> dict:
+        target_clean = raw_target.strip().strip('"\'')
+        target_lower = target_clean.lower()
+
+        if target_lower in cls.KNOWN_FOLDER_ALIASES:
+            try:
+                open_path(cls.KNOWN_FOLDER_ALIASES[target_lower]())
+                return {"success": True, "result": f"Opened folder '{raw_target}' in the file manager.", "speak": None}
+            except Exception as e:
+                return {"success": False, "result": f"Could not open folder '{raw_target}': {e}", "speak": None}
+
+        candidate_path = Path(target_clean).expanduser()
+        if "://" in target_clean or candidate_path.exists():
+            try:
+                open_path(target_clean if "://" in target_clean else candidate_path.resolve())
+                item_type = "folder" if candidate_path.is_dir() else "file"
+                return {"success": True, "result": f"Opened {item_type} '{candidate_path.name or target_clean}'.", "speak": None}
+            except Exception as e:
+                return {"success": False, "result": f"Failed to open '{raw_target}': {e}", "speak": None}
+
+        resolved_app = cls.KNOWN_APP_ALIASES.get(target_lower, target_clean)
+        try:
+            launched = launch_application(resolved_app)
+        except Exception as e:
+            return {"success": False, "result": f"Failed to open '{raw_target}': {e}", "speak": None}
+        if launched:
+            return {"success": True, "result": f"Application '{raw_target}' launched ({launched}).", "speak": None}
+        return {"success": False, "result": f"No installed application or launcher matched '{raw_target}'.", "speak": None}
+
+    @classmethod
     def _find_processes(cls, target: str, display_name: str = "") -> list:
         import psutil
 
@@ -1331,6 +1377,25 @@ class AppControlTool(BaseTool):
         user32.BringWindowToTop(hwnd)
         user32.SetForegroundWindow(hwnd)
         return {"success": True, "result": f"Focused window for '{target_name}'.", "speak": None}
+
+    @staticmethod
+    def _focus_process_window_posix(processes: list, target_name: str) -> dict:
+        pids = {p.pid for p in processes}
+        names = {target_name}
+        for p in processes:
+            try:
+                names.add(p.name())
+            except Exception:
+                pass
+
+        if focus_window(pids, names):
+            return {"success": True, "result": f"Focused window for '{target_name}'.", "speak": None}
+        return {
+            "success": False,
+            "result": f"'{target_name}' is running, but its window could not be focused "
+                      "(needs xdotool/wmctrl on X11 or kdotool on KDE Wayland).",
+            "speak": None
+        }
 
     @staticmethod
     def _close_processes(processes: list, target_name: str) -> dict:
@@ -2783,7 +2848,7 @@ class SoulCompanion:
     def _get_window_title(self) -> str:
         try:
             if sys.platform != "win32":
-                return ""
+                return get_active_window_title()
             hwnd = ctypes.windll.user32.GetForegroundWindow()
             length = ctypes.windll.user32.GetWindowTextLengthW(hwnd)
             if not length:

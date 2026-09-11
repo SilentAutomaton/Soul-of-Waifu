@@ -1,3 +1,20 @@
 app/configuration/api.json
 app/configuration/settings.json
 app/configuration/characters.json
+
+# --- Linux port: files copied from the release archive or created at runtime ---
+__pycache__/
+app/data/
+app/models/
+app/cache/
+app/gui/icons/
+app/utils/ai_clients/backend/
+logs/*.log
+assets/ambient/*
+assets/backgrounds/*
+assets/emotions/images/*
+assets/emotions/live2d/*
+assets/emotions/vrm/*
+assets/local_llm/*
+assets/rvc_models/*
+!assets/**/.gitkeep

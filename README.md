@@ -35,6 +35,9 @@
   </a>
 </p>
 
+> [!NOTE]
+> **🐧 Linux:** this fork contains an unofficial Linux port on the `linux` branch. See **[README-LINUX.md](README-LINUX.md)** for installation (`./installer.sh`, `./start.sh`).
+
 ---
 
 <p align="center">

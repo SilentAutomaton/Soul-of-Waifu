@@ -6,6 +6,7 @@ import platform
 import subprocess
 import socket
 import shlex
+import shutil
 from pathlib import Path
 
 import yaml
@@ -123,6 +124,14 @@ class LocalServerManager:
                         current_server = f"app/utils/ai_clients/backend/hip/llama-server{exe_suffix}"
                     case 3:
                         current_server = f"app/utils/ai_clients/backend/sycl/llama-server{exe_suffix}"
+
+        # Linux: fall back to a system-wide llama-server (e.g. from the distro or AUR
+        # packages such as llama.cpp-cuda / llama.cpp-vulkan) when no bundled build exists.
+        if current_server and platform.system() != "Windows" and not Path(current_server).exists():
+            system_server = shutil.which("llama-server")
+            if system_server:
+                logger.info(f"No bundled backend at {current_server}, using system llama-server: {system_server}")
+                current_server = system_server
 
         return current_server
 
@@ -251,11 +260,19 @@ class LocalServerManager:
 
         self.create_lock_file()
 
+        server_env = None
+        if platform.system() != "Windows":
+            # The official Linux builds ship their libggml*/libllama shared objects next to the binary.
+            server_dir = str(Path(current_server).resolve().parent)
+            server_env = os.environ.copy()
+            server_env["LD_LIBRARY_PATH"] = os.pathsep.join(filter(None, [server_dir, server_env.get("LD_LIBRARY_PATH")]))
+
         try:
             self.server_process = await asyncio.create_subprocess_exec(
                 *command,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
+                env=server_env,
                 text=False
             )
         except Exception as e:
