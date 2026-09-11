@@ -1918,6 +1918,7 @@ ss_menu_delete: Удалить сообщение
 ss_menu_edit: Редактировать сообщение
 ss_menu_promote_npc: Сделать постоянным спутником
 ss_menu_regenerate: Перегенерировать ход
+ss_menu_translate_de: Перевести → Немецкий
 ss_menu_translate_en: Перевести → Английский
 ss_menu_translate_ru: Перевести → Русский
 ss_setup_btn_launch: ⬡ Запустить Soul Stage
@@ -2013,6 +2014,7 @@ tab_resources: Ресурсы
 tab_scene: Сцена
 tab_status: Статус
 target_auto: Автоматически
+target_language_item_de: Немецкий
 target_language_item_ru: Русский
 target_language_label: Целевой язык
 target_next_label: 'Далее:'

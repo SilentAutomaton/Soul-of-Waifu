@@ -1912,6 +1912,7 @@ ss_menu_delete: Delete Message
 ss_menu_edit: Edit Message
 ss_menu_promote_npc: Promote to Companion
 ss_menu_regenerate: Regenerate Turn
+ss_menu_translate_de: Translate → German
 ss_menu_translate_en: Translate → English
 ss_menu_translate_ru: Translate → Russian
 ss_setup_btn_launch: ⬡ Launch Soul Stage
@@ -2007,6 +2008,7 @@ tab_resources: Resources
 tab_scene: Scene
 tab_status: Status
 target_auto: Auto
+target_language_item_de: German
 target_language_item_ru: Russian
 target_language_label: Target Language
 target_next_label: 'Next:'

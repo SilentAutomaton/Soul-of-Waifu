@@ -2090,7 +2090,7 @@ class Ui_MainWindow(object):
         self.comboBox_target_language_translator.setFont(font_input)
         self.comboBox_target_language_translator.setFixedHeight(40)
         self.comboBox_target_language_translator.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-        self.comboBox_target_language_translator.addItem("Russian")
+        self.comboBox_target_language_translator.addItems(["Russian", "German"])
         self.comboBox_target_language_translator.setObjectName("comboBox_target_language_translator")
         form_trans.addRow(self.target_language_translator_label, self.comboBox_target_language_translator)
 

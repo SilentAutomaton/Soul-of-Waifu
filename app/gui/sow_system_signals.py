@@ -896,7 +896,7 @@ class Soul_Of_Waifu_System(QtCore.QObject):
         _reasoning_scan_buffer = ""
 
         translator_engine = self.configuration_settings.get_main_setting("translator") # 0-Off, 1-Google, 2-Yandex, 3-LLM
-        target_lang = self.configuration_settings.get_main_setting("target_language") # 0-RU
+        target_lang = self.configuration_settings.get_main_setting("target_language") # 0-RU, 1-DE
 
         try:
             self.llm_task = asyncio.current_task()
@@ -1029,10 +1029,11 @@ class Soul_Of_Waifu_System(QtCore.QObject):
 
         auto_translate_setting = self.configuration_settings.get_main_setting("auto_translate_new_messages")
         auto_translate_new_messages = True if auto_translate_setting is None else bool(auto_translate_setting)
-        if translator_engine in [1, 2, 3] and target_lang == 0 and auto_translate_new_messages:
+        target_lang_code = {0: "ru", 1: "de"}.get(target_lang)
+        if translator_engine in [1, 2, 3] and target_lang_code and auto_translate_new_messages:
             engine_name = "google" if translator_engine == 1 else "yandex"
             try:
-                translated_html = self.translator.translate(display_html, engine_name, 'ru')
+                translated_html = self.translator.translate(display_html, engine_name, target_lang_code)
                 character_answer_label.setText(translated_html)
                 character_answer_label.setProperty("original_text", display_html)
                 character_answer_label.setProperty("is_translated", True)

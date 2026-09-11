@@ -334,6 +334,7 @@ class MainWindow(QMainWindow):
         self.ui.comboBox_translator.setItemText(2, self.translations.get("translator_item_yandex", "Yandex"))
         self.ui.target_language_translator_label.setText(self.translations.get("target_language_label", "Target Language"))
         self.ui.comboBox_target_language_translator.setItemText(0, self.translations.get("target_language_item_ru", "Russian"))
+        self.ui.comboBox_target_language_translator.setItemText(1, self.translations.get("target_language_item_de", "German"))
         self.ui.checkBox_auto_translate_new_messages.setText(
             self.translations.get("checkbox_auto_translate_new_messages", "Automatically translate new messages")
         )

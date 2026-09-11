@@ -4638,6 +4638,11 @@ class SoulStageMessageManager:
                 act_tr_ru.triggered.connect(
                     lambda: asyncio.create_task(self.translate_message(text_label, "ru"))
                 )
+                act_tr_de = QAction(self.translations.get("ss_menu_translate_de", "Translate → German"), menu)
+                menu.addAction(act_tr_de)
+                act_tr_de.triggered.connect(
+                    lambda: asyncio.create_task(self.translate_message(text_label, "de"))
+                )
                 act_tr_en = QAction(self.translations.get("ss_menu_translate_en", "Translate → English"), menu)
                 menu.addAction(act_tr_en)
                 act_tr_en.triggered.connect(

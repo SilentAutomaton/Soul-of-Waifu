@@ -1896,6 +1896,7 @@ ss_menu_delete: Nachricht löschen
 ss_menu_edit: Nachricht bearbeiten
 ss_menu_promote_npc: Zum Begleiter befördern
 ss_menu_regenerate: Zug neu generieren
+ss_menu_translate_de: Übersetzen → Deutsch
 ss_menu_translate_en: Übersetzen → Englisch
 ss_menu_translate_ru: Übersetzen → Russisch
 ss_setup_btn_launch: ⬡ Soul Stage starten
@@ -1988,6 +1989,7 @@ tab_resources: Ressourcen
 tab_scene: Szene
 tab_status: Status
 target_auto: Auto
+target_language_item_de: Deutsch
 target_language_item_ru: Russisch
 target_language_label: Zielsprache
 target_next_label: 'Nächste:'

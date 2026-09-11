@@ -16847,7 +16847,10 @@ class InterfaceSignals():
         if current_text_to_speech not in ("Nothing", None):
             from app.utils.text_to_speech import TTSWorker
             output_device = self.configuration_settings.get_main_setting("output_device_real_index")
-            lang = "ru" if self.configuration_settings.get_main_setting("translator") != 0 else "en"
+            # With the translator on, TTS speaks the translated text (target language 0 - RU, 1 - DE).
+            translator_on = self.configuration_settings.get_main_setting("translator") != 0
+            target_lang_code = {0: "ru", 1: "de"}.get(self.configuration_settings.get_main_setting("target_language"), "ru")
+            lang = target_lang_code if translator_on else "en"
             self.chat_tts_worker = TTSWorker(
                 current_text_to_speech, character_name, elevenlabs_voice_id, language=lang
             )
@@ -20142,8 +20145,8 @@ class InterfaceSignals():
 
         translator_idx  = self.configuration_settings.get_main_setting("translator")
         target_lang_idx = self.configuration_settings.get_main_setting("target_language")
-        lang_map_short  = {0: "ru"}
-        lang_map_full   = {0: "Russian"}
+        lang_map_short  = {0: "ru", 1: "de"}
+        lang_map_full   = {0: "Russian", 1: "German"}
         target_lang_short = lang_map_short.get(target_lang_idx, "ru")
         target_lang_full  = lang_map_full.get(target_lang_idx, "Russian")
 
@@ -21539,17 +21542,20 @@ Image prompt:"""
         if translator_idx == 0:
             return text
             
-        if target_language_idx != 0:
+        # Target language: 0 - Russian, 1 - German
+        target_short = {0: "ru", 1: "de"}.get(target_language_idx)
+        if target_short is None:
             return text
+        target_full = {"ru": "Russian", "de": "German"}[target_short]
 
         if translator_idx in (1, 2):
             # 1 - Google, 2 - Yandex
             service = "google" if translator_idx == 1 else "yandex"
-            return await self.translator.translate_async(text, service, "ru")
-            
+            return await self.translator.translate_async(text, service, target_short)
+
         elif translator_idx == 3:
             # 3 - LLM
-            return await self._generate_llm_translation(text, target_lang="Russian", character_name=character_name, conversation_method=conversation_method)
+            return await self._generate_llm_translation(text, target_lang=target_full, character_name=character_name, conversation_method=conversation_method)
 
         return text
 
