@@ -1048,6 +1048,8 @@ live2d_mode_label: Режим работы
 live2d_mode_with_gui: Soul of Waifu System
 live2d_mode_without_gui: Soul Companion
 live2d_motion_mapper_btn: Назначить анимации на эмоции
+live2d_unavailable_body: Не удалось запустить Live2D (live2d-py / OpenGL). Подробности в логе — или выберите другой режим аватара.
+live2d_unavailable_title: Live2D недоступен
 llama_cpp_updater: Обновления LLAMA CPP
 llm_adv_title: Продвинутый Local LLM Сэмплинг
 llm_advanced_hint: Эти настройки в первую очередь управляют локальными моделями через llama.cpp (распределение по железу, форматирование промпта, низкоуровневые сэмплеры). Облачные провайдеры вроде OpenAI,

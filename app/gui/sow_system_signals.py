@@ -627,11 +627,22 @@ class Soul_Of_Waifu_System(QtCore.QObject):
                 model_json_path = self.find_model_json(live2d_model_folder)
                 self.update_model_json(model_json_path, self.emotion_resources)
 
-                self.live2d_openGL_widget = Live2DWidget(model_path=model_json_path, character_name=character_name)
-                self.live2d_openGL_widget.setStyleSheet("background: transparent;")
-                self.live2d_openGL_widget.setSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Expanding)
+                # Live2D needs a working OpenGL context (more fragile on Linux/XWayland):
+                # show a warning instead of crashing the SoW System start.
+                try:
+                    self.live2d_openGL_widget = Live2DWidget(model_path=model_json_path, character_name=character_name)
+                    self.live2d_openGL_widget.setStyleSheet("background: transparent;")
+                    self.live2d_openGL_widget.setSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Expanding)
 
-                self.ui.verticalLayout_5.addWidget(self.live2d_openGL_widget)
+                    self.ui.verticalLayout_5.addWidget(self.live2d_openGL_widget)
+                except Exception as e:
+                    logger.error(f"Failed to initialize Live2D widget: {e}")
+                    sow_toast(
+                        None,
+                        self.translations.get("live2d_unavailable_title", "Live2D unavailable"),
+                        self.translations.get("live2d_unavailable_body", "Live2D could not be started (live2d-py / OpenGL). Check the log or choose another avatar mode."),
+                        "warning"
+                    )
 
             elif current_sow_system_mode == "VRM":
                 class CustomWebEnginePage(QWebEnginePage):
@@ -1773,18 +1784,27 @@ class Soul_Of_Waifu_System(QtCore.QObject):
             if model_json_path:
                 self.update_model_json(model_json_path, self.emotion_resources)
                 
-                self.live2d_no_gui = Live2DWidget_NoGUI(
-                    parent=self.parent_window, 
-                    model_path=model_json_path, 
-                    character_name=self.character_name,
-                    toggle_voice_cb=toggle_voice_callback,
-                    sow_system_ref=self
-                )
-                self.live2d_no_gui.show()
+                try:
+                    self.live2d_no_gui = Live2DWidget_NoGUI(
+                        parent=self.parent_window,
+                        model_path=model_json_path,
+                        character_name=self.character_name,
+                        toggle_voice_cb=toggle_voice_callback,
+                        sow_system_ref=self
+                    )
+                    self.live2d_no_gui.show()
 
-                self._start_companion_systems()
-                
-                self.toggle_voice_interaction(self.character_name)
+                    self._start_companion_systems()
+
+                    self.toggle_voice_interaction(self.character_name)
+                except Exception as e:
+                    logger.error(f"Failed to initialize Live2D companion: {e}")
+                    sow_toast(
+                        None,
+                        self.translations.get("live2d_unavailable_title", "Live2D unavailable"),
+                        self.translations.get("live2d_unavailable_body", "Live2D could not be started (live2d-py / OpenGL). Check the log or choose another avatar mode."),
+                        "warning"
+                    )
 
         elif current_sow_system_mode == "VRM":
             vrm_model_path = character_info["vrm_model_file"]

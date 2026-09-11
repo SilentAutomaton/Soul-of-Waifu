@@ -2368,10 +2368,11 @@ class InterfaceSignals():
             return
             
         config = self.configuration_characters.load_configuration()
-        if self.current_active_character not in config["character_list"]:
+        character_list = config.get("character_list", {})
+        if self.current_active_character not in character_list:
             return
-            
-        mode = config["character_list"][self.current_active_character]["current_sow_system_mode"]
+
+        mode = character_list[self.current_active_character]["current_sow_system_mode"]
 
         if mode == "Live2D Model":
             if hasattr(self, 'live2d_widget') and self.live2d_widget and self.live2d_widget.isVisible():
