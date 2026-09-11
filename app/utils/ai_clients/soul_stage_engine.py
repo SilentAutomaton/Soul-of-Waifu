@@ -754,6 +754,9 @@ class WorldState:
         self.relationship_graph = RelationshipGraph()
         self.overlay_registry = OverlayRegistry()
         self.private_knowledge: dict[str, list[str]] = {}
+        self.arc_archive: list[dict] = []
+        self.turn_counter: int = 0
+        self.consequence_ledger: list[dict] = []
 
     _STATUS_REMINDERS: dict[str, str] = {
         "poison":   "The player is POISONED — reflect physical symptoms (nausea, sweat, tremor) where natural, worsening if untreated.",
@@ -849,6 +852,14 @@ class WorldState:
 
         RPGRules.apply_resource_delta(self, plan.get("resource_delta", {}))
 
+        lasting = plan.get("lasting_consequence")
+        if isinstance(lasting, str) and lasting.strip():
+            self.add_consequence("decision", lasting.strip())
+        elif isinstance(lasting, list):
+            for item in lasting:
+                if isinstance(item, str) and item.strip():
+                    self.add_consequence("decision", item.strip())
+
     def skill_modifier(self, skill: str) -> int:
         value = self.player_skills.get((skill or "general").strip().lower(), 0)
         try:
@@ -886,6 +897,60 @@ class WorldState:
             return ""
         return "[PRIVATE KNOWLEDGE — only you know this]\n" + "\n".join(f"- {note}" for note in notes[-8:])
 
+    def arc_archive_prompt_block(self) -> str:
+        if not self.arc_archive:
+            return ""
+        lines = ["[RESOLVED STORY ARCS ARCHIVE — settled campaign history]"]
+        for entry in self.arc_archive[-8:]:
+            title = entry.get("title", "Arc")
+            digest = entry.get("digest", "")
+            lines.append(f"- \"{title}\": {digest}")
+        return "\n".join(lines)
+
+    MAX_CONSEQUENCES = 60
+
+    def add_consequence(self, kind: str, text: str) -> bool:
+        """
+        Records a permanent, story-level consequence of a player/plot decision.
+        Returns True when a new entry was added.
+        """
+        text = (text or "").strip()[:240]
+        kind = (kind or "event").strip().lower()[:24]
+        if not text:
+            return False
+        for entry in self.consequence_ledger[-25:]:
+            if entry.get("text") == text:
+                return False
+        self.consequence_ledger.append({
+            "turn": int(getattr(self, "turn_counter", 0)),
+            "kind": kind,
+            "text": text,
+        })
+        if len(self.consequence_ledger) > self.MAX_CONSEQUENCES:
+            del self.consequence_ledger[:-self.MAX_CONSEQUENCES]
+        return True
+
+    def remove_consequence(self, index_from_end: int) -> bool:
+        """Removes one ledger entry by its position counted from the newest."""
+        total = len(self.consequence_ledger)
+        idx = total - 1 - int(index_from_end)
+        if 0 <= idx < total:
+            self.consequence_ledger.pop(idx)
+            return True
+        return False
+
+    def consequences_prompt_block(self, max_entries: int = 12) -> str:
+        if not self.consequence_ledger:
+            return ""
+        lines = [
+            "[LASTING CONSEQUENCES — permanent facts established by earlier decisions]",
+            "These MUST remain true. Characters remember them; the world reflects them.",
+        ]
+        for e in self.consequence_ledger[-max_entries:]:
+            lines.append(f"- (turn {e.get('turn', '?')}, {e.get('kind', 'event')}) {e.get('text', '')}")
+        return "\n".join(lines)
+
+    
     def to_dict(self) -> dict:
         return {
             "location": self.location, "time_of_day": self.time_of_day,
@@ -903,6 +968,8 @@ class WorldState:
             "private_knowledge": copy.deepcopy(self.private_knowledge),
             "dice_rolls_enabled": self.dice_rolls_enabled, "world_context": self.world_context,
             "lock_bg": self.lock_bg, "disable_ambient": self.disable_ambient,
+            "arc_archive": list(self.arc_archive), "turn_counter": int(self.turn_counter),
+            "consequence_ledger": copy.deepcopy(getattr(self, "consequence_ledger", [])),
         }
 
     def add_event(self, actor: str, action: str, outcome: str = ""):
@@ -936,6 +1003,12 @@ class WorldState:
 
         if self.historical_summary:
             lines.append(f"HISTORICAL SUMMARY: {self.historical_summary}")
+
+        consequences = getattr(self, "consequences_prompt_block", None)
+        if callable(consequences):
+            cons_block = consequences(max_entries=10)
+            if cons_block:
+                lines.append(cons_block)
 
         if self.player_inventory:
             lines.append(f"PLAYER INVENTORY: {', '.join(self.player_inventory)}")
@@ -977,38 +1050,20 @@ class WorldState:
 
         return "\n".join(lines)
 
-    def reset(self):
-        ctx      = self.world_context
-        tone     = self.gm_tone
-        style    = self.narrator_style
-        statuses = self.player_status.copy()
-        dice_on  = self.dice_rolls_enabled
-        skills = dict(self.player_skills)
-        resources = copy.deepcopy(self.resources)
-        lore_cards = self.lore_registry.to_dict()
-        campaign_board = self.campaign_board.to_dict()
-        story_arcs = self.arc_registry.to_dict()
-        relationships = self.relationship_graph.to_dict()
-        character_overlays = self.overlay_registry.to_dict()
-        lock_bg = self.lock_bg
-        disable_ambient = self.disable_ambient
+    def reset(self, full: bool = True):
+        """
+        Resets the world state.
+        """
+        ctx      = self.world_context if not full else None
+        tone     = self.gm_tone if not full else None
+        style    = self.narrator_style if not full else None
 
         self.__init__()
 
-        self.world_context = ctx
-        self.gm_tone       = tone
-        self.narrator_style = style
-        self.player_status = statuses
-        self.dice_rolls_enabled = dice_on
-        self.player_skills = skills
-        self.resources = resources
-        self.lore_registry = LoreRegistry(lore_cards)
-        self.campaign_board = CampaignBoard(campaign_board)
-        self.arc_registry = ArcRegistry(story_arcs)
-        self.relationship_graph = RelationshipGraph(relationships)
-        self.overlay_registry = OverlayRegistry(character_overlays)
-        self.lock_bg = lock_bg
-        self.disable_ambient = disable_ambient
+        if not full:
+            self.world_context = ctx
+            self.gm_tone       = tone
+            self.narrator_style = style
 
 
 class NPCRegistry:
@@ -1117,9 +1172,27 @@ class NPCRegistry:
             return "None"
         return "\n".join(f"  - {n.name} ({n.archetype}): {n.personality}" for n in self.active.values())
 
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# LONG-TERM RAG MEMORY FOR NPCs
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    def export_promotion_profile(self, npc_name: str, world_state: Optional["WorldState"] = None) -> dict:
+        npc = self.get_any(npc_name)
+        if npc is None:
+            return {}
+        archetype = (npc.archetype or "citizen").strip()
+        backstory_parts = []
+        if npc.personality:
+            backstory_parts.append(npc.personality.strip())
+        if world_state is not None and getattr(world_state, "location", None):
+            backstory_parts.append(f"Last seen in: {world_state.location}.")
+        return {
+            "name": npc.name,
+            "archetype": archetype,
+            "description": f"{archetype.title()} first met during a Soul Stage adventure "
+                            f"({npc.turn_count} turn(s) shared with the party).",
+            "personality": " ".join(p for p in backstory_parts if p).strip()[:4000],
+            "first_message": f"*{npc.name} looks at you, remembering exactly how you two met.*",
+            "avatar_path": self.get_avatar_path(npc),
+            "turn_count": npc.turn_count,
+            "memory_lines": [],
+        }
 
 from app.utils.embedding_provider import get_embedder as _get_embedder
 
@@ -1166,6 +1239,7 @@ class NPCMemoryRegistry(NPCRegistry):
         self.embedder = embedder
         self._mem_cache: dict[str, list[NPCMemoryEntry]] = {}
         self._current_turn_idx: int = 0
+        self._scope: str = "global"
 
         try:
             NPC_MEM_DIR.mkdir(parents=True, exist_ok=True)
@@ -1178,10 +1252,20 @@ class NPCMemoryRegistry(NPCRegistry):
         self.embedder = _get_embedder()
         return self.embedder
 
+    def set_scope(self, scope: str) -> None:
+        safe_scope = "".join(c for c in str(scope or "global") if c.isalnum() or c in "-_")[:40] or "global"
+        if safe_scope != self._scope:
+            self._scope = safe_scope
+            self._mem_cache.clear()
+
     def set_turn_idx(self, turn_idx: int) -> None:
         self._current_turn_idx = turn_idx
 
     def _mem_path(self, name: str) -> Path:
+        safe = name.replace(" ", "_").replace("/", "_").replace("\\", "_")
+        return NPC_MEM_DIR / f"{self._scope}__{safe}.json"
+
+    def _legacy_mem_path(self, name: str) -> Path:
         safe = name.replace(" ", "_").replace("/", "_").replace("\\", "_")
         return NPC_MEM_DIR / f"{safe}.json"
 
@@ -1190,6 +1274,16 @@ class NPCMemoryRegistry(NPCRegistry):
             return self._mem_cache[name]
         path = self._mem_path(name)
         if not path.exists():
+            legacy = self._legacy_mem_path(name)
+            if self._scope != "global" and legacy.exists():
+                try:
+                    data = json.loads(legacy.read_text(encoding="utf-8"))
+                    entries = [NPCMemoryEntry.from_dict(d) for d in data]
+                    self._save_memories(name, entries)
+                    logger.info(f"[NPCMemory] Migrated {name} memory to scene scope '{self._scope}'.")
+                    return entries
+                except Exception as e:
+                    logger.warning(f"[NPCMemory] Legacy migration failed for {name}: {e}")
             self._mem_cache[name] = []
             return []
         try:
@@ -1286,6 +1380,20 @@ class NPCMemoryRegistry(NPCRegistry):
         lines.append("")
         return "\n".join(lines)
 
+    async def get_memory_block_async(self, npc_name: str, query: str, top_k: Optional[int] = None) -> str:
+        """Non-blocking variant: embedding runs in a worker thread."""
+        try:
+            return await asyncio.to_thread(self.get_memory_block, npc_name, query, top_k)
+        except Exception as e:
+            logger.warning(f"[NPCMemory] Async recall failed for {npc_name}: {e}")
+            return ""
+
+    async def add_memory_async(self, npc_name: str, text: str, turn_idx: Optional[int] = None) -> None:
+        try:
+            await asyncio.to_thread(self.add_memory, npc_name, text, turn_idx)
+        except Exception as e:
+            logger.warning(f"[NPCMemory] Async store failed for {npc_name}: {e}")
+
     def clear_memory(self, npc_name: str) -> None:
         """Delete all memories for an NPC."""
         self._mem_cache.pop(npc_name, None)
@@ -1299,10 +1407,46 @@ class NPCMemoryRegistry(NPCRegistry):
     def memory_count(self, npc_name: str) -> int:
         """Return number of stored memories for an NPC."""
         return len(self._load_memories(npc_name))
-    
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# TOKEN-AWARE CONTEXT WINDOW
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+    def export_promotion_profile(self, npc_name: str, world_state: Optional["WorldState"] = None) -> dict:
+        npc = self.get_any(npc_name)
+        if npc is None:
+            return {}
+
+        entries = self._load_memories(npc_name)
+        recent = sorted(entries, key=lambda e: e.turn_idx)[-12:]
+        memory_lines = [e.text.strip() for e in recent if e.text and e.text.strip()]
+
+        backstory_parts: list[str] = []
+        if npc.personality:
+            backstory_parts.append(npc.personality.strip())
+        if memory_lines:
+            backstory_parts.append(
+                "Shared history with the player so far: " + " | ".join(memory_lines)
+            )
+        if world_state is not None and getattr(world_state, "location", None):
+            backstory_parts.append(f"Last seen in: {world_state.location}.")
+
+        archetype = (npc.archetype or "citizen").strip()
+        description = (
+            f"{archetype.title()} first met during a Soul Stage adventure "
+            f"({npc.turn_count} turn(s) shared with the party)."
+        )
+        personality = " ".join(p for p in backstory_parts if p).strip()[:4000]
+        first_message = (memory_lines[-1][:500] if memory_lines else "").strip()
+        if not first_message:
+            first_message = f"*{npc.name} looks at you, remembering exactly how you two met.*"
+
+        return {
+            "name": npc.name,
+            "archetype": archetype,
+            "description": description,
+            "personality": personality,
+            "first_message": first_message,
+            "avatar_path": self.get_avatar_path(npc),
+            "turn_count": npc.turn_count,
+            "memory_lines": memory_lines,
+        }
 
 class SoulStageContextWindow:
     """
@@ -1689,6 +1833,7 @@ fields you already wrote (location, key_facts, etc). When in doubt, write less.
   "inventory_remove": ["<item used, lost, consumed, or given away>"],
   "status_clear":     ["<condition that was healed, resolved, or expired>"],
   "plot_event_type":  "<encounter | discovery | visitor | twist | romance | none>",
+  "lasting_consequence": "<one sentence describing a PERMANENT consequence of this turn's key decision (a betrayal, a debt, a promise, a death, a revealed secret), or null if nothing lasting happened. These are remembered forever and will echo in later sessions.>",
   "player_choices":   ["<choice A>", "<choice B>", "<choice C>"],
   {dice_check_field}
   "resource_delta":   {{"health": <int -10..10>, "energy": <int -10..10>, "stress": <int -10..10>}},
@@ -2244,28 +2389,37 @@ class PlannerParser:
         "arc_stage_updates":          [],
         "relationship_updates":       [],
         "character_overlay_updates":  [],
+        "lasting_consequence": None,
     }
 
     @classmethod
     def parse(cls, raw: str) -> dict:
+        plan, _ok = cls.parse_with_status(raw)
+        return plan
+
+    @classmethod
+    def parse_with_status(cls, raw: str) -> tuple[dict, bool]:
         text = raw.strip()
         if text.startswith("```"):
             text = re.sub(r"^```(?:json)?\s*", "", text)
             text = re.sub(r"\s*```$", "", text)
             text = text.strip()
+        if not text:
+            logger.warning("[PlannerParser] Empty response from GM planner.")
+            return dict(cls.EMPTY_PLAN), False
         try:
-            return cls._fill_defaults(json.loads(text))
+            return cls._fill_defaults(json.loads(text)), True
         except json.JSONDecodeError:
             pass
         m = re.search(r"\{[\s\S]*\}", text)
         if m:
             json_str = m.group()
             try:
-                return cls._fill_defaults(json.loads(json_str))
+                return cls._fill_defaults(json.loads(json_str)), True
             except json.JSONDecodeError:
                 json_str = re.sub(r",\s*([\]\}])", r"\1", json_str)
                 try:
-                    return cls._fill_defaults(json.loads(json_str))
+                    return cls._fill_defaults(json.loads(json_str)), True
                 except Exception:
                     pass
 
@@ -2274,11 +2428,11 @@ class PlannerParser:
             try:
                 plan = cls._fill_defaults(json.loads(repaired))
                 logger.warning("[PlannerParser] Recovered a truncated plan via repair (lost only the trailing field).")
-                return plan
+                return plan, True
             except Exception:
                 pass
         logger.warning(f"[PlannerParser] JSON parse failed. Raw: {raw}")
-        return dict(cls.EMPTY_PLAN)
+        return dict(cls.EMPTY_PLAN), False
 
     @staticmethod
     def _repair_truncated_json(text: str) -> Optional[str]:
@@ -2364,14 +2518,34 @@ class PlannerParser:
 
         dc = result.get("dice_check")
         if isinstance(dc, dict) and dc.get("notation"):
-            result["dice_check"] = {
-                "notation": str(dc.get("notation", "d20"))[:10],
-                "modifier": dc.get("modifier", 0) if isinstance(dc.get("modifier"), (int, float)) else 0,
-                "dc":       dc.get("dc") if isinstance(dc.get("dc"), (int, float)) else None,
-                "label":    str(dc.get("label", "Check"))[:40] or "Check",
-            }
+            cleaned_dc = dict(dc)
+            cleaned_dc["notation"] = str(dc.get("notation", "d20"))[:10]
+            if "skill" in dc:
+                try:
+                    cleaned_dc["skill"] = str(dc.get("skill") or "general").strip().lower()[:40]
+                except Exception:
+                    pass
+            if "difficulty" in dc:
+                try:
+                    cleaned_dc["difficulty"] = str(dc.get("difficulty", "moderate")).strip().lower()[:20]
+                except Exception:
+                    pass
+            if not isinstance(cleaned_dc.get("modifier"), (int, float)):
+                cleaned_dc["modifier"] = 0
+            if not isinstance(cleaned_dc.get("dc"), (int, float)) and cleaned_dc.get("dc") is not None:
+                cleaned_dc["dc"] = None
+            label = str(dc.get("label", "Check")).strip()
+            cleaned_dc["label"] = (label[:40] or "Check")
+            result["dice_check"] = cleaned_dc
         else:
             result["dice_check"] = None
+
+        lasting = result.get("lasting_consequence")
+        if isinstance(lasting, list):
+            lasting = "; ".join(str(x).strip() for x in lasting if isinstance(x, str) and x.strip())
+        elif not isinstance(lasting, str):
+            lasting = None
+        result["lasting_consequence"] = (lasting.strip()[:240] if lasting and lasting.strip() else None)
 
         return result
 
@@ -2486,6 +2660,109 @@ class SoulStageOrchestrator:
 
         return None
 
+    async def _archive_resolved_arc(self, arc: StoryArc, conversation_method: str):
+        try:
+            current_summary = self.world_state.historical_summary or "(no ongoing summary)"
+            arc_title = arc.title if hasattr(arc, "title") else str(arc.get("title", "Arc"))
+            arc_notes = arc.gm_notes if hasattr(arc, "gm_notes") else str(arc.get("gm_notes", ""))
+
+            system = (
+                "[SOUL STAGE — STORY ARC ARCHIVIST]\n"
+                "A major story arc has concluded. Your job is to produce a permanent 2-3 sentence "
+                "digest (max 70 words) summarizing how this arc was resolved and its lasting consequences.\n\n"
+                f"ARC TITLE: {arc_title}\n"
+                f"ARC RESOLUTION NOTES: {arc_notes}\n"
+                f"RECENT SCENE HISTORY: {current_summary}\n\n"
+                "OUTPUT:\n"
+                "Return ONLY the concise digest paragraph. No commentary, no quotes, no markdown headers."
+            )
+
+            messages = [{"role": "system", "content": system}]
+            raw_digest = ""
+            async for chunk in self._stream_llm(messages, conversation_method, temperature=0.2, max_tokens=self._get_service_max_tokens(180)):
+                if self._cancel_flag:
+                    break
+                raw_digest += chunk
+
+            clean_digest = raw_digest.strip() or f"The arc '{arc_title}' was resolved successfully."
+            
+            arc_id = arc.id if hasattr(arc, "id") else str(arc.get("id", uuid.uuid4().hex[:12]))
+            self.world_state.arc_archive.append({
+                "id": arc_id,
+                "title": arc_title,
+                "digest": clean_digest,
+                "resolved_turn": self.world_state.turn_counter,
+                "resolved_at": datetime.datetime.now().isoformat()
+            })
+
+            arc_note = f"[Following the resolution of '{arc_title}'] {clean_digest}"
+            existing = (self.world_state.historical_summary or "").strip()
+            if existing:
+                self.world_state.historical_summary = f"{existing}\n{arc_note}"[-2000:]
+            else:
+                self.world_state.historical_summary = arc_note
+
+            try:
+                self.world_state.add_consequence(
+                    "arc", f"Story arc \"{arc_title}\" was resolved: {clean_digest[:180]}"
+                )
+            except Exception:
+                pass
+            logger.info(f"[SoulStage] Arc '{arc_title}' archived to long-term memory. Rolling summary refreshed.")
+
+        except Exception as e:
+            logger.error(f"[SoulStage] Failed to archive resolved arc: {e}", exc_info=True)
+
+    async def _run_consistency_audit(self, conversation_method: str):
+        if not self.world_state.key_facts:
+            return
+
+        try:
+            facts_str = "\n".join(f"- {k}: {v}" for k, v in self.world_state.key_facts.items())
+            events_str = "\n".join(f"[{e.actor}] {e.action}" for e in self.world_state.events[-6:])
+
+            system = (
+                "[SOUL STAGE — WORLD CONSISTENCY AUDITOR]\n"
+                "You are an analytical auditor checking world state facts against recent events.\n"
+                "Review the established key_facts and prune obsolete, temporary, or already resolved facts.\n\n"
+                f"CURRENT KEY FACTS:\n{facts_str}\n\n"
+                f"RECENT EVENTS:\n{events_str}\n\n"
+                "OUTPUT FORMAT — valid JSON only:\n"
+                "{\n"
+                '  "prune_keys": ["fact_key_to_delete_1", "fact_key_to_delete_2"],\n'
+                '  "updated_facts": {"fact_key": "corrected_value"}\n'
+                "}"
+            )
+
+            messages = [{"role": "system", "content": system}]
+            raw = ""
+            async for chunk in self._stream_llm(messages, conversation_method, temperature=0.1, max_tokens=self._get_service_max_tokens(300)):
+                if self._cancel_flag:
+                    break
+                raw += chunk
+
+            raw_clean = re.sub(r"^```(?:json)?\s*", "", raw.strip())
+            raw_clean = re.sub(r"\s*```$", "", raw_clean).strip()
+            audit_result = json.loads(raw_clean)
+
+            pruned_count = 0
+            for k in audit_result.get("prune_keys", []):
+                norm_k = WorldState._normalize_fact_key(k)
+                if norm_k in self.world_state.key_facts:
+                    del self.world_state.key_facts[norm_k]
+                    pruned_count += 1
+
+            for k, v in audit_result.get("updated_facts", {}).items():
+                norm_k = WorldState._normalize_fact_key(k)
+                if norm_k in self.world_state.key_facts:
+                    self.world_state.key_facts[norm_k] = str(v)
+
+            if pruned_count > 0:
+                logger.info(f"[SoulStage.Audit] Consistency audit completed. Pruned {pruned_count} obsolete facts.")
+
+        except Exception as e:
+            logger.debug(f"[SoulStage.Audit] Consistency audit skipped or non-fatal error: {e}")
+
     def _extract_dry_action(self, text: str) -> str:
         actions = re.findall(r'\*(.*?)\*', text)
         if actions:
@@ -2495,7 +2772,10 @@ class SoulStageOrchestrator:
             return combined
         return "spoke."
 
-    async def _call_gm_planner(self, party_names, player_message, conversation_method, context_messages) -> dict:
+    MAX_PLAN_RETRIES = 2
+    CONSISTENCY_AUDIT_INTERVAL = 12
+
+    async def _call_gm_planner(self, party_names, player_message, conversation_method, context_messages, retry_note: str = "") -> tuple[dict, bool]:
         dice_on = bool(getattr(self.world_state, "dice_rolls_enabled", False))
 
         lock_section = ""
@@ -2520,10 +2800,20 @@ class SoulStageOrchestrator:
         lore_block = self.world_state.lore_registry.prompt_block(player_message)
         if lore_block:
             system += f"\n\n{lore_block}"
+        arc_archive_block = self.world_state.arc_archive_prompt_block()
+        if arc_archive_block:
+            system += f"\n\n{arc_archive_block}"
+        if retry_note:
+            system += (
+                "\n\n[RETRY NOTICE — YOUR PREVIOUS REPLY COULD NOT BE PARSED]\n"
+                f"{retry_note}\n"
+                "Reply with ONLY one valid JSON object. No prose before or after it, "
+                "no markdown code fences, no comments."
+            )
         if self.context_window is not None:
             messages = self.context_window.build_for_planner(
                 system_prompt=system,
-                world_state_prompt=self.world_state.to_prompt(),
+                world_state_prompt="",
                 context_messages=context_messages,
                 player_message=player_message,
                 historical_summary=self.world_state.historical_summary,
@@ -2536,9 +2826,34 @@ class SoulStageOrchestrator:
         raw = ""
         async for chunk in self._stream_llm(messages, conversation_method, temperature=0.1, max_tokens=self._get_service_max_tokens(1400)):
             raw += chunk
-        plan = PlannerParser.parse(raw)
-        logger.info(f"[Planner] next={plan['next_actor']} spawns={[s['name'] for s in plan['spawns']]}")
-        return plan
+        plan, ok = PlannerParser.parse_with_status(raw)
+        logger.info(f"[Planner] next={plan['next_actor']} spawns={[s['name'] for s in plan['spawns']]} ok={ok}")
+        return plan, ok
+
+    async def _call_gm_planner_validated(self, party_names, player_message, conversation_method, context_messages) -> tuple[dict, bool]:
+        retry_note = ""
+        last_plan: dict = {}
+        for attempt in range(self.MAX_PLAN_RETRIES + 1):
+            if self._cancel_flag:
+                return last_plan, False
+            plan, ok = await self._call_gm_planner(
+                party_names, player_message, conversation_method, context_messages, retry_note=retry_note
+            )
+            last_plan = plan
+            if ok:
+                if attempt > 0:
+                    logger.info(f"[Planner] Recovered a valid plan on retry attempt {attempt}.")
+                return plan, True
+            logger.warning(
+                f"[Planner] Attempt {attempt + 1}/{self.MAX_PLAN_RETRIES + 1} produced an unparsable plan. "
+                f"{'Retrying...' if attempt < self.MAX_PLAN_RETRIES else 'Giving up.'}"
+            )
+            retry_note = (
+                "You did not reply with valid JSON last time — the game could not "
+                "update. Re-read the required schema and reply again, this time as "
+                "pure JSON only."
+            )
+        return last_plan, False
 
     async def _call_gm_executor(self, narration_plan, conversation_method, context_messages, on_chunk, dynamic_context: Optional[list] = None, dice_result=None, player_message: str = "") -> str:
         system = GM_EXECUTOR_SYSTEM.format(
@@ -2680,6 +2995,62 @@ class SoulStageOrchestrator:
 
         return adapted
 
+    WHISPER_PLACEHOLDER = "[{user} leans close to {target} and whispers something. You cannot hear the exact words.]"
+    THINK_PLACEHOLDER = "[{user} falls silent for a moment, clearly lost in thought.]"
+
+    def player_message_for_audience(
+        self,
+        audience: str,
+        player_message: str,
+        user_name: str = "PLAYER",
+        private_recipient: Optional[str] = None,
+        think_mode: bool = False,
+    ) -> str:
+        """
+        Returns the version of the player's message a given audience may see.
+        """
+        if not think_mode and not (private_recipient and private_recipient != audience):
+            return player_message
+
+        if think_mode:
+            return self.THINK_PLACEHOLDER.format(user=user_name)
+
+        if private_recipient == audience:
+            whisper_note = (
+                f"[PRIVATE — {user_name} is whispering to YOU alone. "
+                f"Nobody else can hear this. Do not reveal it to others directly.]\n"
+            )
+            return f"{whisper_note}{player_message}"
+
+        return self.WHISPER_PLACEHOLDER.format(user=user_name, target=private_recipient)
+
+    def redact_context_for_actor(self, actor_name: str, context_messages: list) -> list:
+        filtered = []
+        for msg in context_messages:
+            if isinstance(msg, dict) and isinstance(msg.get("_meta"), dict):
+                meta = msg["_meta"]
+                whisper_to = meta.get("whisper_to")
+                mode = meta.get("mode")
+                is_private = bool(whisper_to) or mode == "think"
+                visible_to_all = (not whisper_to) and mode != "think"
+
+                clean = {k: v for k, v in msg.items() if k != "_meta"}
+                if is_private and not visible_to_all:
+                    if whisper_to and whisper_to == actor_name:
+                        filtered.append(clean)
+                        continue
+                    placeholder = (
+                        self.WHISPER_PLACEHOLDER.format(user="The player", target=whisper_to)
+                        if whisper_to else
+                        self.THINK_PLACEHOLDER.format(user="The player")
+                    )
+                    filtered.append({**clean, "content": placeholder})
+                    continue
+                filtered.append(clean)
+                continue
+            filtered.append(msg)
+        return filtered
+
     def _strip_augmentation_from_context(self, content: str) -> str:
         if "[WORLD LORE AND SETTING OVERRIDE]" not in content:
             return content
@@ -2747,6 +3118,8 @@ class SoulStageOrchestrator:
         user_description: str,
         character_stream_fn: Callable,
         on_chunk: Callable,
+        private_recipient: Optional[str] = None,
+        think_mode: bool = False,
     ) -> str:
         other_party =[n for n in party_names if n != character_name]
         npc_names   =[n.name for n in self.npc_registry.list_active()]
@@ -2794,6 +3167,15 @@ class SoulStageOrchestrator:
             )
 
         narrator_block = f"[NARRATOR SETS THE SCENE]: {narrator_text}\n\n" if narrator_text else ""
+
+        visible_player_message = self.player_message_for_audience(
+            audience=character_name,
+            player_message=player_message,
+            user_name=user_name,
+            private_recipient=private_recipient,
+            think_mode=think_mode,
+        )
+
         augmented_message = (
             f"{world_context_block}"
             f"{identity_block}"
@@ -2801,13 +3183,14 @@ class SoulStageOrchestrator:
             f"{private_block}"
             f"{intra_block}"
             f"{narrator_block}"
-            f"[{user_name.upper()} SAYS/DOES]: {player_message}"
+            f"[{user_name.upper()} SAYS/DOES]: {visible_player_message}"
         )
 
         full_text = ""
+        actor_context = self.redact_context_for_actor(character_name, context_messages)
         generator = character_stream_fn(
             character_name,
-            self._adapt_context_for_actor(character_name, context_messages),
+            self._adapt_context_for_actor(character_name, actor_context),
             augmented_message,
             user_name,
             user_description
@@ -2839,6 +3222,8 @@ class SoulStageOrchestrator:
         on_chunk: Callable,
         user_name: str,
         user_description: str,
+        private_recipient: Optional[str] = None,
+        think_mode: bool = False,
     ) -> str:
         party_list = ", ".join(party_names) if party_names else "none"
         system = NPC_SYSTEM_PROMPT.format(
@@ -2853,7 +3238,10 @@ class SoulStageOrchestrator:
         )
         if hasattr(self.npc_registry, 'get_memory_block'):
             recall_query = f"{player_message}\n{narrator_text[:200] if narrator_text else ''}"
-            memory_block = self.npc_registry.get_memory_block(npc.name, recall_query)
+            if hasattr(self.npc_registry, 'get_memory_block_async'):
+                memory_block = await self.npc_registry.get_memory_block_async(npc.name, recall_query)
+            else:
+                memory_block = self.npc_registry.get_memory_block(npc.name, recall_query)
             if memory_block:
                 system = system + "\n" + memory_block
         private_block = self.world_state.private_knowledge_block(npc.name)
@@ -2862,18 +3250,28 @@ class SoulStageOrchestrator:
 
         intra_block    = f"[DIALOGUE THIS TURN — react naturally]\n{intra_turn_dialogue.strip()}\n\n" if intra_turn_dialogue.strip() else ""
         narrator_block = f"[NARRATOR]: {narrator_text}\n\n" if narrator_text else ""
-        user_content   = f"{intra_block}{narrator_block}[PLAYER]: {player_message}"
+
+        visible_player_message = self.player_message_for_audience(
+            audience=npc.name,
+            player_message=player_message,
+            user_name=user_name,
+            private_recipient=private_recipient,
+            think_mode=think_mode,
+        )
+        user_content   = f"{intra_block}{narrator_block}[PLAYER]: {visible_player_message}"
+
+        actor_context = self.redact_context_for_actor(npc.name, context_messages)
 
         if self.context_window is not None:
             messages = self.context_window.build_for_npc(
                 system_prompt=system,
                 user_content=user_content,
-                context_messages=context_messages,
+                context_messages=actor_context,
             )
         else:
             messages = [{"role": "system", "content": system}]
-            if context_messages:
-                messages.extend(context_messages[-6:])
+            if actor_context:
+                messages.extend(actor_context[-6:])
             messages.append({"role": "user", "content": user_content})
 
         full_text = ""
@@ -2893,7 +3291,10 @@ class SoulStageOrchestrator:
 
         if hasattr(self.npc_registry, 'add_memory') and full_text.strip():
             try:
-                self.npc_registry.add_memory(npc.name, full_text.strip())
+                if hasattr(self.npc_registry, 'add_memory_async'):
+                    await self.npc_registry.add_memory_async(npc.name, full_text.strip())
+                else:
+                    self.npc_registry.add_memory(npc.name, full_text.strip())
             except Exception as e:
                 logger.warning(f"[NPC] Failed to store memory for {npc.name}: {e}")
 
@@ -2930,11 +3331,24 @@ class SoulStageOrchestrator:
         on_dice_roll: Optional[Callable] = None,
         manual_next_actor: Optional[str] = None,
         private_recipient: Optional[str] = None,
+        player_meta: Optional[dict] = None,
     ):
         self._cancel_flag = False
         self.is_running   = True
         self.current_task = asyncio.current_task()
         max_actor_depth   = self.max_actor_depth if hasattr(self, 'max_actor_depth') and self.max_actor_depth else 3
+
+        meta = player_meta if isinstance(player_meta, dict) else {}
+        think_mode = bool(meta.get("mode") == "think")
+        if private_recipient and private_recipient.strip().lower() in ("", "none", "null", "everyone"):
+            private_recipient = None
+
+        scene_scope = getattr(self, "_scene_id", None)
+        if scene_scope and hasattr(self.npc_registry, "set_scope"):
+            try:
+                self.npc_registry.set_scope(str(scene_scope))
+            except Exception:
+                pass
 
         try:
             planner_message = player_message
@@ -2945,102 +3359,216 @@ class SoulStageOrchestrator:
             if is_system_trigger:
                 actor_message = "[ACTION PAUSED. The plot advances. Characters must react to the events described by the Narrator or other characters.]"
 
-            plan = await self._call_gm_planner(
+            pre_turn_snapshot = None
+            try:
+                pre_turn_snapshot = copy.deepcopy(self.serialize_scene_state())
+            except Exception as e:
+                logger.warning(f"[SoulStage] Could not snapshot world state before turn: {e}")
+
+            plan, plan_ok = await self._call_gm_planner_validated(
                 party_names, planner_message, conversation_method, context_messages
             )
             if self._cancel_flag:
                 await on_turn_complete()
                 return
 
-            self.world_state.update_from_plan(plan)
-
-            for lore_data in plan.get("lore_updates", []):
-                try:
-                    self.world_state.lore_registry.upsert(lore_data)
-                except Exception as e:
-                    logger.warning(f"[SoulStage] Failed to upsert lore card: {e}")
-            for obj_data in plan.get("campaign_objective_updates", []):
-                try:
-                    self.world_state.campaign_board.upsert_objective(obj_data)
-                except Exception as e:
-                    logger.warning(f"[SoulStage] Failed to upsert campaign objective: {e}")
-            for clk_data in plan.get("campaign_clock_updates", []):
-                try:
-                    self.world_state.campaign_board.upsert_clock(clk_data)
-                except Exception as e:
-                    logger.warning(f"[SoulStage] Failed to upsert campaign clock: {e}")
-            for arc_data in plan.get("arc_stage_updates", []):
-                try:
-                    ref = str(arc_data.get("id") or arc_data.get("title") or "").strip()
-                    stage = arc_data.get("stage")
-                    if ref and stage and self.world_state.arc_registry.set_stage(ref, stage, arc_data.get("reason", "")) is None:
-                        self.world_state.arc_registry.upsert(arc_data)
-                    elif not ref and arc_data.get("title"):
-                        self.world_state.arc_registry.upsert(arc_data)
-                except Exception as e:
-                    logger.warning(f"[SoulStage] Failed to update story arc: {e}")
-            for rel_data in plan.get("relationship_updates", []):
-                try:
-                    self.world_state.relationship_graph.upsert(rel_data)
-                except Exception as e:
-                    logger.warning(f"[SoulStage] Failed to upsert relationship: {e}")
-            for ov_data in plan.get("character_overlay_updates", []):
-                try:
-                    self.world_state.overlay_registry.upsert(ov_data)
-                except Exception as e:
-                    logger.warning(f"[SoulStage] Failed to upsert character overlay: {e}")
-
-            known_actors = party_names + [n.name for n in self.npc_registry.list_active()]
-            if private_recipient and private_recipient in known_actors:
-                self.world_state.add_private_knowledge(private_recipient, player_message)
-            
-            if is_system_trigger:
-                self.world_state.add_event(actor="System", action="Director advanced the plot.")
-            else:
-                if '*' in player_message:
-                    p_action = self._extract_dry_action(player_message)
-                else:
-                    p_action = player_message[:100] + "..." if len(player_message) > 100 else player_message
-                self.world_state.add_event(actor="Player", action=p_action)
-
-            for s in plan.get("spawns",[]):
-                if s.get("name") not in party_names:
-                    self.npc_registry.spawn(
-                        s.get("name", "Unknown"),
-                        s.get("archetype", "citizen"),
-                        s.get("personality", ""),
-                    )
-            for dn in plan.get("despawns",[]):
-                self.npc_registry.despawn(dn)
-
-            npc_names = [n.name for n in self.npc_registry.list_active()]
-            direct_target = self._detect_direct_address(player_message, party_names, npc_names)
-            if direct_target:
-                plan["next_actor"] = direct_target
-                logger.info(f"[SoulStage] Direct address override: next_actor → {direct_target}")
-            if manual_next_actor and manual_next_actor in party_names + npc_names:
-                plan["next_actor"] = manual_next_actor
-                logger.info("[SoulStage] Manual turn override: next_actor → %s", manual_next_actor)
-
-            dice_result = None
-            if bool(getattr(self.world_state, "dice_rolls_enabled", False)):
-                dc_spec = plan.get("dice_check")
-                if isinstance(dc_spec, dict) and dc_spec.get("notation"):
-                    try:
-                        dice_result = RPGRules.resolve_check(dc_spec, self.world_state)
-                    except Exception as e:
-                        logger.warning(f"[SoulStage] Dice roll failed, skipping: {e}")
-                        dice_result = None
-
-            if dice_result is not None:
-                self.world_state.add_event(
-                    actor="Dice", action=dice_result.describe()
+            if not plan_ok:
+                logger.error(
+                    "[SoulStage] GM planner returned an unparsable plan after "
+                    f"{self.MAX_PLAN_RETRIES + 1} attempt(s). Turn aborted, world state untouched."
                 )
-                if on_dice_roll is not None:
+                await on_error(
+                    "The Game Master's response could not be understood after several attempts. "
+                    "Nothing was changed — please try rephrasing your action or sending it again."
+                )
+                await on_turn_complete()
+                return
+
+            try:
+                prev_bg = self.world_state.bg_image
+                prev_ambient = self.world_state.ambient_audio
+
+                self.world_state.update_from_plan(plan)
+
+                if not self.world_state.lock_bg:
+                    new_bg = self.world_state.bg_image
+                    if (new_bg and new_bg != "None"
+                            and hasattr(self, "bg_list") and self.bg_list
+                            and new_bg not in self.bg_list):
+                        logger.warning(f"[SoulStage] Plan requested unknown bg '{new_bg}', keeping '{prev_bg}'.")
+                        self.world_state.bg_image = prev_bg
+                if not self.world_state.disable_ambient:
+                    new_amb = self.world_state.ambient_audio
+                    if (new_amb and new_amb != "None"
+                            and hasattr(self, "ambient_list") and self.ambient_list
+                            and new_amb not in self.ambient_list):
+                        logger.warning(f"[SoulStage] Plan requested unknown ambient '{new_amb}', keeping '{prev_ambient}'.")
+                        self.world_state.ambient_audio = prev_ambient
+
+                for lore_data in plan.get("lore_updates", []):
                     try:
-                        await on_dice_roll(dice_result)
+                        self.world_state.lore_registry.upsert(lore_data)
                     except Exception as e:
-                        logger.warning(f"[SoulStage] on_dice_roll callback failed: {e}")
+                        logger.warning(f"[SoulStage] Failed to upsert lore card: {e}")
+                for obj_data in plan.get("campaign_objective_updates", []):
+                    try:
+                        self.world_state.campaign_board.upsert_objective(obj_data)
+                    except Exception as e:
+                        logger.warning(f"[SoulStage] Failed to upsert campaign objective: {e}")
+                for clk_data in plan.get("campaign_clock_updates", []):
+                    try:
+                        self.world_state.campaign_board.upsert_clock(clk_data)
+                    except Exception as e:
+                        logger.warning(f"[SoulStage] Failed to upsert campaign clock: {e}")
+                for arc_data in plan.get("arc_stage_updates", []):
+                    try:
+                        ref = str(arc_data.get("id") or arc_data.get("title") or "").strip()
+                        stage = arc_data.get("stage")
+                        resolved_arc = None
+                        if ref and stage and self.world_state.arc_registry.set_stage(ref, stage, arc_data.get("reason", "")) is None:
+                            resolved_arc = self.world_state.arc_registry.upsert(arc_data)
+                        elif not ref and arc_data.get("title"):
+                            resolved_arc = self.world_state.arc_registry.upsert(arc_data)
+                        else:
+                            resolved_arc = self.world_state.arc_registry.arcs.get(ref)
+                        if resolved_arc is not None and str(stage).strip().lower() == "resolved":
+                            await self._archive_resolved_arc(resolved_arc, conversation_method)
+                    except Exception as e:
+                        logger.warning(f"[SoulStage] Failed to update story arc: {e}")
+                for rel_data in plan.get("relationship_updates", []):
+                    try:
+                        self.world_state.relationship_graph.upsert(rel_data)
+                    except Exception as e:
+                        logger.warning(f"[SoulStage] Failed to upsert relationship: {e}")
+                for ov_data in plan.get("character_overlay_updates", []):
+                    try:
+                        self.world_state.overlay_registry.upsert(ov_data)
+                    except Exception as e:
+                        logger.warning(f"[SoulStage] Failed to upsert character overlay: {e}")
+
+                known_actors = party_names + [n.name for n in self.npc_registry.list_active()]
+                if private_recipient and private_recipient in known_actors:
+                    self.world_state.add_private_knowledge(private_recipient, player_message)
+
+                if is_system_trigger:
+                    self.world_state.add_event(actor="System", action="Director advanced the plot.")
+                else:
+                    if '*' in player_message:
+                        p_action = self._extract_dry_action(player_message)
+                    else:
+                        p_action = player_message[:100] + "..." if len(player_message) > 100 else player_message
+
+                    if think_mode:
+                        p_action = "fell silent, clearly lost in thought."
+                    elif private_recipient:
+                        p_action = f"leaned close to {private_recipient} and whispered something."
+
+                    self.world_state.add_event(actor="Player", action=p_action)
+
+                for s in plan.get("spawns",[]):
+                    if s.get("name") not in party_names:
+                        self.npc_registry.spawn(
+                            s.get("name", "Unknown"),
+                            s.get("archetype", "citizen"),
+                            s.get("personality", ""),
+                        )
+                for dn in plan.get("despawns",[]):
+                    self.npc_registry.despawn(dn)
+
+                npc_names = [n.name for n in self.npc_registry.list_active()]
+                direct_target = self._detect_direct_address(player_message, party_names, npc_names)
+                if direct_target:
+                    plan["next_actor"] = direct_target
+                    logger.info(f"[SoulStage] Direct address override: next_actor → {direct_target}")
+                if manual_next_actor and manual_next_actor in party_names + npc_names:
+                    plan["next_actor"] = manual_next_actor
+                    logger.info("[SoulStage] Manual turn override: next_actor → %s", manual_next_actor)
+
+                dice_result = None
+                if bool(getattr(self.world_state, "dice_rolls_enabled", False)):
+                    dc_spec = plan.get("dice_check")
+                    if isinstance(dc_spec, dict) and dc_spec.get("notation"):
+                        try:
+                            dice_result = RPGRules.resolve_check(dc_spec, self.world_state)
+                        except Exception as e:
+                            logger.warning(f"[SoulStage] Dice roll failed, skipping: {e}")
+                            dice_result = None
+
+                if dice_result is not None:
+                    self.world_state.add_event(
+                        actor="Dice", action=dice_result.describe()
+                    )
+                    try:
+                        natural = getattr(dice_result, "natural", None)
+                        if natural in (20, 1):
+                            self.world_state.add_consequence(
+                                "fate",
+                                dice_result.describe()[:240]
+                            )
+                    except Exception:
+                        pass
+                    if on_dice_roll is not None:
+                        try:
+                            await on_dice_roll(dice_result)
+                        except Exception as e:
+                            logger.warning(f"[SoulStage] on_dice_roll callback failed: {e}")
+            except Exception as e:
+                logger.error(f"[SoulStage] Plan application failed, rolling back world state: {e}", exc_info=True)
+                if pre_turn_snapshot is not None:
+                    try:
+                        self.load_world_state_from_dict({"world_state": pre_turn_snapshot})
+                        logger.info("[SoulStage] World state rolled back to pre-turn snapshot.")
+                    except Exception as restore_err:
+                        logger.error(f"[SoulStage] Rollback ALSO failed: {restore_err}", exc_info=True)
+                await on_error(
+                    "Something went wrong while applying the Game Master's plan. "
+                    "The world state was rolled back to before your last action — nothing was lost."
+                )
+                await on_turn_complete()
+                return
+
+            self._turns_since_audit = getattr(self, "_turns_since_audit", 0) + 1
+            if self._turns_since_audit >= self.CONSISTENCY_AUDIT_INTERVAL:
+                self._turns_since_audit = 0
+                try:
+                    await self._run_consistency_audit(conversation_method)
+                except Exception as e:
+                    logger.warning(f"[SoulStage] Consistency audit failed (non-fatal): {e}")
+
+            try:
+                self.world_state.turn_counter += 1
+                if hasattr(self.npc_registry, "set_turn_idx"):
+                    self.npc_registry.set_turn_idx(self.world_state.turn_counter)
+            except Exception as e:
+                logger.debug(f"[SoulStage] Turn counter bookkeeping failed: {e}")
+
+            try:
+                ws_ledger = self.world_state
+                for arc_data in plan.get("arc_stage_updates", []):
+                    if not isinstance(arc_data, dict):
+                        continue
+                    title = str(arc_data.get("title") or arc_data.get("id") or "").strip()
+                    stage = str(arc_data.get("stage") or "").strip()
+                    if title and stage:
+                        ws_ledger.add_consequence("arc", f"Story arc \"{title}\" advanced to stage '{stage}'.")
+                for rel_data in plan.get("relationship_updates", []):
+                    if not isinstance(rel_data, dict):
+                        continue
+                    who = " & ".join(str(rel_data.get(k)) for k in ("a", "b", "pair", "between") if rel_data.get(k))
+                    change = rel_data.get("change") or rel_data.get("status") or rel_data.get("description") or ""
+                    parts = [p for p in (who, str(change).strip()) if p]
+                    if parts:
+                        ws_ledger.add_consequence("relationship", ": ".join(parts)[:240])
+                for dn in plan.get("despawns", []):
+                    if dn:
+                        ws_ledger.add_consequence("departure", f"{dn} left the scene and will be remembered.")
+                plot_event = plan.get("plot_event_type")
+                if plot_event and plot_event != "none":
+                    gist = self._smart_truncate(str(plan.get("narration_plan", "")), max_len=160)
+                    ws_ledger.add_consequence(str(plot_event), gist or f"A {plot_event} occurred.")
+            except Exception as e:
+                logger.warning(f"[SoulStage] Consequence ledger update failed: {e}")
+
 
             dynamic_context = list(context_messages)
             intra_turn_dialogue = ""
@@ -3054,10 +3582,14 @@ class SoulStageOrchestrator:
                 dice_result=dice_result,
                 player_message=player_message,
             )
+            try:
+                await on_narrator_done()
+            except Exception as e:
+                logger.warning(f"[SoulStage] on_narrator_done failed: {e}")
+
             if self._cancel_flag:
                 await on_turn_complete()
                 return
-            await on_narrator_done()
 
             if narration_text:
                 narration_text = re.sub(
@@ -3104,6 +3636,8 @@ class SoulStageOrchestrator:
                         user_description=user_description,
                         character_stream_fn=character_stream_fn,
                         on_chunk=_cc,
+                        private_recipient=private_recipient,
+                        think_mode=think_mode,
                     )
 
                     all_names = (
@@ -3144,6 +3678,8 @@ class SoulStageOrchestrator:
                         _nc,
                         user_name=user_name,
                         user_description=user_description,
+                        private_recipient=private_recipient,
+                        think_mode=think_mode,
                     )
 
                     dynamic_context.append({
@@ -3271,6 +3807,8 @@ class SoulStageOrchestrator:
         self.world_state.bg_image    = ws.get("bg_image", "None")
         self.world_state.ambient_audio = ws.get("ambient_audio", "None")
         self.world_state.narrator_style = ws.get("narrator_style", "Standard evocative present-tense prose")
+        self.world_state.arc_archive = list(ws.get("arc_archive", scene_dict.get("arc_archive", [])))
+        self.world_state.turn_counter = int(ws.get("turn_counter", scene_dict.get("turn_counter", 0)))
 
         raw_facts = ws.get("key_facts", {})
         normalized_facts: dict = {}
@@ -3327,6 +3865,25 @@ class SoulStageOrchestrator:
 
         self.world_state.historical_summary = ws.get("historical_summary", "")
         self.world_state.pending_summarization = ws.get("pending_summarization", [])
+
+        raw_consequences = ws.get("consequence_ledger", scene_dict.get("consequence_ledger", [])) or []
+        sanitized_ledger: list[dict] = []
+        for entry in raw_consequences:
+            if not isinstance(entry, dict):
+                continue
+            text = str(entry.get("text", "")).strip()[:240]
+            if not text:
+                continue
+            try:
+                turn_no = max(0, int(entry.get("turn", 0)))
+            except (TypeError, ValueError):
+                turn_no = 0
+            sanitized_ledger.append({
+                "turn": turn_no,
+                "kind": str(entry.get("kind", "event")).strip().lower()[:24],
+                "text": text,
+            })
+        self.world_state.consequence_ledger = sanitized_ledger[-WorldState.MAX_CONSEQUENCES:]
 
         if "gm_tone" in ws:
             self.world_state.gm_tone = ws["gm_tone"]
@@ -3453,7 +4010,8 @@ class SoulStageOrchestrator:
         return kwargs
     
     async def _stream_llm(self, messages, conversation_method, temperature=0.7, max_tokens=512) -> AsyncGenerator:
-        provider = AIFactory.get_provider(conversation_method)
+        stage_session_id = f"sow_stage_{getattr(self, '_scene_id', 'default')}"
+        provider = AIFactory.get_provider(conversation_method, session_id=stage_session_id)
         if not provider:
             logger.error(f"[SoulStage] Could not get provider for {conversation_method}")
             return
@@ -3461,16 +4019,81 @@ class SoulStageOrchestrator:
         if conversation_method == "Local LLM" and self.local_server_manager:
             await self.local_server_manager.ensure_server_running()
 
-        raw_stops = self.configuration_settings.get_main_setting("stop_strings")
-        stop_sequences = None
-        if raw_stops and isinstance(raw_stops, str) and raw_stops.strip():
-            stop_list = [s.strip() for s in raw_stops.split(",") if s.strip()]
-            if stop_list:
-                stop_sequences = stop_list[:4]
-
         gen_kwargs = self._get_reasoning_kwargs(conversation_method)
-        async for chunk in provider.generate_stream(messages, temperature=temperature, max_tokens=max_tokens, stop=stop_sequences, **gen_kwargs):
-            yield chunk
+
+        _doubling = False
+        _probe = ""
+        _probe_done = False
+        _yield_toggle = True
+
+        async for chunk in provider.generate_stream(messages, temperature=temperature, max_tokens=max_tokens, **gen_kwargs):
+            if isinstance(chunk, str) and "⚠️" in chunk and "API Error" in chunk:
+                raise RuntimeError(f"[SoulStage transport] {chunk.strip()}")
+
+            if not _probe_done:
+                _probe += chunk
+                if len(_probe) >= 10:
+                    if _probe[:40].count("{") > 1:
+                        _doubling = True
+                        _probe_done = True
+                        _yield_toggle = True
+                        logger.warning(
+                            "[SoulStage] Double-streaming detected "
+                            f"({_probe[:40].count('{')} opening braces in first {min(len(_probe), 40)} chars) "
+                            "— de-interleaving output."
+                        )
+                        _yield_toggle = False
+                        continue
+                    elif len(_probe) >= 40 or _probe.rstrip().endswith("}"):
+                        _probe_done = True
+
+            if _doubling:
+                _yield_toggle = not _yield_toggle
+                if _yield_toggle:
+                    yield chunk
+            else:
+                yield chunk
+
+    @staticmethod
+    def _filter_scene_log_for_character(turn_messages: list, char_name: str) -> list:
+        """
+        Presence-filter a scene transcript for ONE character before memorizing it.
+        """
+        filtered = []
+        for msg in turn_messages:
+            if not isinstance(msg, dict):
+                continue
+            role = msg.get("role")
+            content = str(msg.get("content", "") or "").strip()
+            if not content or role == "plot_advance_marker":
+                continue
+
+            meta = msg.get("_meta") if isinstance(msg.get("_meta"), dict) else {}
+            actor_name = str(msg.get("actor_name", "") or "")
+
+            if role == "player":
+                whisper_to = meta.get("whisper_to")
+                if meta.get("mode") == "think":
+                    continue
+                if whisper_to and whisper_to != char_name:
+                    continue
+                if whisper_to and whisper_to == char_name:
+                    content = f"[PRIVATE — {actor_name} is whispering to YOU alone. Nobody else heard this.] {content}"
+                filtered.append({"role": "user", "content": content})
+
+            elif role in ("char", "npc"):
+                speaker = actor_name or role
+                if speaker == char_name:
+                    filtered.append({"role": "assistant", "content": f"[{speaker}]: {content}"})
+                else:
+                    filtered.append(
+                        {"role": "assistant", "content": f"[Overheard] [{speaker}]: {content}"}
+                    )
+
+            elif role == "narrator":
+                filtered.append({"role": "assistant", "content": f"[Narration]: {content}"})
+
+        return filtered
 
     async def sync_party_memory(self, conversation_method: str, party_names: list, turn_messages: list, user_name: str):
         if not self.prompt_engine:
@@ -3480,28 +4103,12 @@ class SoulStageOrchestrator:
         if not provider:
             return
 
-        formatted_messages = []
-        for msg in turn_messages:
-            if isinstance(msg, dict):
-                role = msg.get("role")
-                content = msg.get("content", "")
-                actor_name = msg.get("actor_name", "")
-                
-                if role == "player":
-                    formatted_messages.append({"role": "user", "content": content})
-                elif role in ("char", "npc", "narrator"):
-                    prefix = f"[{actor_name}]: " if actor_name and actor_name != role else ""
-                    formatted_messages.append({"role": "assistant", "content": f"{prefix}{content}"})
-                else:
-                    formatted_messages.append(msg)
-            else:
-                formatted_messages.append(msg)
-
         tasks = []
         for char_name in party_names:
+            char_messages = self._filter_scene_log_for_character(turn_messages, char_name)
             tasks.append(
                 self.prompt_engine.update_memory_after_response(
-                    new_messages=formatted_messages,
+                    new_messages=char_messages,
                     character_name=char_name,
                     user_name=user_name,
                     provider=provider
@@ -3914,24 +4521,7 @@ class SoulStageMessageManager:
             ws = self.orch.world_state
             snap = {
                 "turn_idx": trunc_idx,
-                "world_state": {
-                    "location": ws.location,
-                    "time_of_day": ws.time_of_day,
-                    "atmosphere": ws.atmosphere,
-                    "bg_image": ws.bg_image,
-                    "ambient_audio": ws.ambient_audio,
-                    "key_facts": dict(ws.key_facts),
-                    "player_inventory": list(ws.player_inventory),
-                    "player_status": list(ws.player_status),
-                    "events": [
-                        {"actor": e.actor, "action": e.action, "outcome": e.outcome}
-                        for e in ws.events
-                    ],
-                    "historical_summary": ws.historical_summary,
-                    "pending_summarization": list(ws.pending_summarization),
-                    "gm_tone": ws.gm_tone,
-                    "narrator_style": ws.narrator_style,
-                },
+                "world_state": self.orch.serialize_scene_state(),
                 "chat_log": copy.deepcopy(log[:trunc_idx]),
             }
 
@@ -3980,7 +4570,7 @@ class SoulStageMessageManager:
         finally:
             self._is_rerunning = False
 
-    def attach_context_menu(self, frame_widget, text_label, get_msg_idx_fn, is_player: bool = False) -> None:
+    def attach_context_menu(self, frame_widget, text_label, get_msg_idx_fn, is_player: bool = False, actor_name: str = None, is_npc: bool = False, on_promote_fn: Optional[Callable] = None) -> None:
         """
         Attach right-click context menu to ANY Soul Stage bubble.
         """
@@ -4028,15 +4618,21 @@ class SoulStageMessageManager:
 
                 menu.addSeparator()
 
-                # 2. Edit
+                # 2. Edit (Player only)
                 if is_player:
                     act_edit = QAction(self.translations.get("ss_menu_edit", "Edit Message"), menu)
                     menu.addAction(act_edit)
                     act_edit.triggered.connect(lambda: self._start_inline_edit(text_label, get_msg_idx_fn))
-
                     menu.addSeparator()
 
-                # 3. Translate
+                # 3. Promote NPC to Companion
+                if is_npc and actor_name and on_promote_fn:
+                    act_promote = QAction(f"🌟  {self.translations.get('ss_menu_promote_npc', 'Promote to Companion')}", menu)
+                    menu.addAction(act_promote)
+                    act_promote.triggered.connect(lambda: on_promote_fn(actor_name))
+                    menu.addSeparator()
+
+                # 4. Translate
                 act_tr_ru = QAction(self.translations.get("ss_menu_translate_ru", "Translate → Russian"), menu)
                 menu.addAction(act_tr_ru)
                 act_tr_ru.triggered.connect(
@@ -4050,7 +4646,7 @@ class SoulStageMessageManager:
 
                 menu.addSeparator()
 
-                # 4. Regenerate
+                # 5. Regenerate
                 if not is_player:
                     act_regen = QAction(self.translations.get("ss_menu_regenerate", "Regenerate Turn"), menu)
                     menu.addAction(act_regen)
@@ -4058,7 +4654,7 @@ class SoulStageMessageManager:
                         lambda: asyncio.create_task(self.regenerate_turn(get_msg_idx_fn()))
                     )
 
-                # 5. Delete
+                # 6. Delete
                 act_del = QAction(self.translations.get("ss_menu_delete", "Delete Message"), menu)
                 menu.addAction(act_del)
                 act_del.triggered.connect(lambda: self.delete_message(frame_widget, get_msg_idx_fn))
@@ -4106,6 +4702,8 @@ class SoulStageMessageManager:
         turn_no = 0
         for entry in chat_log:
             role = entry.get("role", "")
+            if role == "plot_advance_marker":
+                continue
             actor = entry.get("actor_name") or role.upper() or "Unknown"
             content = (entry.get("content") or "").strip()
             if not content:

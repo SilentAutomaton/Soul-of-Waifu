@@ -19,6 +19,7 @@ from app.configuration import configuration
 from app.gui.icons import resources
 from app.gui import interface_signals
 from app.utils.ai_clients.local_server_manager import LocalServerManager
+from app.utils.discord_rpc import DiscordRPCManager
 from app.gui.sowInterface import Ui_MainWindow
 
 from app.gui.custom_widgets import SowConfirmDialog
@@ -160,6 +161,10 @@ class MainWindow(QMainWindow):
         self.interface_signals.initialize_batch_size_horizontalSlider()
         self.interface_signals.initialize_cpu_threads_horizontalSlider()
         self.interface_signals.initialize_cpu_moe_layers_horizontalSlider()
+        self.interface_signals.populate_llm_presets_combobox()
+
+        self.discord_rpc = DiscordRPCManager()
+        QtCore.QTimer.singleShot(2000, self.discord_rpc.connect)
 
         self.drop_overlay = QtWidgets.QLabel(self)
         self.drop_overlay.setText(self.translations.get("drag_and_drop_overlay", "Drag and drop a .png or .json card directly here\nto import it into Soul of Waifu"))
@@ -233,7 +238,7 @@ class MainWindow(QMainWindow):
         self.ui.pushButton_rp_editors.setText(self.translations.get("rp_editors_button", " RP Editors"))
         self.ui.pushButton_soul_stage.setText(self.translations.get("soul_stage_button", " Soul Stage"))
         self.ui.pushButton_options.setText(self.translations.get("options_button", " Options"))
-        self.ui.version_label.setText(self.translations.get("version_label", "v2.4.7"))
+        self.ui.version_label.setText(self.translations.get("version_label", "v2.5.1"))
         
         # Main Tab Without Characters
         self.ui.main_no_characters_advice_label.setText(self.translations.get("no_characters_advice", "You haven\'t added any characters. Click on the button and create it"))
@@ -250,7 +255,6 @@ class MainWindow(QMainWindow):
         self.ui.pushButton_export_character_card.setText(self.translations.get("export_character_card_button", " Export Character Card"))
         self.ui.pushButton_clean_character_card.setText(self.translations.get("clean_character_card_button", " Clear All Fields"))
         self.ui.pushButton_preview_prompt.setText(self.translations.get("preview_prompt_button", "Preview Raw"))
-        self.ui.character_image_building_label.setText(self.translations.get("character_image_building_label", "Character\'s Image"))
         self.ui.character_name_building_label.setText(self.translations.get("character_name_building_label", "Character\'s Name"))
         self.ui.lineEdit_character_name_building.setPlaceholderText(self.translations.get("placeholder_character_name", "The name of your character"))
         self.ui.character_description_building_label.setText(self.translations.get("character_description_building_label", "Character\'s Description"))
@@ -357,9 +361,6 @@ class MainWindow(QMainWindow):
         self.ui.textEdit_write_user_message.setPlaceholderText(self.translations.get("write_user_message_placeholder", "Write your message to character..."))
         
         # LLM Options
-        self.ui.label_live2d_mode.setText(self.translations.get("live2d_mode_label", "Mode:"))
-        self.ui.comboBox_live2d_mode.setItemText(0, self.translations.get("live2d_mode_with_gui", "With GUI"))
-        self.ui.comboBox_live2d_mode.setItemText(1, self.translations.get("live2d_mode_without_gui", "Without GUI"))
         self.ui.checkBox_enable_nsfw.setText(self.translations.get("nsfw_checkbox", "NSFW"))
         self.ui.lineEdit_server.setText("http://localhost:48596/v1")
 
@@ -436,7 +437,6 @@ class MainWindow(QMainWindow):
         self.ui.btn_open_character_editor.clicked.connect(self.interface_signals._prepare_blank_character_and_open_editor)
         self.ui.editor_character_list.itemClicked.connect(self.interface_signals.load_character_into_editor)
         self.ui.btn_create_new_character_editor.clicked.connect(self.interface_signals.prepare_new_character_editor)
-        self.ui.btn_open_soul_stage.clicked.connect(self.interface_signals._open_soul_stage_page)
         self.ui.btn_open_personas.clicked.connect(self.interface_signals.open_personas_editor)
         self.ui.btn_open_lorebook.clicked.connect(self.interface_signals.open_lorebook_editor)
         self.ui.btn_open_discord_bot.clicked.connect(self.interface_signals.open_discord_gateway)
@@ -460,7 +460,6 @@ class MainWindow(QMainWindow):
         self.ui.checkBox_auto_translate_new_messages.stateChanged.connect(self.interface_signals.on_checkBox_auto_translate_new_messages_stateChanged)
         self.ui.comboBox_target_language_translator.currentIndexChanged.connect(self.interface_signals.on_comboBox_target_language_translator_changed)
         self.ui.comboBox_conversation_method.currentIndexChanged.connect(self.interface_signals.update_api_token)
-        self.ui.comboBox_live2d_mode.currentIndexChanged.connect(self.interface_signals.on_comboBox_live2d_mode_changed)
         self.ui.comboBox_model_fps.currentIndexChanged.connect(self.interface_signals.on_comboBox_model_fps_changed)
         self.ui.comboBox_model_background.currentIndexChanged.connect(self.interface_signals.on_comboBox_model_background_changed)
         self.ui.comboBox_model_bg_color.currentIndexChanged.connect(self.interface_signals.on_comboBox_model_bg_color_changed)
@@ -470,6 +469,11 @@ class MainWindow(QMainWindow):
         self.ui.comboBox_llm_gpu_devices.currentIndexChanged.connect(self.interface_signals.on_comboBox_llm_gpu_devices_changed)
         self.ui.comboBox_chat_template.currentTextChanged.connect(self.interface_signals.on_comboBox_chat_template_changed)
         self.ui.comboBox_kv_cache.currentIndexChanged.connect(self.interface_signals.on_comboBox_kv_cache_changed)
+        self.ui.comboBox_llm_presets.currentIndexChanged.connect(self.interface_signals.on_llm_preset_selected)
+        self.ui.pushButton_llm_preset_save.clicked.connect(self.interface_signals.update_selected_llm_preset)
+        self.ui.pushButton_llm_preset_save_as.clicked.connect(self.interface_signals.save_current_as_llm_preset)
+        self.ui.pushButton_llm_preset_rename.clicked.connect(self.interface_signals.rename_selected_llm_preset)
+        self.ui.pushButton_llm_preset_delete.clicked.connect(self.interface_signals.delete_selected_llm_preset)
         self.ui.comboBox_tts_voicing_mode.currentIndexChanged.connect(self.interface_signals.on_comboBox_tts_voicing_mode_changed)
 
         # LineEdits
@@ -856,6 +860,60 @@ class MainWindow(QMainWindow):
             self.ui.maximize_btn.setIcon(icon_maximize)
             self.showMaximized()
 
+    def closeEvent(self, event):
+        try:
+            if hasattr(self, "interface_signals"):
+                self.interface_signals.flush_debounced_saves()
+        except Exception as e:
+            logger.warning(f"Could not flush pending saves: {e}")
+
+        busy_reasons = []
+        if getattr(self.interface_signals, "_is_generating", False):
+            busy_reasons.append(self.translations.get(
+                "exit_busy_generation", "• A response is still being generated"
+            ))
+
+        try:
+            from app.utils.models_hub import DownloadCoordinator
+            coordinator = DownloadCoordinator.instance()
+            if coordinator.has_active():
+                names = ", ".join(coordinator.active_names()[:3])
+                busy_reasons.append(self.translations.get(
+                    "exit_busy_downloads",
+                    "• Model downloads in progress: {names}"
+                ).format(names=names))
+        except Exception:
+            pass
+
+        if busy_reasons:
+            dialog = SowConfirmDialog(
+                parent=self,
+                title=self.translations.get("exit_busy_title", "Exit Soul of Waifu?"),
+                text=self.translations.get(
+                    "exit_busy_text",
+                    "Some tasks are still running:\n{reasons}\n\nIf you exit now, they will be interrupted."
+                ).format(reasons="\n".join(busy_reasons)),
+                confirm_text=self.translations.get("exit_busy_confirm", "Exit anyway"),
+                danger=True
+            )
+            if dialog.exec() != QtWidgets.QDialog.DialogCode.Accepted:
+                event.ignore()
+                return
+            if hasattr(self, "interface_signals") and getattr(self.interface_signals, "_is_generating", False):
+                self.interface_signals.abort_generation = True
+
+        if hasattr(self, 'discord_rpc'):
+            self.discord_rpc.close()
+
+        discord_manager = getattr(self, "discord_manager", None)
+        if discord_manager is not None and getattr(discord_manager, "is_running", False):
+            try:
+                asyncio.get_running_loop().create_task(discord_manager.stop_bot())
+            except RuntimeError:
+                pass
+
+        super().closeEvent(event)
+
 if __name__ == "__main__":
     if sys.platform == 'win32':
         app_id = "com.jofizcd.soul_of_waifu.v2"
@@ -873,7 +931,7 @@ if __name__ == "__main__":
 
     main_window.show()    
 
-    current_version = "v2.4.7"
+    current_version = "v2.5.1"
 
     def deferred_update_check():
         latest_version, github_url = main_window.check_for_updates(current_version)

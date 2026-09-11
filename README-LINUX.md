@@ -1,7 +1,12 @@
 # Soul of Waifu on Linux
 
 This is an **unofficial Linux port** of [jofizcd/Soul-of-Waifu](https://github.com/jofizcd/Soul-of-Waifu).
-The port lives on the `linux` branch. `main` tracks upstream unchanged.
+The port lives on the `linux` branch (the default branch of this fork). `main` tracks upstream unchanged.
+
+**Based on the official v2.5.1 release.** Upstream's GitHub repository lags behind its releases: the code in
+`Soul-of-Waifu-v2.5.1.rar` differs from GitHub `main` in about 60 files and adds new modules
+(`hub_utils.py`, `discord_rpc.py`, `profile_backup.py`). The `linux` branch therefore uses the source code from the
+release archive, merged with the Linux changes.
 
 The Linux-specific code is kept small so upstream updates can still be merged:
 
@@ -109,6 +114,13 @@ git fetch upstream
 git switch linux
 git merge upstream/main
 ```
+
+New versions usually appear in the release archive before they reach GitHub. The `release` branch holds the
+unmodified source of each release archive, and `linux` merges it. To update:
+
+1. Extract the new `Soul-of-Waifu-vX.Y.Z.rar`, switch to `release`, and copy its source files over the tracked
+   files (skip `app/data/`, binaries and models). Commit.
+2. Switch to `linux`, run `git merge release`, resolve any conflicts, and bump `SOW_VERSION` in `installer.sh`.
 
 If upstream adds new Windows-only code, look for `os.startfile`, `winreg`, `ctypes.windll` and hard-coded
 backslash paths (`"assets\\..."`), and route them through `app/utils/platform_compat.py`.

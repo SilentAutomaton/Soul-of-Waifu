@@ -1,10 +1,12 @@
 import os
 import re
 import copy
+import html
 import json
 import uuid
 import yaml
 import random
+import shutil
 import datetime
 
 from typing import Optional
@@ -17,6 +19,7 @@ from PyQt6.QtWidgets import (
     QWidget, QFrame, QVBoxLayout, QHBoxLayout, QGridLayout,
     QLabel, QPushButton, QScrollArea, QStackedWidget,
     QLineEdit, QTextEdit, QComboBox, QFileDialog, QMessageBox,
+    QDialog, QListWidget, QListWidgetItem, QMenu,
 )
 
 from app.gui.custom_widgets import SowSelectDialog, SowInputDialog, SowConfirmDialog, SceneFolderCard, sow_toast
@@ -132,14 +135,116 @@ def _load_translations() -> dict:
             pass
     return {}
 
-def _load_scenes() -> dict:
+translations = _load_translations()
+
+_SCENES_CACHE = None
+_SCENES_CACHE_STAMP = None
+
+def _scenes_file_stamp():
     try:
-        return json.loads(SCENES_FILE.read_text("utf-8"))
+        st = os.stat(SCENES_FILE)
+        return (st.st_mtime_ns, st.st_size)
+    except OSError:
+        return ("missing",)
+
+def _normalize_scenes_data(data) -> dict:
+    if not isinstance(data, dict):
+        return {"scenes": {}, "scene_groups": {}}
+    scenes = data.get("scenes")
+    groups = data.get("scene_groups")
+    if not isinstance(scenes, dict):
+        scenes = {}
+    if not isinstance(groups, dict):
+        groups = {}
+    clean_groups = {}
+    for g_name, members in groups.items():
+        clean_groups[g_name] = [m for m in members if isinstance(m, str)] if isinstance(members, list) else []
+    return {"scenes": scenes, "scene_groups": clean_groups}
+
+def _read_validated_scenes() -> dict:
+    raw = SCENES_FILE.read_text(encoding="utf-8")
+    data = json.loads(raw)
+    if not isinstance(data, dict):
+        raise ValueError("scenes.json root is not a dict")
+    if not isinstance(data.get("scenes"), dict) or not isinstance(data.get("scene_groups"), dict):
+        raise ValueError("scenes.json has an invalid structure")
+    return _normalize_scenes_data(data)
+
+def _load_scenes() -> dict:
+    global _SCENES_CACHE, _SCENES_CACHE_STAMP
+    stamp = _scenes_file_stamp()
+    if stamp == _SCENES_CACHE_STAMP and _SCENES_CACHE is not None:
+        return _SCENES_CACHE
+
+    if stamp == ("missing",):
+        _SCENES_CACHE = {"scenes": {}, "scene_groups": {}}
+        _SCENES_CACHE_STAMP = stamp
+        return _SCENES_CACHE
+
+    try:
+        result = _read_validated_scenes()
     except Exception:
-        return {"scenes": {}}
+        result = None
+        try:
+            corrupt_path = SCENES_FILE.with_name(f"{SCENES_FILE.name}.corrupt-{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}")
+            os.replace(SCENES_FILE, corrupt_path)
+        except Exception as e:
+            print(f"[SoulStage] Warning: Could not quarantine corrupted scenes.json: {e}")
+        try:
+            all_baks = sorted(BACKUPS_DIR.glob("scenes_*.json.bak"), key=os.path.getmtime)
+            if all_baks:
+                shutil.copyfile(all_baks[-1], SCENES_FILE)
+                result = _read_validated_scenes()
+        except Exception as bak_err:
+            print(f"[SoulStage] Warning: Scene backup restore failed: {bak_err}")
+            result = None
+        if result is None:
+            result = {"scenes": {}, "scene_groups": {}}
+        try:
+            sow_toast(parent=None,
+                      title=translations.get("scenes_file_corrupt_title", "Scenes file corrupted"),
+                      text=translations.get("scenes_file_corrupt_text", "The scenes file was corrupted. A backup was restored if available; otherwise starting with an empty list."),
+                      msg_type="error")
+        except Exception:
+            pass
+        stamp = _scenes_file_stamp()
+
+    _SCENES_CACHE = result
+    _SCENES_CACHE_STAMP = stamp
+    return result
+
+BACKUPS_DIR = SOUL_STAGE_DIR / "backups"
+BACKUPS_DIR.mkdir(exist_ok=True)
+MAX_SCENE_BACKUPS = 5
 
 def _save_scenes(data: dict):
-    SCENES_FILE.write_text(json.dumps(data, ensure_ascii=False, indent=2), "utf-8")
+    global _SCENES_CACHE, _SCENES_CACHE_STAMP
+    try:
+        if SCENES_FILE.exists() and SCENES_FILE.stat().st_size > 10:
+            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            backup_path = BACKUPS_DIR / f"scenes_{timestamp}.json.bak"
+            try:
+                shutil.copyfile(SCENES_FILE, backup_path)
+                all_baks = sorted(BACKUPS_DIR.glob("scenes_*.json.bak"), key=os.path.getmtime)
+                while len(all_baks) > MAX_SCENE_BACKUPS:
+                    all_baks.pop(0).unlink(missing_ok=True)
+            except Exception as bak_err:
+                print(f"[SoulStage] Warning: Could not create scene backup: {bak_err}")
+
+        tmp_file = SCENES_FILE.with_suffix(".tmp")
+        tmp_file.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+        
+        os.replace(tmp_file, SCENES_FILE)
+        _SCENES_CACHE = data
+        _SCENES_CACHE_STAMP = _scenes_file_stamp()
+    except Exception as e:
+        print(f"[SoulStage] Error saving scenes.json: {e}")
+        try:
+            SCENES_FILE.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+            _SCENES_CACHE = data
+            _SCENES_CACHE_STAMP = _scenes_file_stamp()
+        except Exception:
+            pass
 
 def _get_scene_groups() -> dict:
     data = _load_scenes()
@@ -190,7 +295,14 @@ def append_to_scene_log(scene_id: str, entries: list):
     d["scenes"][scene_id]["chat_log"] = log[-400:]
     _save_scenes(d)
 
+_RAW_AVATAR_CACHE: dict[str, QPixmap] = {}
+_AVATAR_ROUND_CACHE: dict[tuple[str, int], QPixmap] = {}
+_D20_PIXMAP_CACHED: Optional[QPixmap] = None
+_ACTION_ICONS_CACHE: dict[str, QIcon] = {}
+
 def _get_char_avatar_pixmap(char_name: str) -> QPixmap:
+    if char_name in _RAW_AVATAR_CACHE:
+        return _RAW_AVATAR_CACHE[char_name]
     try:
         from app.configuration import configuration
         cfg = configuration.ConfigurationCharacters()
@@ -200,10 +312,13 @@ def _get_char_avatar_pixmap(char_name: str) -> QPixmap:
         if avatar_path:
             px = QPixmap(avatar_path)
             if not px.isNull():
+                _RAW_AVATAR_CACHE[char_name] = px
                 return px
     except Exception:
         pass
-    return QPixmap("app/gui/icons/logotype.png")
+    default_px = QPixmap("app/gui/icons/logotype.png")
+    _RAW_AVATAR_CACHE[char_name] = default_px
+    return default_px
 
 def _round_pixmap(px: QPixmap, size: int) -> QPixmap:
     scaled = px.scaled(size, size, Qt.AspectRatioMode.KeepAspectRatioByExpanding,
@@ -221,6 +336,15 @@ def _round_pixmap(px: QPixmap, size: int) -> QPixmap:
     painter.drawPixmap(0, 0, cropped)
     painter.end()
     return result
+
+def _get_round_char_avatar(char_name: str, size: int) -> QPixmap:
+    key = (char_name, size)
+    if key in _AVATAR_ROUND_CACHE:
+        return _AVATAR_ROUND_CACHE[key]
+    raw_px = _get_char_avatar_pixmap(char_name)
+    round_px = _round_pixmap(raw_px, size)
+    _AVATAR_ROUND_CACHE[key] = round_px
+    return round_px
 
 def _rpg_divider() -> QFrame:
     line = QFrame()
@@ -716,12 +840,18 @@ class SceneCard(QFrame):
         header_layout.setSpacing(15)
 
         self.scene_icon = QLabel()
-        scene_px = QPixmap("app/gui/icons/d20.png")
-        if scene_px.isNull():
+        global _D20_PIXMAP_CACHED
+        if _D20_PIXMAP_CACHED is None:
+            scene_px = QPixmap("app/gui/icons/d20.png")
+            if not scene_px.isNull():
+                _D20_PIXMAP_CACHED = scene_px.scaled(22, 22, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+            else:
+                _D20_PIXMAP_CACHED = QPixmap()
+        if _D20_PIXMAP_CACHED.isNull():
             self.scene_icon.setText("◈")
             self.scene_icon.setStyleSheet("color: #50C878; font-size: 20px; font-weight: bold;")
         else:
-            self.scene_icon.setPixmap(scene_px.scaled(22, 22, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
+            self.scene_icon.setPixmap(_D20_PIXMAP_CACHED)
         header_layout.addWidget(self.scene_icon)
 
         title = QLabel(scene_data.get("title", self.translations.get("new_adventure", "New Adventure")))
@@ -734,7 +864,9 @@ class SceneCard(QFrame):
 
         btn_folder = QPushButton()
         btn_folder.setFixedSize(30, 30)
-        btn_folder.setIcon(QIcon("app/gui/icons/folder.png"))
+        if "folder" not in _ACTION_ICONS_CACHE:
+            _ACTION_ICONS_CACHE["folder"] = QIcon("app/gui/icons/folder.png")
+        btn_folder.setIcon(_ACTION_ICONS_CACHE["folder"])
         btn_folder.setIconSize(QtCore.QSize(18, 18))
         btn_folder.setCursor(Qt.CursorShape.PointingHandCursor)
         btn_folder.setFocusPolicy(Qt.FocusPolicy.NoFocus)
@@ -747,18 +879,21 @@ class SceneCard(QFrame):
         actions_container.addWidget(btn_folder)
 
         actions = [
-            ("app/gui/icons/export.png", self.export_clicked, "rgba(255,255,255,0.4)"),
-            ("app/gui/icons/edit.png", self.edit_clicked, "rgba(255,255,255,0.4)"),
-            ("app/gui/icons/delete.png", self.delete_clicked, "rgba(255,80,80,0.6)")
+            ("app/gui/icons/export.png", self.export_clicked, self.translations.get("export_scene_tooltip", "Export scene")),
+            ("app/gui/icons/edit.png", self.edit_clicked, self.translations.get("edit_scene_tooltip", "Edit scene")),
+            ("app/gui/icons/delete.png", self.delete_clicked, self.translations.get("delete_scene_tooltip", "Delete scene"))
         ]
 
-        for icon_path, signal, _ in actions:
+        for icon_path, signal, tooltip in actions:
             btn = QPushButton()
             btn.setFixedSize(30, 30)
-            btn.setIcon(QIcon(icon_path))
+            if icon_path not in _ACTION_ICONS_CACHE:
+                _ACTION_ICONS_CACHE[icon_path] = QIcon(icon_path)
+            btn.setIcon(_ACTION_ICONS_CACHE[icon_path])
             btn.setIconSize(QtCore.QSize(18, 18))
             btn.setCursor(Qt.CursorShape.PointingHandCursor)
             btn.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+            btn.setToolTip(tooltip)
             btn.setStyleSheet("""
                 QPushButton { background: rgba(255,255,255,0.03); border-radius: 15px; border: none; }
                 QPushButton:hover { background: rgba(255,255,255,0.12); }
@@ -790,14 +925,11 @@ class SceneCard(QFrame):
         
         for name in party[:5]:
             p_av = QLabel()
-            px = _get_char_avatar_pixmap(name)
-            
             avatar_img_size = 28 
-            
             border_thickness = 2
             widget_size = avatar_img_size + (border_thickness * 2)
             
-            p_av.setPixmap(_round_pixmap(px, avatar_img_size))
+            p_av.setPixmap(_get_round_char_avatar(name, avatar_img_size))
             p_av.setFixedSize(widget_size, widget_size)
             p_av.setToolTip(name)
             
@@ -821,6 +953,7 @@ class SceneCard(QFrame):
         self.play_btn.setFixedHeight(36)
         self.play_btn.setMinimumWidth(110)
         self.play_btn.setFont(_font("Inter Tight SemiBold", 11))
+        self.play_btn.setToolTip(self.translations.get("play_scene_tooltip", "Play scene"))
         
         self.play_btn.setStyleSheet("""
             QPushButton {
@@ -936,6 +1069,7 @@ class SoulStageLobbyView(QWidget):
         self._folder_cards: list = []
         self._current_opened_folder: Optional[str] = None
         self._folder_header_widget: Optional[QWidget] = None
+        self._load_generation = 0
 
         self.translations = _load_translations()
 
@@ -1047,7 +1181,39 @@ class SoulStageLobbyView(QWidget):
     def refresh_lobby(self):
         self.refresh()
 
+    def _start_progressive_loading(self, scene_list: list, generation: int):
+        chunk_size = 4
+        
+        def _render_chunk(index: int):
+            if generation != self._load_generation:
+                return
+            
+            end_idx = min(index + chunk_size, len(scene_list))
+            for i in range(index, end_idx):
+                sid, sdata = scene_list[i]
+                card = SceneCard(sid, sdata)
+                card.play_clicked.connect(self.open_scene)
+                card.edit_clicked.connect(self.edit_scene)
+                card.delete_clicked.connect(self.delete_scene)
+                card.export_clicked.connect(self._on_export_scene)
+                self._cards[sid] = card
+                row = i // 2
+                col = i % 2
+                self.scenes_grid.addWidget(card, row, col, Qt.AlignmentFlag.AlignTop)
+
+            search_query = self.search.text().strip()
+            if search_query:
+                self._filter(search_query)
+
+            if end_idx < len(scene_list):
+                QtCore.QTimer.singleShot(0, lambda next_i=end_idx: _render_chunk(next_i))
+
+        _render_chunk(0)
+
     def refresh(self):
+        self._load_generation += 1
+        current_gen = self._load_generation
+
         for c in list(self._cards.values()):
             self.scenes_grid.removeWidget(c)
             c.deleteLater()
@@ -1080,20 +1246,8 @@ class SoulStageLobbyView(QWidget):
             self.scenes_section_w.show()
 
             members = groups[self._current_opened_folder]
-            row, col = 0, 0
-            for sid in members:
-                if sid in scenes:
-                    card = SceneCard(sid, scenes[sid])
-                    card.play_clicked.connect(self.open_scene)
-                    card.edit_clicked.connect(self.edit_scene)
-                    card.delete_clicked.connect(self.delete_scene)
-                    card.export_clicked.connect(self._on_export_scene)
-                    self._cards[sid] = card
-                    self.scenes_grid.addWidget(card, row, col, Qt.AlignmentFlag.AlignTop)
-                    col += 1
-                    if col >= 2:
-                        col = 0
-                        row += 1
+            target_scenes = [(sid, scenes[sid]) for sid in members if sid in scenes]
+            self._start_progressive_loading(target_scenes, current_gen)
             return
 
         self.scenes_title.show()
@@ -1136,19 +1290,7 @@ class SoulStageLobbyView(QWidget):
         if ungrouped_scenes:
             self.scenes_section_w.show()
             sorted_s = sorted(ungrouped_scenes, key=lambda kv: kv[1].get("last_played") or "", reverse=True)
-            row_s, col_s = 0, 0
-            for sid, sdata in sorted_s:
-                card = SceneCard(sid, sdata)
-                card.play_clicked.connect(self.open_scene)
-                card.edit_clicked.connect(self.edit_scene)
-                card.delete_clicked.connect(self.delete_scene)
-                card.export_clicked.connect(self._on_export_scene)
-                self._cards[sid] = card
-                self.scenes_grid.addWidget(card, row_s, col_s, Qt.AlignmentFlag.AlignTop)
-                col_s += 1
-                if col_s >= 2:
-                    col_s = 0
-                    row_s += 1
+            self._start_progressive_loading(sorted_s, current_gen)
         else:
             if groups:
                 self.scenes_section_w.hide()
@@ -1456,6 +1598,11 @@ class SoulStageLobbyView(QWidget):
             "conversation_method": scene_data.get("conversation_method", "Local LLM"),
             "persona": scene_data.get("persona", "None"),
             "lorebook": scene_data.get("lorebook", []),
+            "solo_mode": scene_data.get("solo_mode", False),
+            "max_actor_depth": scene_data.get("max_actor_depth", 3),
+            "dice_rolls_enabled": scene_data.get("dice_rolls_enabled", False),
+            "starting_bg": scene_data.get("starting_bg", "None"),
+            "starting_ambient": scene_data.get("starting_ambient", "None"),
             "lock_bg": scene_data.get("lock_bg", False),
             "disable_ambient": scene_data.get("disable_ambient", False),
         }
@@ -1523,7 +1670,7 @@ class SceneEditorView(QWidget):
 
         sec2 = _GlassSection(self.translations.get("section_world", "II.  WORLD STATE & ENVIRONMENT"))
         ly2 = sec2.section_layout()
-        ly2.addWidget(_FieldLabel(self.translations.get("world_context", "World Context / Scenario  *"), self.translations.get("world_context_hint", "Injected into every AI prompt as background truth.")))
+        ly2.addWidget(_FieldLabel(self.translations.get("world_context", "World Context / Scenario").rstrip(" *"), self.translations.get("world_context_hint", "Injected into every AI prompt as background truth.")))
         self.f_world = AutoResizingTextEdit(); self.f_world.setPlaceholderText(self.translations.get("world_placeholder", "Lore, current tension, rules of magic or physics...")); self.f_world.setFixedHeight(90); self.f_world.setStyleSheet(INPUT); ly2.addWidget(self.f_world)
 
         r_env = QHBoxLayout(); r_env.setSpacing(16)
@@ -1654,6 +1801,22 @@ class SceneEditorView(QWidget):
         )
         party_hdr.addWidget(self.party_count_lbl)
         ly4a.addLayout(party_hdr)
+
+        self.f_solo_mode = QtWidgets.QCheckBox(
+            self.translations.get("solo_mode", "🧍 Solo Mode — start with no party, meet companions along the way")
+        )
+        self.f_solo_mode.setFont(_font("Inter Tight Medium", 12))
+        self.f_solo_mode.setStyleSheet(CB_STYLE)
+        self.f_solo_mode.setToolTip(
+            self.translations.get(
+                "solo_mode_hint",
+                "You don't have to pick a ready-made party. The GM can introduce NPCs "
+                "on the fly as the story unfolds — you can later turn any of them into "
+                "a permanent companion with a full character card."
+            )
+        )
+        self.f_solo_mode.toggled.connect(self._on_solo_mode_toggled)
+        ly4a.addWidget(self.f_solo_mode)
 
         self.char_scroll = QScrollArea()
         self.char_scroll.setWidgetResizable(True)
@@ -1809,6 +1972,12 @@ class SceneEditorView(QWidget):
         label = self.translations.get("party_member_selected", "{n} selected").format(n=n)
         self.party_count_lbl.setText(label)
 
+    def _on_solo_mode_toggled(self, checked: bool):
+        err_scroll = SCROLLBAR + "QScrollArea { background: rgba(0,0,0,0.18); border: 1px solid rgba(255,60,60,0.6); border-radius: 14px; }"
+        ok_scroll  = SCROLLBAR + "QScrollArea { background: rgba(0,0,0,0.18); border: 1px solid rgba(255,255,255,0.06); border-radius: 14px; }"
+        if checked:
+            self.char_scroll.setStyleSheet(ok_scroll)
+
     def load_scene(self, scene_id: str, scene_data: dict):
         self._editing_id = scene_id
         self.title_lbl.setText(self.translations.get("edit_scene", "Edit Scene"))
@@ -1848,6 +2017,7 @@ class SceneEditorView(QWidget):
         for name, cb in self._char_checks.items():
             cb.setChecked(name in party)
         self._update_party_count()
+        self.f_solo_mode.setChecked(bool(scene_data.get("solo_mode", False)) or not party)
 
         bg_val = scene_data.get("starting_bg", "None")
         idx = self.f_bg_image.findText(bg_val)
@@ -1877,6 +2047,8 @@ class SceneEditorView(QWidget):
         self._update_lorebook_button_text()
         for cb in self._char_checks.values(): cb.setChecked(False)
         self._update_party_count()
+        self.f_solo_mode.setChecked(False)
+        self.char_scroll.setStyleSheet(SCROLLBAR + "QScrollArea { background: rgba(0,0,0,0.22); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; }")
 
     def load_personas(self, personas_dict):
         self.f_persona.clear()
@@ -1906,11 +2078,19 @@ class SceneEditorView(QWidget):
         self.f_dice_enabled.setChecked(bool(import_data.get("dice_rolls_enabled", False)))
         self.f_lock_bg.setChecked(bool(import_data.get("lock_bg", False)))
         self.f_disable_ambient.setChecked(bool(import_data.get("disable_ambient", False)))
+        try:
+            _import_depth = int(import_data.get("max_actor_depth", 3))
+        except Exception:
+            _import_depth = 3
+        self.f_max_actor_depth.setValue(max(1, min(6, _import_depth)))
+        self.f_bg_image.setCurrentText(str(import_data.get("starting_bg", "None")))
+        self.f_ambient.setCurrentText(str(import_data.get("starting_ambient", "None")))
 
         party = import_data.get("party", [])
         for name, cb in self._char_checks.items():
             cb.setChecked(name in party)
         self._update_party_count()
+        self.f_solo_mode.setChecked(bool(import_data.get("solo_mode", False)) or not party)
 
         lb_data = import_data.get("lorebook", [])
         if isinstance(lb_data, str):
@@ -1935,14 +2115,18 @@ class SceneEditorView(QWidget):
         else:           self.f_title.setStyleSheet(INPUT)
         if not opening: self.f_opening.setStyleSheet(err_t); ok = False
         else:           self.f_opening.setStyleSheet(INPUT)
-        if not party:   self.char_scroll.setStyleSheet(err_scroll); ok = False
-        else:           self.char_scroll.setStyleSheet(ok_scroll)
-        if not party or not ok: return
+        solo_mode = self.f_solo_mode.isChecked()
+        if not party and not solo_mode:
+            self.char_scroll.setStyleSheet(err_scroll); ok = False
+        else:
+            self.char_scroll.setStyleSheet(ok_scroll)
+        if not ok: return
         tod  = ["morning", "day", "evening", "night"][self.f_time.currentIndex()]
         now  = datetime.datetime.now().isoformat()
         data = _load_scenes(); sid = self._editing_id or str(uuid.uuid4())
         exist = data["scenes"].get(sid, {})
-        data["scenes"][sid] = {
+
+        new_scene_data = {
             "title":            title,
             "description":      self.f_desc.text().strip(),
             "world_context":    self.f_world.toPlainText().strip(),
@@ -1951,6 +2135,7 @@ class SceneEditorView(QWidget):
             "opening_narration": opening,
             "first_message":    self.f_first_msg.toPlainText().strip(),
             "party":            party,
+            "solo_mode":        solo_mode,
             "gm_tone":          self.f_tone.currentText(),
             "narrator_style": self.f_narrator_style.currentText(),
             "conversation_method": self.f_method.currentText(),
@@ -1966,6 +2151,24 @@ class SceneEditorView(QWidget):
             "last_played":      exist.get("last_played", ""),
             "chat_log":         exist.get("chat_log", []),
         }
+
+        for preserve_key in (
+            "world_state", "active_npcs", "despawned_npcs",
+            "consequence_ledger", "arc_archive", "turn_counter"
+        ):
+            if preserve_key in exist:
+                new_scene_data[preserve_key] = copy.deepcopy(exist[preserve_key])
+
+        if "world_state" in new_scene_data and isinstance(new_scene_data["world_state"], dict):
+            ws_dict = new_scene_data["world_state"]
+            ws_dict["world_context"] = new_scene_data["world_context"]
+            ws_dict["gm_tone"] = new_scene_data["gm_tone"]
+            ws_dict["narrator_style"] = new_scene_data["narrator_style"]
+            ws_dict["lock_bg"] = new_scene_data["lock_bg"]
+            ws_dict["disable_ambient"] = new_scene_data["disable_ambient"]
+            ws_dict["dice_rolls_enabled"] = new_scene_data["dice_rolls_enabled"]
+
+        data["scenes"][sid] = new_scene_data
         _save_scenes(data); self.saved.emit(sid)
 
 class _BaseChatBubble(QFrame):
@@ -2099,6 +2302,7 @@ class _BaseChatBubble(QFrame):
         main_layout.addStretch()
 
     def append_text(self, chunk: str):
+        chunk = html.escape(chunk)
         self._text_label.setText(self._text_label.text() + chunk)
 
     def set_text(self, text: str):
@@ -2405,6 +2609,7 @@ class InventoryPanel(QtWidgets.QDialog):
     def __init__(self, world_state, parent=None):
         super().__init__(parent)
         self.world_state = world_state
+        self._panel_parent = parent
         self.translations = _load_translations()
         
         self.setWindowTitle(self.translations.get("inventory_full_title", "Inventory"))
@@ -2648,7 +2853,10 @@ class InventoryPanel(QtWidgets.QDialog):
         if item in self.world_state.player_inventory:
             self.world_state.player_inventory.remove(item)
         self.accept()
-        new_panel = InventoryPanel(self.world_state, self.parent())
+        QtCore.QTimer.singleShot(0, self._reopen_after_drop)
+
+    def _reopen_after_drop(self):
+        new_panel = InventoryPanel(self.world_state, self._panel_parent)
         new_panel.item_used.connect(self.item_used)
         new_panel.item_dropped.connect(self.item_dropped)
         new_panel.exec()
@@ -4048,6 +4256,8 @@ class SoulStageChatView(QFrame):
     continue_plot     = pyqtSignal()
     choice_made         = pyqtSignal(str)
     export_clicked      = pyqtSignal()
+    auto_play_clicked   = pyqtSignal()
+    chronicle_clicked   = pyqtSignal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -4267,6 +4477,23 @@ class SoulStageChatView(QFrame):
         self.btn_interrupt = _icon_btn("app/gui/icons/stop.png", "Intervene (stop AI turn)", "255,180,50")
         self.btn_interrupt.clicked.connect(self.interrupted)
         tl.addWidget(self.btn_interrupt)
+
+        self.btn_auto_play = _icon_btn(
+            "app/gui/icons/autoplay.png",
+            self.translations.get("ss_auto_tooltip", "Auto-Play: the scene plays itself"),
+            "120,255,160"
+        )
+        self.btn_auto_play.setCheckable(True)
+        self.btn_auto_play.clicked.connect(self.auto_play_clicked.emit)
+        tl.addWidget(self.btn_auto_play)
+
+        self.btn_chronicle = _icon_btn(
+            "app/gui/icons/author_notes.png",
+            self.translations.get("ss_chronicle_tooltip", "Chronicle of lasting consequences"),
+            "200,200,220"
+        )
+        self.btn_chronicle.clicked.connect(self.chronicle_clicked.emit)
+        tl.addWidget(self.btn_chronicle)
 
         root.addWidget(self.top_bar)
 
@@ -4656,21 +4883,31 @@ class SoulStagePage(QWidget):
     def _go_editor(self): self.inner_stack.setCurrentIndex(self.IDX_EDITOR)
     def _go_chat(self):   self.inner_stack.setCurrentIndex(self.IDX_CHAT)
 
+    def _prepare_editor(self):
+        self.editor_view.rebuild_char_list(self._get_character_names())
+        try:
+            from app.configuration import configuration
+            personas = configuration.ConfigurationSettings().get_user_data("personas") or {}
+            self.editor_view.load_personas(personas)
+        except Exception as e:
+            print(f"Error loading personas in Soul Stage: {e}")
+
     def _on_create_new(self):
         self.editor_view.clear_form()
-        self.editor_view.rebuild_char_list(self._get_character_names())
+        self._prepare_editor()
         self._go_editor()
 
     def _on_edit_scene(self, scene_id: str):
         data = _load_scenes(); sdata = data["scenes"].get(scene_id)
         if sdata:
-            self.editor_view.rebuild_char_list(self._get_character_names())
+            self._prepare_editor()
             self.editor_view.load_scene(scene_id, sdata)
             self._go_editor()
 
     def _on_scene_saved(self, scene_id: str):
         data = _load_scenes(); sdata = data["scenes"].get(scene_id, {})
-        self._launch_scene(scene_id, sdata, restore=False)
+        has_history = bool(sdata.get("chat_log"))
+        self._launch_scene(scene_id, sdata, restore=has_history, is_new_session=not has_history)
 
     def _on_open_scene(self, scene_id: str):
         data  = _load_scenes()
@@ -4753,7 +4990,7 @@ class SoulStagePage(QWidget):
                     import_data = json.load(f)
 
                 if not import_data.get("title"):
-                    QMessageBox.warning(self, self.translations.get("import_error", "Import Error"), self.translations.get("import_error", "Failed to import scene. Invalid file format."))
+                    self._show_import_error(self.translations.get("import_error", "Failed to import scene. Invalid file format."))
                     return
 
                 self.editor_view.clear_form()
@@ -4762,7 +4999,21 @@ class SoulStagePage(QWidget):
                 self._go_editor()
 
             except Exception as e:
-                QMessageBox.warning(self, self.translations.get("import_error", "Import Error"), f"{self.translations.get('import_error', 'Failed to import scene. Invalid file format.')}\n{str(e)}")
+                self._show_import_error(
+                    f"{self.translations.get('import_error', 'Failed to import scene. Invalid file format.')}\n{str(e)}"
+                )
+
+    def _show_import_error(self, text):
+        try:
+            from app.gui.custom_widgets import sow_toast
+            sow_toast(
+                parent=self.window() if hasattr(self, "window") else self,
+                title=self.translations.get("import_error_title", "Import Error"),
+                text=text,
+                msg_type="error"
+            )
+        except Exception:
+            QMessageBox.warning(self, self.translations.get("import_error_title", "Import Error"), text)
 
     def _on_memory_clicked(self):
         party = self.chat_view.scene_data.get("party", [])
@@ -4770,17 +5021,8 @@ class SoulStagePage(QWidget):
             self.open_memory_requested.emit(party)
 
     def on_page_shown(self):
+        self.inner_stack.setCurrentIndex(self.IDX_LOBBY)
         self.lobby_view.refresh()
-        self.editor_view.rebuild_char_list(self._get_character_names())
-
-        try:
-            from app.configuration import configuration
-            personas = configuration.ConfigurationSettings().get_user_data("personas") or {}
-            self.editor_view.load_personas(personas)
-        except Exception as e:
-            print(f"Error loading personas in Soul Stage: {e}")
-
-        self._go_lobby()
 
     def update_character_list(self):
         self.editor_view.rebuild_char_list(self._get_character_names())
@@ -4822,3 +5064,75 @@ class AutoResizingTextEdit(QtWidgets.QTextEdit):
                 self.updateGeometry()
         finally:
             self.blockSignals(False)
+
+class ChronicleDialog(QDialog):
+    def __init__(self, world_state, translations=None, on_delete=None, parent=None):
+        super().__init__(parent)
+        self._ws = world_state
+        self._tr = translations or {}
+        self._on_delete = on_delete
+
+        self.setWindowTitle(self._tr.get("ss_chronicle_title", "Chronicle — Lasting Consequences"))
+        self.setMinimumSize(560, 480)
+        self.setStyleSheet("""
+            QDialog { background-color: #0d0d10; color: #e8e8e8; }
+            QLabel { background: transparent; border: none; }
+            QListWidget {
+                background: rgba(255,255,255,0.03);
+                border: 1px solid rgba(255,255,255,0.08);
+                border-radius: 8px;
+                padding: 6px;
+            }
+            QListWidget::item { padding: 8px 10px; border-radius: 6px; }
+            QListWidget::item:hover { background: rgba(255,255,255,0.06); }
+        """)
+
+        lay = QVBoxLayout(self)
+        lay.setContentsMargins(20, 18, 20, 18)
+        lay.setSpacing(10)
+
+        title = QLabel(self._tr.get(
+            "ss_chronicle_header",
+            "Permanent consequences of past decisions. The GM must respect these facts."
+        ))
+        title.setWordWrap(True)
+        title.setStyleSheet("color: rgba(255,255,255,0.55); font-size: 12px;")
+        lay.addWidget(title)
+
+        from PyQt6.QtWidgets import QListWidget
+        self.list_widget = QListWidget()
+        self.list_widget.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.list_widget.customContextMenuRequested.connect(self._show_menu)
+        lay.addWidget(self.list_widget, 1)
+
+        hint = QLabel(self._tr.get("ss_chronicle_hint", "Right-click an entry to remove it."))
+        hint.setStyleSheet("color: rgba(255,255,255,0.35); font-size: 11px;")
+        lay.addWidget(hint)
+
+        close_btn = QPushButton(self._tr.get("close_button", "Close"))
+        close_btn.clicked.connect(self.accept)
+        lay.addWidget(close_btn, 0, Qt.AlignmentFlag.AlignRight)
+
+        self.reload()
+
+    def reload(self):
+        self.list_widget.clear()
+        ledger = list(getattr(self._ws, "consequence_ledger", []) or [])
+        for entry in reversed(ledger):
+            kind = entry.get("kind", "event")
+            turn_no = entry.get("turn", "?")
+            text = entry.get("text", "")
+            item = QListWidgetItem(f"[{self._tr.get('ss_chronicle_turn', 'turn')} {turn_no}] ({kind})  {text}")
+            self.list_widget.addItem(item)
+
+    def _show_menu(self, pos):
+        row = self.list_widget.currentRow()
+        if row < 0 or self._on_delete is None:
+            return
+        menu = QMenu(self)
+        act_del = menu.addAction(self._tr.get("ss_chronicle_delete", "Delete consequence"))
+        chosen = menu.exec(self.list_widget.mapToGlobal(pos))
+        if chosen == act_del:
+            index_from_end = row
+            if self._on_delete(index_from_end):
+                self.reload()

@@ -1,4 +1,4 @@
-import asyncio
+﻿import asyncio
 import base64
 import json
 import logging
@@ -49,6 +49,21 @@ class CharactersCard:
     _trending_cache = _TTLCache(ttl_seconds=60)
     _search_cache = _TTLCache(ttl_seconds=30)
     _info_cache = _TTLCache(ttl_seconds=300)
+    _hub_cache = _TTLCache(ttl_seconds=60)
+
+    HUB_TAGS = [
+        "", "fantasy", "romance", "adventure", "sci-fi", "horror", "comedy",
+        "drama", "mystery", "slice of life", "historical", "cyberpunk",
+        "school", "rpg", "anime", "magic", "supernatural", "action",
+        "wholesome", "villain", "yandere", "tsundere", "oc", "female", "male",
+    ]
+
+    HUB_SORTS = {
+        "trending": "trending",
+        "recent": "new",
+        "popular": "download_count",
+        "favorites": "star_count",
+    }
 
     def __init__(self):
         self.configuration_settings = configuration.ConfigurationSettings()
@@ -196,6 +211,127 @@ class CharactersCard:
         self._info_cache.set(full_path, result)
         return result
 
+    async def search_hub(self, query: str = "", page: int = 1, first: int = 50,
+                         sort: str = "trending", topics=None, nsfw: bool = False):
+        from urllib.parse import quote
+
+        query = (query or "").strip()
+        sort_val = self.HUB_SORTS.get(sort, "trending")
+        page = max(1, int(page or 1))
+        first = max(1, min(100, int(first or 50)))
+
+        cache_key = f"hub:{sort_val}:{page}:{first}:{nsfw}:{topics}:{query}"
+        cached = self._hub_cache.get(cache_key)
+        if cached is not None:
+            return cached
+
+        url = (
+            "https://gateway.chub.ai/search"
+            f"?first={first}&page={page}&namespace=characters"
+            f"&search={quote(query)}&include_forks=true"
+            f"&nsfw={'true' if nsfw else 'false'}&nsfw_only=false&nsfl=false"
+            "&asc=false&min_ai_rating=0&min_tokens=100&max_tokens=100000"
+            f"&chub=true&exclude_mine=true&sort={sort_val}"
+            "&inclusive_or=false&recommended_verified=false&venus=true&count=true"
+        )
+        if topics:
+            url += f"&topics={quote(','.join(topics))}"
+
+        data = await self._get_json(url)
+        if data is None:
+            return [], False
+
+        payload = data.get("data", data) or {}
+        nodes = payload.get("nodes", []) or []
+        total = None
+        if isinstance(payload.get("total_count"), int):
+            total = payload["total_count"]
+        elif isinstance(payload.get("totalCount"), int):
+            total = payload["totalCount"]
+
+        has_more = len(nodes) >= first and (total is None or page * first < total)
+        result = (nodes, has_more)
+        self._hub_cache.set(cache_key, result)
+        return result
+
+    async def download_character_card(self, full_path: str) -> Optional[bytes]:
+        from urllib.parse import quote
+
+        session = await self._get_session()
+
+        encoded_path = "/".join(quote(part, safe="") for part in full_path.strip("/").split("/"))
+        cdn_url = f"https://avatars.charhub.io/avatars/{encoded_path}/chara_card_v2.png"
+        try:
+            response = await session.get(cdn_url, impersonate=IMPERSONATE, timeout=30)
+            if response.status_code == 200 and response.content[:8] == b"\x89PNG\r\n\x1a\n":
+                logger.info(f"[Hub] Got ready-made V2 card from CDN for {full_path}")
+                return response.content
+            logger.info(f"[Hub] CDN card unavailable ({response.status_code}) for {full_path}")
+        except Exception as e:
+            logger.warning(f"[Hub] CDN download error ({full_path}): {e}")
+
+        from PIL import PngImagePlugin
+        import base64
+        import io
+
+        node_data = await self._get_json(
+            f"https://api.chub.ai/api/characters/{full_path}?full=true"
+        )
+        node = (node_data or {}).get("node") if isinstance(node_data, dict) else None
+        if not node:
+            logger.error(f"[Hub] Could not fetch character node for '{full_path}'.")
+            return None
+
+        definition = node.get("definition", {}) or {}
+
+        img = None
+        avatar_url = node.get("avatar_url") or ""
+        if avatar_url:
+            try:
+                r = await session.get(avatar_url, impersonate=IMPERSONATE, timeout=25)
+                if r.status_code == 200 and r.content:
+                    img = Image.open(io.BytesIO(r.content))
+            except Exception as e:
+                logger.warning(f"[Hub] Avatar download failed ({avatar_url}): {e}")
+
+        if img is None:
+            img = Image.new("RGB", (512, 768), (24, 24, 34))
+
+        img = img.convert("RGBA")
+        if img.width > 768 or img.height > 768:
+            img.thumbnail((768, 768), Image.Resampling.LANCZOS)
+
+        card_data = {
+            "name": node.get("name") or definition.get("name") or "Unknown",
+            "description": definition.get("description", "") or "",
+            "personality": definition.get("tavern_personality", "") or definition.get("personality", "") or "",
+            "scenario": definition.get("scenario", "") or "",
+            "first_mes": definition.get("first_message", "") or "",
+            "mes_example": definition.get("example_dialogs", "") or "",
+            "creator_notes": "",
+            "system_prompt": definition.get("system_prompt", "") or "",
+            "post_history_instructions": definition.get("post_history_instructions", "") or "",
+            "alternate_greetings": definition.get("alternate_greetings", []) or [],
+            "extensions": definition.get("extensions", {}) or {},
+        }
+        embedded_lorebook = definition.get("embedded_lorebook")
+        if isinstance(embedded_lorebook, dict) and embedded_lorebook.get("entries"):
+            card_data["character_book"] = embedded_lorebook
+
+        card_v2 = {"spec": "chara_card_v2", "spec_version": "2.0", "data": card_data}
+
+        payload = base64.b64encode(
+            json.dumps(card_v2, ensure_ascii=False).encode("utf-8")
+        ).decode("ascii")
+
+        png_info = PngImagePlugin.PngInfo()
+        png_info.add_text("chara", payload)
+
+        buf = io.BytesIO()
+        img.save(buf, format="PNG", pnginfo=png_info)
+        logger.info(f"[Hub] Rebuilt V2 card locally for {full_path}")
+        return buf.getvalue()
+
     async def get_many_character_information(self, full_paths: list[str]):
         return await asyncio.gather(
             *(self.get_character_information(fp) for fp in full_paths)
@@ -216,7 +352,6 @@ class CharactersCard:
             'No scenario',            # character_scenario
             []                        # alternate_greetings
         )
-
 
 class SoulGateway:
     def __init__(self):

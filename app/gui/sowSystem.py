@@ -552,10 +552,47 @@ class SOW_System(QMainWindow):
         
         parent.addWidget(bar)
 
+    def set_model_background(self, bg_type: int, color_idx: int = 0, image_path: str = None):
+        import os
+        
+        COLORS = {
+            0: "#000000",
+            1: "#1A202F",
+            2: "#2C1A22",
+            3: "#222B24",
+            4: "#2E2232",
+            5: "#292929"
+        }
+
+        radius_css = "border-top-right-radius: 16px; border-bottom-right-radius: 16px;"
+
+        if bg_type == 1 and image_path and os.path.exists(image_path):
+            safe_path = image_path.replace("\\", "/")
+            bg_css = f"""
+                QWidget#page_avatar {{
+                    border-image: url('{safe_path}') 0 0 0 0 stretch stretch;
+                    {radius_css}
+                }}
+            """
+        else:
+            hex_color = COLORS.get(color_idx, "#0c0c12")
+            bg_css = f"""
+                QWidget#page_avatar {{
+                    background-color: {hex_color};
+                    {radius_css}
+                }}
+            """
+
+        self.page_avatar.setStyleSheet(bg_css)
+
     def _build_model_area(self):
         mroot = QtWidgets.QWidget()
         mroot.setObjectName("model_root")
-        mroot.setStyleSheet("background:transparent;")
+        mroot.setStyleSheet("background: transparent; border: none;")
+        mroot.setSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Expanding,
+            QtWidgets.QSizePolicy.Policy.Expanding
+        )
 
         lo = QtWidgets.QVBoxLayout(mroot)
         lo.setContentsMargins(0, 0, 0, 0)
@@ -563,40 +600,69 @@ class SOW_System(QMainWindow):
 
         self.stackedWidget_main = QtWidgets.QStackedWidget(parent=mroot)
         self.stackedWidget_main.setObjectName("stackedWidget_main")
-        self.stackedWidget_main.setStyleSheet("background:transparent;")
+        self.stackedWidget_main.setStyleSheet("background: transparent; border: none;")
+        self.stackedWidget_main.setSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Expanding,
+            QtWidgets.QSizePolicy.Policy.Expanding
+        )
         lo.addWidget(self.stackedWidget_main)
 
+        # ── page: Avatar
         self.page_avatar = QtWidgets.QWidget()
         self.page_avatar.setObjectName("page_avatar")
-        self.page_avatar.setStyleSheet("background:transparent;")
+        self.page_avatar.setStyleSheet("""
+            QWidget#page_avatar {
+                background-color: #0c0c12;
+                border-top-right-radius: 16px;
+                border-bottom-right-radius: 16px;
+            }
+        """)
+        self.page_avatar.setSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Expanding,
+            QtWidgets.QSizePolicy.Policy.Expanding
+        )
 
         _lo = QtWidgets.QVBoxLayout(self.page_avatar)
         _lo.setContentsMargins(0, 0, 0, 0)
         _lo.setSpacing(0)
+        _lo.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.avatar_widget = QtWidgets.QWidget(parent=self.page_avatar)
         self.avatar_widget.setObjectName("avatar_widget")
-        self.avatar_widget.setStyleSheet("background:transparent;")
+        self.avatar_widget.setStyleSheet("background: transparent; border: none;")
+        self.avatar_widget.setSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Expanding,
+            QtWidgets.QSizePolicy.Policy.Expanding
+        )
 
         _lo2 = QtWidgets.QVBoxLayout(self.avatar_widget)
         _lo2.setContentsMargins(0, 0, 0, 0)
         _lo2.setSpacing(0)
+        _lo2.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.avatar_label = QtWidgets.QLabel(parent=self.avatar_widget)
         self.avatar_label.setObjectName("avatar_label")
-        self.avatar_label.setStyleSheet("background:transparent;border:none;")
+        self.avatar_label.setStyleSheet("background: transparent; border: none;")
         self.avatar_label.setText("")
+        self.avatar_label.setSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Expanding,
+            QtWidgets.QSizePolicy.Policy.Expanding
+        )
         self.avatar_label.setScaledContents(False)
         self.avatar_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        _lo2.addWidget(self.avatar_label)
+        _lo2.addWidget(self.avatar_label, 1, Qt.AlignmentFlag.AlignCenter)
         _lo.addWidget(self.avatar_widget)
         self.stackedWidget_main.addWidget(self.page_avatar)
 
         # ── page: Live2D
         self.page_live2d_model = QtWidgets.QWidget()
         self.page_live2d_model.setObjectName("page_live2d_model")
-        self.page_live2d_model.setStyleSheet("background:transparent;")
+        self.page_live2d_model.setStyleSheet("background: transparent;")
+        self.page_live2d_model.setSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Expanding,
+            QtWidgets.QSizePolicy.Policy.Expanding
+        )
 
         _lo = QtWidgets.QVBoxLayout(self.page_live2d_model)
         _lo.setContentsMargins(0, 0, 0, 0)
@@ -604,7 +670,7 @@ class SOW_System(QMainWindow):
 
         self.live2d_widget = QtWidgets.QWidget(parent=self.page_live2d_model)
         self.live2d_widget.setObjectName("live2d_widget")
-        self.live2d_widget.setStyleSheet("background:transparent;border:none;")
+        self.live2d_widget.setStyleSheet("background: transparent; border: none;")
 
         self.verticalLayout_5 = QtWidgets.QVBoxLayout(self.live2d_widget)
         self.verticalLayout_5.setContentsMargins(0, 0, 0, 0)
@@ -614,7 +680,7 @@ class SOW_System(QMainWindow):
             parent=self.live2d_widget)
         self.live2d_openGL_widget.setObjectName("live2d_openGL_widget")
         self.live2d_openGL_widget.setStyleSheet(
-            "background:transparent;border:none;")
+            "background: transparent; border: none;")
 
         self.verticalLayout_5.addWidget(self.live2d_openGL_widget)
         _lo.addWidget(self.live2d_widget)
@@ -623,7 +689,11 @@ class SOW_System(QMainWindow):
         # ── page: VRM
         self.page_vrm_model = QtWidgets.QWidget()
         self.page_vrm_model.setObjectName("page_vrm_model")
-        self.page_vrm_model.setStyleSheet("background:transparent;")
+        self.page_vrm_model.setStyleSheet("background: transparent;")
+        self.page_vrm_model.setSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Expanding,
+            QtWidgets.QSizePolicy.Policy.Expanding
+        )
 
         _lo = QtWidgets.QVBoxLayout(self.page_vrm_model)
         _lo.setContentsMargins(0, 0, 0, 0)
@@ -631,7 +701,7 @@ class SOW_System(QMainWindow):
 
         self.vrm_widget = QtWidgets.QWidget(parent=self.page_vrm_model)
         self.vrm_widget.setObjectName("vrm_widget")
-        self.vrm_widget.setStyleSheet("background:transparent;border:none;")
+        self.vrm_widget.setStyleSheet("background: transparent; border: none;")
 
         self.verticalLayout_6 = QtWidgets.QVBoxLayout(self.vrm_widget)
         self.verticalLayout_6.setContentsMargins(0, 0, 0, 0)

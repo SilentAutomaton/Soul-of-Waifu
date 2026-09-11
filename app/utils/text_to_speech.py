@@ -1768,4 +1768,4 @@ class PipelinedTTSWorker(QThread):
         destination = os.path.join(segment_dir, segment_filename)
 
         shutil.copyfile(source_file, destination)
-        return f"tts_audio/{message_id}/{segment_filename}"
+        return f"tts_audio/{message_id}/{segment_filename}"

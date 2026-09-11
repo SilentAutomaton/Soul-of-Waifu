@@ -33,6 +33,22 @@ from app.configuration import configuration
 
 logger = logging.getLogger("Interface Signals")
 
+SLIDER_STYLE_DARK = """
+    QToolTip {
+        background-color: rgba(25, 25, 30, 0.95);
+        color: #E0E0E0;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 6px;
+        padding: 6px 10px; font-size: 12px;
+        font-weight: 500;
+    }
+    QSlider::groove:horizontal { background: rgba(0,0,0,0.5); height: 6px; border-radius: 3px; }
+    QSlider::sub-page:horizontal { background: rgba(255, 255, 255, 0.55); border-radius: 3px; }
+    QSlider::handle:horizontal { background: white; width: 16px; height: 16px; margin: -5px 0; border-radius: 8px; border: 1px solid rgba(0,0,0,0.2); }
+    QSlider::handle:horizontal:hover { background: #ffffff; }
+"""
+
+
 def safe_paint(method):
     @functools.wraps(method)
     def wrapper(self, event):
@@ -412,7 +428,8 @@ class Live2DWidget(QOpenGLWidget):
 
 class TextEditUserMessage(QtWidgets.QTextEdit):
     handle_enter_key = QtCore.pyqtSignal()
-    
+    image_pasted = QtCore.pyqtSignal(QtGui.QImage)
+
     def keyPressEvent(self, event):
         if event.key() in (QtCore.Qt.Key.Key_Return, QtCore.Qt.Key.Key_Enter):
             if event.modifiers() & QtCore.Qt.KeyboardModifier.ShiftModifier:
@@ -422,6 +439,14 @@ class TextEditUserMessage(QtWidgets.QTextEdit):
                 event.accept()
         else:
             super().keyPressEvent(event)
+
+    def insertFromMimeData(self, source):
+        if source.hasImage():
+            image = source.imageData()
+            if isinstance(image, QtGui.QImage) and not image.isNull():
+                self.image_pasted.emit(image)
+                return
+        super().insertFromMimeData(source)
 
 class CharacterCardCharactersGateway(QtWidgets.QFrame):
     def __init__(self, conversation_method, character_author, character_name, character_avatar, character_title, character_description, character_personality, scenario, first_message, example_messages, alternate_greetings, method, parent=None):
@@ -2409,17 +2434,43 @@ class BackgroundChangerWindow(QDialog):
 
         self.close()
 
+_AVATAR_PIXMAP_CACHE = {}
+_AVATAR_PIXMAP_CACHE_MAX = 400
+
+def _cached_avatar_pixmap(path: str) -> QtGui.QPixmap:
+    if not path:
+        return QtGui.QPixmap()
+    key = os.path.abspath(path)
+    entry = _AVATAR_PIXMAP_CACHE.get(key)
+    if entry is not None:
+        try:
+            stamp = os.path.getmtime(key)
+        except OSError:
+            stamp = None
+        if entry[1] == stamp:
+            return entry[0]
+    pm = QtGui.QPixmap(path)
+    if len(_AVATAR_PIXMAP_CACHE) >= _AVATAR_PIXMAP_CACHE_MAX:
+        _AVATAR_PIXMAP_CACHE.clear()
+    try:
+        stamp = os.path.getmtime(key)
+    except OSError:
+        stamp = None
+    _AVATAR_PIXMAP_CACHE[key] = (pm, stamp)
+    return pm
+
+
 class CharacterCardList(QtWidgets.QFrame):
     def __init__(self, character_name, image_path, icon_api_path, method, parent=None):
         super().__init__(parent)
         self.setFixedSize(210, 270)
         self.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
         self.setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground)
-        
+
         self.character_name = character_name
         self.open_chat = method
-        
-        self.pixmap = QtGui.QPixmap(image_path)
+
+        self.pixmap = _cached_avatar_pixmap(image_path)
         if self.pixmap.isNull():
             self.pixmap = QtGui.QPixmap("app/gui/icons/logotype.png")
             
@@ -2976,7 +3027,13 @@ class SoulMemoryViewer(QtWidgets.QDialog):
                  msg_delete_error_tr="Error",
                  msg_logs_empty_tr="No logs yet...",
                  btn_edit_tr="Edit",
-                 btn_preview_tr="Preview"):
+                 btn_preview_tr="Preview",
+                 chat_id=None,
+                 tab_last_prompt_tr="Last Prompt",
+                 prompt_empty_tr="No prompt has been assembled yet. Send a message first.",
+                 btn_forget_tr="Forget facts…",
+                 msg_forget_none_tr="No forgettable facts found in this file.",
+                 msg_forget_done_tr="{n} fact(s) forgotten and re-embedded."):
         
         super().__init__(parent)
 
@@ -2987,6 +3044,12 @@ class SoulMemoryViewer(QtWidgets.QDialog):
         self.msg_delete_success_tr = msg_delete_success_tr
         self.msg_delete_error_tr = msg_delete_error_tr
         self.msg_logs_empty_tr = msg_logs_empty_tr
+        self.prompt_empty_tr = prompt_empty_tr
+        self.btn_forget_tr = btn_forget_tr
+        self.msg_forget_none_tr = msg_forget_none_tr
+        self.msg_forget_done_tr = msg_forget_done_tr
+        self.character_name = character_name
+        self.chat_id = chat_id
 
         self.setWindowTitle(f"Soul Memory — {character_name}")
         self.resize(950, 700)
@@ -3037,6 +3100,9 @@ class SoulMemoryViewer(QtWidgets.QDialog):
         self.usr_path = self.memory_dir / "USER.md"
         self.topics_dir = self.memory_dir / "topics"
         self.log_path = self.memory_dir / "agent_logs.txt"
+
+        if not self.chat_id and self.memory_dir.parent.parent.name == "chats":
+            self.chat_id = self.memory_dir.parent.name
 
         self.btn_edit_tr = btn_edit_tr
         self.btn_preview_tr = btn_preview_tr
@@ -3098,6 +3164,10 @@ class SoulMemoryViewer(QtWidgets.QDialog):
         self.btn_db_delete = QtWidgets.QPushButton(btn_delete_tr)
         self.btn_db_delete.setObjectName("deleteBtn")
         self.btn_db_delete.setCursor(Qt.CursorShape.PointingHandCursor)
+
+        self.btn_db_forget = QtWidgets.QPushButton(self.btn_forget_tr)
+        self.btn_db_forget.setObjectName("previewBtn")
+        self.btn_db_forget.setCursor(Qt.CursorShape.PointingHandCursor)
         
         self.label_db_status = QtWidgets.QLabel("")
         self.label_db_status.setStyleSheet("color: #4ADE80; font-weight: 600; font-size: 13px;")
@@ -3105,6 +3175,7 @@ class SoulMemoryViewer(QtWidgets.QDialog):
         db_btn_layout.addWidget(self.btn_db_save)
         db_btn_layout.addWidget(self.btn_db_preview)
         db_btn_layout.addWidget(self.btn_db_delete)
+        db_btn_layout.addWidget(self.btn_db_forget)
         db_btn_layout.addWidget(self.label_db_status)
         db_btn_layout.addStretch()
         
@@ -3136,11 +3207,16 @@ class SoulMemoryViewer(QtWidgets.QDialog):
         self.btn_user_preview.setObjectName("previewBtn")
         self.btn_user_preview.setCursor(Qt.CursorShape.PointingHandCursor)
 
+        self.btn_user_forget = QtWidgets.QPushButton(self.btn_forget_tr)
+        self.btn_user_forget.setObjectName("previewBtn")
+        self.btn_user_forget.setCursor(Qt.CursorShape.PointingHandCursor)
+
         self.label_user_status = QtWidgets.QLabel("")
         self.label_user_status.setStyleSheet("color: #4ADE80; font-weight: 600; font-size: 13px;")
 
         user_btn_layout.addWidget(self.btn_user_save)
         user_btn_layout.addWidget(self.btn_user_preview)
+        user_btn_layout.addWidget(self.btn_user_forget)
         user_btn_layout.addWidget(self.label_user_status)
         user_btn_layout.addStretch()
 
@@ -3197,7 +3273,28 @@ class SoulMemoryViewer(QtWidgets.QDialog):
         splitter_diary.setStretchFactor(1, 1)
         diary_layout.addWidget(splitter_diary)
 
-        # === TAB 4: LOGS ===
+        # === TAB 4: LAST ASSEMBLED PROMPT ===
+        self.tab_prompt = QtWidgets.QWidget()
+        prompt_layout = QtWidgets.QVBoxLayout(self.tab_prompt)
+        prompt_layout.setContentsMargins(0, 5, 0, 0)
+        prompt_layout.setSpacing(12)
+
+        self.prompt_view = QtWidgets.QPlainTextEdit()
+        self.prompt_view.setReadOnly(True)
+        self.prompt_view.setPlaceholderText(self.prompt_empty_tr)
+        self.prompt_view.setStyleSheet("color: #93C5FD;")
+        self._apply_shadow(self.prompt_view)
+
+        prompt_btn_row = QtWidgets.QHBoxLayout()
+        self.btn_prompt_refresh = QtWidgets.QPushButton(btn_refresh_tr)
+        self.btn_prompt_refresh.setObjectName("previewBtn")
+        self.btn_prompt_refresh.setCursor(Qt.CursorShape.PointingHandCursor)
+        prompt_btn_row.addWidget(self.btn_prompt_refresh)
+        prompt_btn_row.addStretch()
+        prompt_layout.addWidget(self.prompt_view)
+        prompt_layout.addLayout(prompt_btn_row)
+
+        # === TAB 5: LOGS ===
         self.tab_logs = QtWidgets.QWidget()
         logs_layout = QtWidgets.QVBoxLayout(self.tab_logs)
         logs_layout.setContentsMargins(0, 5, 0, 0)
@@ -3210,6 +3307,7 @@ class SoulMemoryViewer(QtWidgets.QDialog):
         self.tabs.addTab(self.tab_database, tab_database_tr)
         self.tabs.addTab(self.tab_user, tab_user_profile_tr)
         self.tabs.addTab(self.tab_diary, tab_diary_tr)
+        self.tabs.addTab(self.tab_prompt, tab_last_prompt_tr)
         self.tabs.addTab(self.tab_logs, tab_logs_tr)
 
         bottom_layout = QtWidgets.QHBoxLayout()
@@ -3231,17 +3329,22 @@ class SoulMemoryViewer(QtWidgets.QDialog):
         self.tabs.currentChanged.connect(self.on_tab_changed)
         
         self.topic_list.currentRowChanged.connect(self.load_db_content)
-        self.btn_db_save.clicked.connect(lambda: self.save_file(self.db_current_file_path, self.db_content_view, self.label_db_status))
+        self.btn_db_save.clicked.connect(self.save_db_file)
+        self.btn_db_forget.clicked.connect(lambda: self.forget_facts_in_file(
+            self.db_current_file_path, self.db_content_view, self.label_db_status))
         self.btn_db_preview.clicked.connect(self.toggle_db_preview)
         self.btn_db_delete.clicked.connect(lambda: self.delete_file(self.db_current_file_path, self.label_db_status))
         
-        self.btn_user_save.clicked.connect(lambda: self.save_file(self.usr_path, self.user_content_view, self.label_user_status))
+        self.btn_user_save.clicked.connect(self.save_user_file)
         self.btn_user_preview.clicked.connect(self.toggle_user_preview)
+        self.btn_user_forget.clicked.connect(lambda: self.forget_facts_in_file(
+            self.usr_path, self.user_content_view, self.label_user_status))
 
         self.diary_list.currentRowChanged.connect(self.load_diary_content)
         self.btn_diary_save.clicked.connect(lambda: self.save_file(self.diary_current_file_path, self.diary_content_view, self.label_diary_status))
         self.btn_diary_preview.clicked.connect(self.toggle_diary_preview)
         self.btn_diary_delete.clicked.connect(lambda: self.delete_file(self.diary_current_file_path, self.label_diary_status))
+        self.btn_prompt_refresh.clicked.connect(self.load_last_prompt)
 
         self.refresh_memory()
 
@@ -3267,6 +3370,104 @@ class SoulMemoryViewer(QtWidgets.QDialog):
             return
         self.diary_preview_active = not self.diary_preview_active
         self.load_diary_content(self.diary_list.currentRow())
+
+    def _post_external_edit_sync(self):
+        try:
+            from app.utils.soul_memory import SoulMemoryAgent, invalidate_memory_vectors
+            agent = SoulMemoryAgent(None)
+            agent.resync_states_from_markdown(self.character_name, self.chat_id)
+            invalidate_memory_vectors(self.character_name, self.chat_id)
+        except Exception as e:
+            logger.warning(f"[Soul Memory] Post-edit sync failed: {e}")
+
+    def save_db_file(self):
+        self.save_file(self.db_current_file_path, self.db_content_view, self.label_db_status)
+        if self.db_current_file_path is not None:
+            name = Path(self.db_current_file_path).name.upper()
+            if name == "MEMORY.MD":
+                self._post_external_edit_sync()
+            else:
+                try:
+                    from app.utils.soul_memory import invalidate_memory_vectors
+                    invalidate_memory_vectors(self.character_name, self.chat_id)
+                except Exception:
+                    pass
+
+    def save_user_file(self):
+        self.save_file(self.usr_path, self.user_content_view, self.label_user_status)
+        self._post_external_edit_sync()
+
+    def forget_facts_in_file(self, file_path, text_widget, status_label):
+        from app.utils.soul_memory import invalidate_memory_vectors
+
+        if file_path is None or not Path(file_path).exists():
+            return
+        try:
+            text = Path(file_path).read_text(encoding="utf-8")
+        except Exception as e:
+            status_label.setStyleSheet("color: #F87171;")
+            status_label.setText(str(e))
+            return
+
+        structural_re = re.compile(r"^- \*\*.+\*\*:")
+        candidates = []
+        for line in text.splitlines():
+            s = line.strip()
+            if s.startswith("- ") and not structural_re.match(s):
+                fact_text = s[2:].strip()
+                if fact_text and fact_text not in candidates:
+                    candidates.append(fact_text)
+
+        if not candidates:
+            status_label.setStyleSheet("color: #FCA5A5;")
+            status_label.setText(self.msg_forget_none_tr)
+            QtCore.QTimer.singleShot(3000, lambda: status_label.setText(""))
+            return
+
+        dialog = FactForgetDialog(candidates, parent=self)
+        if dialog.exec() != QtWidgets.QDialog.DialogCode.Accepted:
+            return
+
+        selected = set(dialog.selected_facts())
+        if not selected:
+            return
+
+        kept_lines = []
+        removed = 0
+        for line in text.splitlines():
+            s = line.strip()
+            if s.startswith("- ") and s[2:].strip() in selected:
+                removed += 1
+                continue
+            kept_lines.append(line)
+
+        if removed:
+            try:
+                Path(file_path).write_text("\n".join(kept_lines), encoding="utf-8")
+            except Exception as e:
+                status_label.setStyleSheet("color: #F87171;")
+                status_label.setText(f"{self.msg_save_error_tr}: {e}")
+                return
+
+            invalidate_memory_vectors(self.character_name, self.chat_id)
+            self._post_external_edit_sync()
+
+            status_label.setStyleSheet("color: #4ADE80;")
+            status_label.setText(self.msg_forget_done_tr.replace("{n}", str(removed)))
+            QtCore.QTimer.singleShot(3500, lambda: status_label.setText(""))
+
+            self.refresh_memory()
+            self.load_db_content(0)
+
+    def load_last_prompt(self):
+        prompt_path = self.memory_dir / "last_prompt.txt"
+        if prompt_path.exists():
+            try:
+                self.prompt_view.setPlainText(prompt_path.read_text(encoding="utf-8"))
+            except Exception as e:
+                self.prompt_view.setPlainText(f"Error reading last_prompt.txt: {e}")
+        else:
+            self.prompt_view.setPlainText(self.prompt_empty_tr)
 
     def load_user_profile_content(self):
         self.label_user_status.setText("")
@@ -3429,7 +3630,189 @@ class SoulMemoryViewer(QtWidgets.QDialog):
             if self.diary_list.currentRow() >= 0:
                 self.load_diary_content(self.diary_list.currentRow())
         elif index == 3:
+            self.load_last_prompt()
+        elif index == 4:
             self.load_agent_logs()
+
+class FactCheckRow(QtWidgets.QFrame):
+    def __init__(self, text: str, on_toggle=None, parent=None):
+        super().__init__(parent)
+        self._on_toggle = on_toggle
+        self.setObjectName("factRow")
+        self.setStyleSheet("""
+            QFrame#factRow {
+                background: rgba(255,255,255,0.03);
+                border: 1px solid rgba(255,255,255,0.07);
+                border-radius: 10px;
+            }
+            QFrame#factRow:hover {
+                background: rgba(255,255,255,0.06);
+                border-color: rgba(96,165,250,0.35);
+            }
+        """)
+        self.setSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)
+
+        lay = QtWidgets.QHBoxLayout(self)
+        lay.setContentsMargins(12, 9, 12, 9)
+        lay.setSpacing(10)
+
+        self.checkbox = QtWidgets.QCheckBox()
+        self.checkbox.setStyleSheet("""
+            QCheckBox { background: transparent; }
+            QCheckBox::indicator {
+                width: 18px; height: 18px; border-radius: 5px;
+                border: 1px solid rgba(255,255,255,0.3);
+                background: rgba(255,255,255,0.05);
+            }
+            QCheckBox::indicator:hover { border-color: rgba(96,165,250,0.8); }
+            QCheckBox::indicator:checked {
+                background: rgba(96,165,250,0.85);
+                border-color: #60A5FA;
+            }
+        """)
+        self.checkbox.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.checkbox.toggled.connect(self._handle_toggle)
+
+        self.label = QtWidgets.QLabel(text)
+        self.label.setWordWrap(True)
+        self.label.setTextInteractionFlags(Qt.TextInteractionFlag.NoTextInteraction)
+        self.label.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.label.setStyleSheet("color: #CBD5E1; background: transparent; font-size: 13px;")
+        self.label.mousePressEvent = self._label_clicked
+
+        lay.addWidget(self.checkbox, 0, Qt.AlignmentFlag.AlignVCenter)
+        lay.addWidget(self.label, 1)
+
+    def _label_clicked(self, *_):
+        self.checkbox.toggle()
+
+    def _handle_toggle(self, checked: bool):
+        self.label.setStyleSheet(
+            f"color: {'#FFFFFF' if checked else '#CBD5E1'}; "
+            "background: transparent; font-size: 13px;"
+        )
+        if self._on_toggle:
+            self._on_toggle(checked)
+
+    def set_checked(self, checked: bool):
+        self.checkbox.setChecked(checked)
+
+    def is_checked(self) -> bool:
+        return self.checkbox.isChecked()
+
+    @property
+    def fact_text(self) -> str:
+        return self.label.text()
+
+
+class FactForgetDialog(QtWidgets.QDialog):
+    def __init__(self, facts: list, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Forget facts")
+        self.setModal(True)
+        self.resize(640, 560)
+        self.setMinimumSize(480, 380)
+        self.setStyleSheet("""
+            QDialog { background: #14141C; color: #E2E8F0; font-size: 13px; }
+            QLabel { color: #94A3B8; background: transparent; }
+            QScrollArea {
+                border: 1px solid rgba(255,255,255,0.08);
+                border-radius: 10px;
+                background: rgba(10,10,15,0.4);
+            }
+            QScrollArea > QWidget > QWidget { background: transparent; }
+            QScrollBar:vertical { border: none; background: transparent; width: 8px; margin: 2px 0; }
+            QScrollBar::handle:vertical { background: rgba(255,255,255,0.15); min-height: 30px; border-radius: 4px; }
+            QScrollBar::handle:vertical:hover { background: rgba(255,255,255,0.3); }
+            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height: 0px; }
+            QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: none; }
+            QPushButton {
+                background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
+                border-radius: 8px; padding: 8px 16px; color: #E2E8F0; font-weight: 600;
+            }
+            QPushButton:hover { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.2); }
+            QPushButton:disabled { color: rgba(255,255,255,0.25); background: rgba(255,255,255,0.03); }
+            QPushButton#accentBtn {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 rgba(96,165,250,0.85), stop:1 rgba(59,130,246,0.85));
+                border: 1px solid rgba(96,165,250,0.5); color: #FFFFFF;
+            }
+            QPushButton#accentBtn:hover { background: rgba(96,165,250,0.95); }
+            QPushButton#accentBtn:disabled {
+                background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.08);
+                color: rgba(255,255,255,0.25);
+            }
+        """)
+        self._rows: list = []
+
+        root = QtWidgets.QVBoxLayout(self)
+        root.setContentsMargins(20, 20, 20, 16)
+        root.setSpacing(10)
+
+        info = QtWidgets.QLabel(
+            "Tick the facts the character should permanently forget.\n"
+            "The canonical JSON state and embedding vectors are updated immediately."
+        )
+        info.setWordWrap(True)
+        root.addWidget(info)
+
+        self.counter_label = QtWidgets.QLabel("")
+        self.counter_label.setStyleSheet("color: #60A5FA; font-weight: 600;")
+        root.addWidget(self.counter_label)
+
+        self.scroll = QtWidgets.QScrollArea()
+        self.scroll.setWidgetResizable(True)
+        self.scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+
+        list_container = QtWidgets.QWidget()
+        self.list_layout = QtWidgets.QVBoxLayout(list_container)
+        self.list_layout.setContentsMargins(8, 8, 8, 8)
+        self.list_layout.setSpacing(6)
+
+        for fact in facts:
+            row = FactCheckRow(str(fact), on_toggle=lambda _checked: self._update_counter())
+            self._rows.append(row)
+            self.list_layout.addWidget(row)
+        self.list_layout.addStretch(1)
+
+        self.scroll.setWidget(list_container)
+        root.addWidget(self.scroll, 1)
+
+        btn_row = QtWidgets.QHBoxLayout()
+        btn_row.setSpacing(8)
+
+        btn_all = QtWidgets.QPushButton("Select all")
+        btn_all.clicked.connect(lambda: self._set_all_checked(True))
+        btn_none = QtWidgets.QPushButton("Clear")
+        btn_none.clicked.connect(lambda: self._set_all_checked(False))
+        btn_row.addWidget(btn_all)
+        btn_row.addWidget(btn_none)
+        btn_row.addStretch()
+
+        btn_cancel = QtWidgets.QPushButton("Cancel")
+        btn_cancel.clicked.connect(self.reject)
+        self.btn_ok = QtWidgets.QPushButton("Forget selected")
+        self.btn_ok.setObjectName("accentBtn")
+        self.btn_ok.setEnabled(False)
+        self.btn_ok.clicked.connect(self.accept)
+        btn_row.addWidget(btn_cancel)
+        btn_row.addWidget(self.btn_ok)
+        root.addLayout(btn_row)
+
+        self._update_counter()
+
+    def _set_all_checked(self, checked: bool):
+        for row in self._rows:
+            row.set_checked(checked)
+
+    def _update_counter(self):
+        selected = sum(1 for r in self._rows if r.is_checked())
+        self.counter_label.setText(f"Selected: {selected} / {len(self._rows)}")
+        self.btn_ok.setEnabled(selected > 0)
+
+    def selected_facts(self) -> list:
+        return [r.fact_text for r in self._rows if r.is_checked()]
+
 
 class CharacterFolderCard(QtWidgets.QFrame):
     def __init__(self, group_name: str, char_count: int, preview_avatars: list, main_app, parent=None):
@@ -3697,14 +4080,25 @@ class _GlowPanel(QtWidgets.QFrame):
         clip_path.addRoundedRect(rf.adjusted(0, 0, 20, 0), 18, 18)
         p.setClipPath(clip_path)
 
-        p.fillRect(r, QtGui.QColor(10, 9, 15))
+        p.fillRect(r, QtGui.QColor(9, 9, 14))
 
-        cx = rf.width() / 2
+        bloom_a = QtGui.QRadialGradient(rf.width() * 0.5, rf.height() * 0.16, rf.width() * 1.05)
+        bloom_a.setColorAt(0.00, QtGui.QColor(70, 140, 235, 46))
+        bloom_a.setColorAt(0.55, QtGui.QColor(45, 90, 190, 14))
+        bloom_a.setColorAt(1.00, QtGui.QColor(0, 0, 0, 0))
+        p.fillRect(r, bloom_a)
 
-        bloom = QtGui.QRadialGradient(cx, rf.height() + 10, 130)
-        bloom.setColorAt(0.00, QtGui.QColor(55, 130, 220, 40))
-        bloom.setColorAt(1.00, QtGui.QColor(0, 0, 0, 0))
-        p.fillRect(r, bloom)
+        bloom_b = QtGui.QRadialGradient(rf.width() * 0.5, rf.height() + 30, rf.width() * 0.95)
+        bloom_b.setColorAt(0.00, QtGui.QColor(150, 80, 220, 40))
+        bloom_b.setColorAt(0.60, QtGui.QColor(90, 50, 160, 12))
+        bloom_b.setColorAt(1.00, QtGui.QColor(0, 0, 0, 0))
+        p.fillRect(r, bloom_b)
+
+        top_line = QtGui.QLinearGradient(0, 0, rf.width(), 0)
+        top_line.setColorAt(0.00, QtGui.QColor(120, 170, 255, 0))
+        top_line.setColorAt(0.50, QtGui.QColor(130, 175, 255, 60))
+        top_line.setColorAt(1.00, QtGui.QColor(120, 170, 255, 0))
+        p.fillRect(QtCore.QRectF(0, 0, rf.width(), 1), top_line)
 
         p.end()
         super().paintEvent(event)
@@ -3718,9 +4112,9 @@ _ACCENT_BORDER_H = "rgba(85, 155, 255, 0.42)"
 
 _QSS = f"""
     QFrame#MainFrame {{
-        background-color: #0f0f15;
-        border: 1px solid rgba(255, 255, 255, 0.07);
-        border-radius: 18px;
+        background-color: #0C0C11;
+        border: 1px solid rgba(255, 255, 255, 0.075);
+        border-radius: 20px;
     }}
 
     QLabel {{
@@ -3730,15 +4124,43 @@ _QSS = f"""
         font-size: 11pt;
     }}
 
+    QLabel#hero_wordmark {{
+        font-size: 14pt;
+        font-weight: 800;
+        color: rgba(255, 255, 255, 0.94);
+        letter-spacing: 3.2px;
+    }}
+    QLabel#hero_sub {{
+        font-size: 7.5pt;
+        font-weight: 600;
+        letter-spacing: 2.6px;
+        color: rgba(160, 190, 255, 0.38);
+    }}
+    QLabel#hero_version {{
+        font-size: 8pt;
+        font-weight: 700;
+        color: rgba(140, 180, 255, 0.75);
+        background-color: rgba(85, 155, 255, 0.08);
+        border: 1px solid rgba(85, 155, 255, 0.20);
+        padding: 3px 12px;
+        border-radius: 10px;
+        letter-spacing: 1px;
+    }}
+    QLabel#logo_ring {{
+        background-color: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.09);
+        border-radius: 84px;
+    }}
+
     QLabel#title_label {{
-        font-size: 25pt;
+        font-size: 22pt;
         font-weight: 800;
         color: #ffffff;
         letter-spacing: 0.4px;
     }}
 
     QLabel#version_badge {{
-        font-size: 8.5pt;
+        font-size: 8pt;
         font-weight: 700;
         color: {_ACCENT};
         background-color: {_ACCENT_BG};
@@ -3751,8 +4173,41 @@ _QSS = f"""
     QLabel#tagline_label {{
         font-size: 8pt;
         letter-spacing: 2.8px;
-        color: rgba(255, 255, 255, 0.20);
+        color: rgba(255, 255, 255, 0.22);
         font-weight: 600;
+    }}
+
+    QFrame#feature_card {{
+        background-color: rgba(255, 255, 255, 0.025);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 12px;
+    }}
+    QFrame#feature_card:hover {{
+        background-color: rgba(85, 155, 255, 0.055);
+        border: 1px solid rgba(85, 155, 255, 0.30);
+    }}
+
+    QLabel#feature_title {{
+        font-size: 10.5pt;
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.88);
+        letter-spacing: 0.2px;
+    }}
+    QLabel#feature_sub {{
+        font-size: 9pt;
+        color: rgba(255, 255, 255, 0.42);
+        line-height: 130%;
+    }}
+
+    QLabel#chip_label {{
+        font-size: 8pt;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.40);
+        background-color: rgba(255, 255, 255, 0.035);
+        border: 1px solid rgba(255, 255, 255, 0.07);
+        border-radius: 9px;
+        padding: 3px 11px;
+        letter-spacing: 0.6px;
     }}
 
     QPushButton#close_x_btn {{
@@ -3792,17 +4247,21 @@ _QSS = f"""
     }}
 
     QPushButton#donate_btn {{
-        background-color: {_ACCENT_BG};
-        color: {_ACCENT};
-        border: 1px solid {_ACCENT_BORDER};
+        background-color: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+            stop:0 #4A9EFF, stop:1 #7A5CFF);
+        color: #ffffff;
+        border: 1px solid rgba(140, 170, 255, 0.45);
+        font-weight: 700;
     }}
     QPushButton#donate_btn:hover {{
-        background-color: {_ACCENT_BG_H};
-        border: 1px solid {_ACCENT_BORDER_H};
-        color: {_ACCENT_HOVER};
+        background-color: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+            stop:0 #63AEFF, stop:1 #8F74FF);
+        border: 1px solid rgba(170, 195, 255, 0.70);
+        color: #ffffff;
     }}
     QPushButton#donate_btn:pressed {{
-        background-color: rgba(85, 155, 255, 0.28);
+        background-color: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+            stop:0 #3E8CE8, stop:1 #6C4EE8);
     }}
 
     QLabel#footer_text {{
@@ -3855,54 +4314,184 @@ def _open_url(url: str):
     QtGui.QDesktopServices.openUrl(QtCore.QUrl(url))
 
 class AboutDialog(QtWidgets.QDialog):
+    _APP_VERSION = "v2.5.1"
+
     def __init__(self, parent=None, translations=None):
         super().__init__(parent)
+        self.setModal(True)
+        self.setWindowFlags(Qt.WindowType.Dialog | Qt.WindowType.FramelessWindowHint)
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+
         self.translations = translations or {}
+        self._overlay = None
         self._drag_pos: QtCore.QPoint | None = None
+
         self._setup_ui()
+
+    def _show_overlay(self):
+        if not self.parent():
+            return
+
+        self._overlay = QtWidgets.QWidget(self.parent())
+        self._overlay.setGeometry(self.parent().rect())
+        self._overlay.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, False)
+        self._overlay.show()
+        self._overlay.raise_()
+        self.raise_()
+
+        self._ov_effect = QGraphicsOpacityEffect(self._overlay)
+        self._ov_effect.setOpacity(0.0)
+        self._overlay.setGraphicsEffect(self._ov_effect)
+        self._overlay.setStyleSheet("background: rgba(0, 0, 0, 180);")
+
+        self._ov_anim_in = QPropertyAnimation(self._ov_effect, b"opacity")
+        self._ov_anim_in.setDuration(200)
+        self._ov_anim_in.setStartValue(0.0)
+        self._ov_anim_in.setEndValue(1.0)
+        self._ov_anim_in.setEasingCurve(QEasingCurve.Type.OutCubic)
+        self._ov_anim_in.start()
+
+        self._overlay.mousePressEvent = lambda e: self.reject()
+
+    def _hide_overlay(self, then=None):
+        if not self._overlay:
+            if then:
+                then()
+            return
+
+        self._ov_anim_out = QPropertyAnimation(self._ov_effect, b"opacity")
+        self._ov_anim_out.setDuration(180)
+        self._ov_anim_out.setStartValue(self._ov_effect.opacity())
+        self._ov_anim_out.setEndValue(0.0)
+        self._ov_anim_out.setEasingCurve(QEasingCurve.Type.InCubic)
+
+        def _cleanup():
+            if self._overlay:
+                self._overlay.deleteLater()
+                self._overlay = None
+            if then:
+                then()
+
+        self._ov_anim_out.finished.connect(_cleanup)
+        self._ov_anim_out.start()
+
+    def _animate_in(self):
+        self.setWindowOpacity(0.0)
+        self._dlg_anim_in = QPropertyAnimation(self, b"windowOpacity")
+        self._dlg_anim_in.setDuration(200)
+        self._dlg_anim_in.setStartValue(0.0)
+        self._dlg_anim_in.setEndValue(1.0)
+        self._dlg_anim_in.setEasingCurve(QEasingCurve.Type.OutCubic)
+        self._dlg_anim_in.start()
+
+    def _animate_out(self, then=None):
+        self._dlg_anim_out = QPropertyAnimation(self, b"windowOpacity")
+        self._dlg_anim_out.setDuration(160)
+        self._dlg_anim_out.setStartValue(self.windowOpacity())
+        self._dlg_anim_out.setEndValue(0.0)
+        self._dlg_anim_out.setEasingCurve(QEasingCurve.Type.InCubic)
+        if then:
+            self._dlg_anim_out.finished.connect(then)
+        self._dlg_anim_out.start()
+
+    def showEvent(self, event):
+        super().showEvent(event)
+
+        if self.parent():
+            parent_rect = self.parent().rect()
+            parent_global = self.parent().mapToGlobal(parent_rect.topLeft())
+            x = parent_global.x() + (parent_rect.width() - self.width()) // 2
+            y = parent_global.y() + (parent_rect.height() - self.height()) // 2
+            self.move(x, y)
+
+        self._show_overlay()
+        self._animate_in()
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key.Key_Escape:
+            self.reject()
+        elif event.key() in (Qt.Key.Key_Return, Qt.Key.Key_Enter):
+            self.accept()
+        else:
+            super().keyPressEvent(event)
+
+    def reject(self):
+        def _finish():
+            self._overlay = None
+            super(AboutDialog, self).reject()
+
+        self._animate_out()
+        self._hide_overlay(then=_finish)
+
+    def accept(self):
+        def _finish():
+            self._overlay = None
+            super(AboutDialog, self).accept()
+
+        self._animate_out()
+        self._hide_overlay(then=_finish)
 
     def mousePressEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
-            self._drag_pos = (
-                event.globalPosition().toPoint() - self.frameGeometry().topLeft()
-            )
+            self._drag_pos = event.globalPosition().toPoint() - self.frameGeometry().topLeft()
+            event.accept()
 
     def mouseMoveEvent(self, event):
         if self._drag_pos and (event.buttons() & Qt.MouseButton.LeftButton):
             self.move(event.globalPosition().toPoint() - self._drag_pos)
+            event.accept()
 
     def mouseReleaseEvent(self, event):
         self._drag_pos = None
+        super().mouseReleaseEvent(event)
+
+    def _make_feature_card(self, dot_color: str, title: str, subtitle: str) -> QtWidgets.QFrame:
+        card = QtWidgets.QFrame()
+        card.setObjectName("feature_card")
+        card.setCursor(Qt.CursorShape.ArrowCursor)
+
+        lay = QtWidgets.QVBoxLayout(card)
+        lay.setContentsMargins(16, 13, 14, 13)
+        lay.setSpacing(5)
+
+        head_row = QtWidgets.QHBoxLayout()
+        head_row.setSpacing(8)
+
+        dot = QtWidgets.QLabel()
+        dot.setFixedSize(8, 8)
+        dot.setStyleSheet(
+            f"background-color: {dot_color};"
+            "border-radius: 4px;"
+            "border: none;"
+        )
+
+        title_lbl = QtWidgets.QLabel(title)
+        title_lbl.setObjectName("feature_title")
+
+        head_row.addWidget(dot)
+        head_row.addWidget(title_lbl)
+        head_row.addStretch()
+        lay.addLayout(head_row)
+
+        sub_lbl = QtWidgets.QLabel(subtitle)
+        sub_lbl.setObjectName("feature_sub")
+        sub_lbl.setWordWrap(True)
+        lay.addWidget(sub_lbl)
+
+        return card
 
     def _setup_ui(self):
         t = self.translations
 
         self.setWindowTitle(t.get("about_program_title", "About Soul of Waifu"))
         self.setWindowIcon(QtGui.QIcon("app/gui/icons/logotype.ico"))
-        self.setWindowFlags(
-            Qt.WindowType.Dialog | Qt.WindowType.FramelessWindowHint
-        )
-        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
-        self.resize(950, 650)
+        self.resize(900, 668)
 
         font = QtGui.QFont("Inter Tight Medium")
         font.setHintingPreference(QtGui.QFont.HintingPreference.PreferNoHinting)
         self.setFont(font)
-        
-        dark_override = """
-            QFrame#MainFrame {
-                background-color: #0c0c0e;
-                border: 1px solid rgba(255, 255, 255, 0.08);
-                border-radius: 12px;
-            }
-            QWidget#LeftPanel {
-                background-color: #08080a;
-                border-top-left-radius: 12px;
-                border-bottom-left-radius: 12px;
-                border-right: 1px solid rgba(255, 255, 255, 0.04);
-            }
-        """
-        self.setStyleSheet(_QSS + dark_override)
+
+        self.setStyleSheet(_QSS)
 
         outer = QtWidgets.QVBoxLayout(self)
         outer.setContentsMargins(12, 12, 12, 12)
@@ -3915,48 +4504,68 @@ class AboutDialog(QtWidgets.QDialog):
         frame_layout.setSpacing(0)
 
         left_panel = _GlowPanel()
-        left_panel.setObjectName("LeftPanel")
-        left_panel.setFixedWidth(230)
+        left_panel.setFixedWidth(262)
 
         lp = QtWidgets.QVBoxLayout(left_panel)
-        lp.setContentsMargins(24, 38, 24, 26)
+        lp.setContentsMargins(24, 44, 24, 28)
         lp.setSpacing(0)
         lp.setAlignment(Qt.AlignmentFlag.AlignHCenter)
 
+        ring = QtWidgets.QLabel()
+        ring.setObjectName("logo_ring")
+        ring.setFixedSize(168, 168)
+
+        ring_lay = QtWidgets.QVBoxLayout(ring)
+        ring_lay.setContentsMargins(0, 0, 0, 0)
+
         logo_lbl = QtWidgets.QLabel()
-        logo_lbl.setObjectName("logo_label")
         logo_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        logo_lbl.setFixedSize(160, 160)
+        logo_lbl.setFixedSize(150, 150)
 
         px = QtGui.QPixmap("app/gui/icons/logotype.ico")
         if not px.isNull():
             px = px.scaled(
-                160, 160,
+                150, 150,
                 Qt.AspectRatioMode.KeepAspectRatio,
                 Qt.TransformationMode.SmoothTransformation,
             )
             logo_lbl.setPixmap(px)
         else:
-            logo_lbl.setText("Soul of Waifu")
-            logo_lbl.setStyleSheet(
-                "font-size: 46pt; color: rgba(255,255,255,0.4);"
-                "border: 1px solid rgba(255,255,255,0.1);"
-                "border-radius: 70px;"
-            )
+            logo_lbl.setText("SoW")
+            logo_lbl.setStyleSheet("font-size: 40pt; color: rgba(255,255,255,0.35); font-weight: 800;")
+            logo_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        lp.addWidget(logo_lbl, 0, Qt.AlignmentFlag.AlignHCenter)
+        glow = QtWidgets.QGraphicsDropShadowEffect(self)
+        glow.setBlurRadius(52)
+        glow.setColor(QtGui.QColor(85, 155, 255, 120))
+        glow.setOffset(0, 6)
+        logo_lbl.setGraphicsEffect(glow)
 
-        lp.addSpacing(20)
+        ring_lay.addWidget(logo_lbl, 0, Qt.AlignmentFlag.AlignCenter)
+        lp.addWidget(ring, 0, Qt.AlignmentFlag.AlignHCenter)
+
+        lp.addSpacing(26)
+
+        wordmark = QtWidgets.QLabel("SOUL OF WAIFU")
+        wordmark.setObjectName("hero_wordmark")
+        wordmark.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        lp.addWidget(wordmark)
+
+        lp.addSpacing(7)
+
+        hero_sub = QtWidgets.QLabel(
+            t.get("about_tagline", "AI ROLEPLAY ENGINE").upper()
+        )
+        hero_sub.setObjectName("hero_sub")
+        hero_sub.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        lp.addWidget(hero_sub)
 
         lp.addStretch()
 
-        ver_bottom = QtWidgets.QLabel("v2.4.7")
-        ver_bottom.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        ver_bottom.setStyleSheet(
-            "font-size: 8.5pt; color: rgba(255,255,255,0.17);"
-            "letter-spacing: 1.5px; font-weight: 500;"
-        )
-        lp.addWidget(ver_bottom)
+        hero_version = QtWidgets.QLabel(self._APP_VERSION)
+        hero_version.setObjectName("hero_version")
+        hero_version.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        lp.addWidget(hero_version, 0, Qt.AlignmentFlag.AlignHCenter)
 
         right_panel = QtWidgets.QWidget()
         rp = QtWidgets.QVBoxLayout(right_panel)
@@ -3964,20 +4573,14 @@ class AboutDialog(QtWidgets.QDialog):
         rp.setSpacing(0)
 
         top_bar = QtWidgets.QWidget()
-        top_bar.setStyleSheet("background: transparent;")
         tb = QtWidgets.QHBoxLayout(top_bar)
-        tb.setContentsMargins(36, 30, 28, 0)
+        tb.setContentsMargins(34, 30, 26, 16)
         tb.setSpacing(10)
 
-        title_lbl = QtWidgets.QLabel("Soul of Waifu")
+        title_lbl = QtWidgets.QLabel(t.get("about_program_title", "About Soul of Waifu"))
         title_lbl.setObjectName("title_label")
 
-        version_badge = QtWidgets.QLabel("v2.4.7")
-        version_badge.setObjectName("version_badge")
-        version_badge.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        version_badge.setFixedHeight(22)
-
-        close_x = QtWidgets.QPushButton("X")
+        close_x = QtWidgets.QPushButton("✕")
         close_x.setObjectName("close_x_btn")
         close_x.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         close_x.setFixedSize(28, 28)
@@ -3985,23 +4588,10 @@ class AboutDialog(QtWidgets.QDialog):
         close_x.clicked.connect(self.accept)
 
         tb.addWidget(title_lbl)
-        tb.addWidget(version_badge, 0, Qt.AlignmentFlag.AlignBottom)
         tb.addStretch()
         tb.addWidget(close_x, 0, Qt.AlignmentFlag.AlignTop)
 
         rp.addWidget(top_bar)
-
-        tagline_row = QtWidgets.QWidget()
-        tagline_row.setStyleSheet("background: transparent;")
-        tr = QtWidgets.QHBoxLayout(tagline_row)
-        tr.setContentsMargins(36, 5, 28, 14)
-
-        tagline_val = t.get("about_tagline", "AI ROLEPLAY ENGINE")
-        tagline_lbl = QtWidgets.QLabel(tagline_val.upper())
-        tagline_lbl.setObjectName("tagline_label")
-        tr.addWidget(tagline_lbl)
-        tr.addStretch()
-        rp.addWidget(tagline_row)
 
         scroll = QtWidgets.QScrollArea()
         scroll.setWidgetResizable(True)
@@ -4010,8 +4600,8 @@ class AboutDialog(QtWidgets.QDialog):
 
         content_w = QtWidgets.QWidget()
         cl = QtWidgets.QVBoxLayout(content_w)
-        cl.setContentsMargins(36, 0, 36, 16)
-        cl.setSpacing(0)
+        cl.setContentsMargins(34, 0, 32, 18)
+        cl.setSpacing(16)
 
         desc_html = t.get(
             "about_program_description",
@@ -4046,6 +4636,32 @@ class AboutDialog(QtWidgets.QDialog):
         desc_lbl.setOpenExternalLinks(True)
 
         cl.addWidget(desc_lbl)
+
+        features = QtWidgets.QGridLayout()
+        features.setHorizontalSpacing(12)
+        features.setVerticalSpacing(12)
+
+        cards = [
+            ("#4A9EFF",
+             t.get("about_feat_llm_title", "Powered by LLMs"),
+             t.get("about_feat_llm_sub", "Local models via llama.cpp or cloud APIs")),
+            ("#9B6CFF",
+             t.get("about_feat_stage_title", "Live2D & VRM Stage"),
+             t.get("about_feat_stage_sub", "Animated avatars with live emotions")),
+            ("#4ADE80",
+             t.get("about_feat_voice_title", "Voice First"),
+             t.get("about_feat_voice_sub", "TTS · STT · Speech-to-Speech calls")),
+            ("#FBBF24",
+             t.get("about_feat_extra_title", "Always With You"),
+             t.get("about_feat_extra_sub", "Discord bot · Desktop companion")),
+        ]
+        for idx, (color, f_title, f_sub) in enumerate(cards):
+            features.addWidget(
+                self._make_feature_card(color, f_title, f_sub),
+                idx // 2, idx % 2,
+            )
+        cl.addLayout(features)
+
         cl.addStretch()
         scroll.setWidget(content_w)
         rp.addWidget(scroll, 1)
@@ -4053,9 +4669,8 @@ class AboutDialog(QtWidgets.QDialog):
         rp.addWidget(_make_h_separator())
 
         footer = QtWidgets.QWidget()
-        footer.setStyleSheet("background: transparent;")
         fl = QtWidgets.QHBoxLayout(footer)
-        fl.setContentsMargins(36, 12, 28, 20)
+        fl.setContentsMargins(34, 12, 26, 20)
         fl.setSpacing(10)
 
         by_text = t.get("creator_label", "Made by")
@@ -4378,11 +4993,11 @@ class UpdaterDialog(QDialog):
     _TEXT_S   = "#6F6B63"
     _BORDER   = "rgba(255,255,255,0.055)"
     _BORDER_M = "rgba(255,255,255,0.10)"
-    
+
     _BLUE     = "#4BB8FF"
     _BLUE_MUT = "rgba(75, 184, 255, 0.15)"
     _BLUE_GLO = "rgba(75, 184, 255, 0.35)"
-    
+
     _DANGER   = "#C44040"
     _GREEN    = "#4ADE80"
     _ACCENT   = "#C49A38"
@@ -4391,13 +5006,13 @@ class UpdaterDialog(QDialog):
         super().__init__(parent)
         self.translations = translations
         self.backend_dir = backend_dir
-        
+
         self.setWindowTitle(self.translations.get("llama_cpp_updater", "LLAMA.CPP Updater"))
         self.setWindowIcon(QIcon("app/gui/icons/logotype.ico"))
         self.setFixedSize(700, 580)
-        
+
         self.setWindowFlags(
-            QtCore.Qt.WindowType.Dialog 
+            QtCore.Qt.WindowType.Dialog
             | QtCore.Qt.WindowType.WindowCloseButtonHint
         )
 
@@ -4405,12 +5020,13 @@ class UpdaterDialog(QDialog):
         self.backend_type = backend_type
         self.latest_asset_urls = []
         self.latest_version_tag = None
+        self._busy = False
 
         self._init_fonts()
         self._apply_base_palette()
         self.setup_ui()
-        
-        asyncio.create_task(self.check_api())
+
+        self.updater.start_fetch()
 
     def _init_fonts(self):
         def mf(size, weight=QFont.Weight.Normal):
@@ -4437,9 +5053,10 @@ class UpdaterDialog(QDialog):
         root.addWidget(self._build_toolbar())
         root.addWidget(self._build_body(), 1)
         root.addWidget(self._build_footer())
-        
+
         self.updater.progress_signal.connect(self.update_progress)
         self.updater.finished_signal.connect(self.on_finished)
+        self.updater.fetch_done_signal.connect(self.on_fetch_done)
 
     def _build_toolbar(self):
         bar = QFrame()
@@ -4479,16 +5096,20 @@ class UpdaterDialog(QDialog):
         lay.setSpacing(14)
 
         info_layout = QHBoxLayout()
-        
+
         lbl_target_tr = self.translations.get("lbl_target_tr", "Target:")
-        self.lbl_target = QLabel(f"{lbl_target_tr} <span style='color: {self._BLUE};'>{self.backend_type.upper()}</span>")
+        self.lbl_target = QLabel(
+            f"{lbl_target_tr} <span style='color: {self._BLUE};'>{self.backend_type.upper()}</span>"
+        )
         self.lbl_target.setFont(self.f_body)
         self.lbl_target.setStyleSheet(f"color: {self._TEXT};")
-        
-        self.lbl_current_ver = QLabel(self.translations.get("checking_current_build", "Current: Checking..."))
+
+        self.lbl_current_ver = QLabel(
+            self.translations.get("checking_current_build", "Current: Checking...")
+        )
         self.lbl_current_ver.setFont(self.f_body)
         self.lbl_current_ver.setStyleSheet(f"color: {self._TEXT_S};")
-        
+
         info_layout.addWidget(self.lbl_target)
         info_layout.addStretch()
         info_layout.addWidget(self.lbl_current_ver)
@@ -4497,9 +5118,11 @@ class UpdaterDialog(QDialog):
         self.release_notes = QtWidgets.QTextBrowser()
         self.release_notes.setOpenExternalLinks(True)
         self.release_notes.setFont(self.f_body)
-        
+
         lbl_release_notes_tr = self.translations.get("lbl_release_notes_tr", "Contacting GitHub API...")
-        self.release_notes.setHtml(f"<p style='text-align: center; color: {self._TEXT_S}; margin-top: 60px;'>{lbl_release_notes_tr}</p>")
+        self.release_notes.setHtml(
+            f"<p style='text-align: center; color: {self._TEXT_S}; margin-top: 60px;'>{lbl_release_notes_tr}</p>"
+        )
         self.release_notes.setStyleSheet(
             f"QTextBrowser {{"
             f"  background: {self._SURF2};"
@@ -4589,7 +5212,7 @@ class UpdaterDialog(QDialog):
         lay.addWidget(self.btn_cancel)
         lay.addWidget(self.btn_update)
 
-        self.btn_cancel.clicked.connect(self.close)
+        self.btn_cancel.clicked.connect(self.try_close)
         self.btn_update.clicked.connect(self.start_update)
         self.btn_rollback.clicked.connect(self.start_rollback)
 
@@ -4605,13 +5228,13 @@ class UpdaterDialog(QDialog):
                 raw_text = raw_text.split(kw)[0]
 
         text = re.sub(r'\n{3,}', '\n\n', raw_text)
-        
+
         html_lines = []
         for line in text.split('\n'):
             line = line.strip()
             if not line:
                 continue
-            
+
             if line.startswith("fix:") or line.startswith("bug:"):
                 html_lines.append(f"<li style='color: {self._DANGER}; margin-bottom: 4px;'><b>Fix:</b> {line[4:].strip()}</li>")
             elif line.startswith("feat:") or line.startswith("feature:"):
@@ -4623,30 +5246,35 @@ class UpdaterDialog(QDialog):
             else:
                 html_lines.append(f"<p style='margin-bottom: 6px; color: {self._TEXT};'>{line}</p>")
 
-        final_html = "<ul style='margin-top: 5px; padding-left: 20px;'>" + "".join(html_lines) + "</ul>"
-        return final_html
+        return "<ul style='margin-top: 5px; padding-left: 20px;'>" + "".join(html_lines) + "</ul>"
 
-    async def check_api(self):
+    def on_fetch_done(self, data, err):
         current_version = self.updater._get_current_version(self.backend_type)
-        self.lbl_current_ver.setText(f"{self.translations.get('current_ver_label', 'Current:')} {current_version}")
-        
-        data, err = await self.updater.fetch_latest_release()
-        if err:
-            self.release_notes.setHtml(f"<p style='color: {self._DANGER};'>{self.translations.get('github_error', 'Error connecting to GitHub')}:<br>{err}</p>")
+        self.lbl_current_ver.setText(
+            f"{self.translations.get('current_ver_label', 'Current:')} {current_version}"
+        )
+
+        if err or data is None:
+            self.release_notes.setHtml(
+                f"<p style='color: {self._DANGER};'>"
+                f"{self.translations.get('github_error', 'Error connecting to GitHub')}:<br>{err}</p>"
+            )
             self.status_label.setText(self.translations.get("conn_failed", "Connection failed."))
             return
 
         self.latest_version_tag = data.get("tag_name", "")
         raw_body = data.get("body", "")
-        
+
         cleaned_html = self._clean_release_notes(raw_body)
-        
+
         final_view = f"""
         <h2 style='color: {self._TEXT}; margin-bottom: 0px;'>{self.translations.get('version_title', 'Version')}: <span style='color: {self._GREEN};'>{self.latest_version_tag}</span></h2>
         <hr style='border: 1px solid {self._BORDER}; margin-bottom: 15px;'>
         {cleaned_html}
         """
         self.release_notes.setHtml(final_view)
+
+        self.status_label.setStyleSheet(f"color: {self._TEXT_S};")
 
         if self.latest_version_tag == current_version:
             self.status_label.setText(self.translations.get("status_up_to_date", "You are up to date!"))
@@ -4663,39 +5291,58 @@ class UpdaterDialog(QDialog):
             self.status_label.setStyleSheet(f"color: {self._DANGER};")
 
     def start_update(self):
+        if not self.latest_asset_urls:
+            return
+        self._busy = True
         self.btn_update.setEnabled(False)
         self.btn_rollback.setEnabled(False)
+        self.progress_bar.setValue(0)
         self.progress_bar.show()
-        asyncio.create_task(self.updater.download_and_install(
-            self.latest_asset_urls, 
-            self.backend_type, 
-            self.latest_version_tag
-        ))
+        self.updater.start_update(
+            self.latest_asset_urls,
+            self.backend_type,
+            self.latest_version_tag,
+        )
 
     def start_rollback(self):
+        self._busy = True
         self.btn_update.setEnabled(False)
         self.btn_rollback.setEnabled(False)
+        self.status_label.setStyleSheet(f"color: {self._TEXT_S};")
         self.status_label.setText(self.translations.get("status_restoring", "Restoring backup..."))
-        asyncio.create_task(self.execute_rollback())
-        
-    async def execute_rollback(self):
-        success, msg = await self.updater.restore_backup(self.backend_type)
-        self.on_finished(success, msg)
+        self.updater.start_rollback(self.backend_type)
+
+    def try_close(self):
+        if self._busy:
+            self.status_label.setStyleSheet(f"color: {self._ACCENT};")
+            self.status_label.setText(
+                self.translations.get("status_busy", "Update in progress, please wait...")
+            )
+            return
+        self.close()
 
     def update_progress(self, percent, text):
-        self.progress_bar.setValue(percent)
-        self.status_label.setText(text)
+        if self.progress_bar.value() != percent:
+            self.progress_bar.setValue(percent)
+        if self.status_label.text() != text:
+            self.status_label.setText(text)
 
     def on_finished(self, success, message):
+        self._busy = False
         self.progress_bar.hide()
         self.status_label.setText(message)
         if success:
             self.status_label.setStyleSheet(f"color: {self._GREEN};")
-            self.btn_update.setText(self.translations.get("btn_done", "Done"))
-            self.btn_update.clicked.disconnect()
+            self.lbl_current_ver.setText(
+                f"{self.translations.get('current_ver_label', 'Current:')} {self.latest_version_tag}"
+            )
+            try:
+                self.btn_update.clicked.disconnect()
+            except TypeError:
+                pass
             self.btn_update.clicked.connect(self.accept)
+            self.btn_update.setText(self.translations.get("btn_done", "Done"))
             self.btn_update.setEnabled(True)
-            self.lbl_current_ver.setText(f"{self.translations.get('current_ver_label', 'Current:')} {self.latest_version_tag}")
         else:
             self.status_label.setStyleSheet(f"color: {self._DANGER};")
             self.btn_update.setEnabled(True)
@@ -5352,10 +5999,329 @@ class CallModeDialog(QtWidgets.QDialog):
         self._hide_overlay(then=_finish)
 
 
+class CardImportSourceDialog(QtWidgets.QDialog):
+    """
+    "Import Character Card" source chooser:
+    pick "From File" or "From URL" (with a link input for chub.ai cards or a
+    direct .png link).
+    """
+    def __init__(self, parent=None, translations=None):
+        super().__init__(parent)
+        self.setModal(True)
+        self.setWindowFlags(Qt.WindowType.Dialog | Qt.WindowType.FramelessWindowHint)
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+
+        self.translations = translations or {}
+        self._overlay = None
+        self.selected_source = "file"
+        self.url_text = ""
+
+        self._build_ui()
+
+    def _build_ui(self):
+        root = QtWidgets.QVBoxLayout(self)
+        root.setContentsMargins(0, 0, 0, 0)
+
+        self._card = QtWidgets.QFrame()
+        self._card.setObjectName("Card")
+        self._card.setFixedWidth(460)
+        self._card.setStyleSheet("""
+            QFrame#Card {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+                    stop:0 rgb(26, 26, 34), stop:1 rgb(18, 18, 26));
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 16px;
+            }
+        """)
+
+        lay = QtWidgets.QVBoxLayout(self._card)
+        lay.setContentsMargins(28, 26, 28, 24)
+        lay.setSpacing(0)
+
+        f_title = QFont("Inter Tight", 15, QFont.Weight.Bold)
+        f_title.setHintingPreference(QFont.HintingPreference.PreferNoHinting)
+        lbl_title = QtWidgets.QLabel(self.translations.get("import_source_title", "Import Character Card"))
+        lbl_title.setFont(f_title)
+        lbl_title.setStyleSheet("color: #E2E8F0; background: transparent;")
+        lbl_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        lay.addWidget(lbl_title)
+
+        lay.addSpacing(6)
+
+        f_sub = QFont("Inter", 10)
+        f_sub.setHintingPreference(QFont.HintingPreference.PreferNoHinting)
+        lbl_sub = QtWidgets.QLabel(self.translations.get(
+            "import_source_subtitle",
+            "From a local PNG/JSON file, or straight from a link\n(chub.ai, RisuAI Realm or a direct .png)."
+        ))
+        lbl_sub.setFont(f_sub)
+        lbl_sub.setWordWrap(True)
+        lbl_sub.setStyleSheet("color: rgba(226,232,240,0.5); background: transparent;")
+        lbl_sub.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        lay.addWidget(lbl_sub)
+
+        lay.addSpacing(20)
+
+        options_row = QtWidgets.QHBoxLayout()
+        options_row.setSpacing(12)
+        self._option_buttons = {}
+
+        def make_option(source_key, icon_text, title_text, desc_text, accent):
+            btn = QtWidgets.QFrame()
+            btn.setObjectName("ImportOption")
+            btn.setCursor(Qt.CursorShape.PointingHandCursor)
+            btn.setFixedHeight(140)
+
+            v = QtWidgets.QVBoxLayout(btn)
+            v.setContentsMargins(14, 16, 14, 14)
+            v.setSpacing(6)
+
+            f_icon = QFont("Inter", 20)
+            f_icon.setHintingPreference(QFont.HintingPreference.PreferNoHinting)
+            icon_lbl = QtWidgets.QLabel(icon_text)
+            icon_lbl.setFont(f_icon)
+            icon_lbl.setStyleSheet(f"color: {accent}; background: transparent; border: none;")
+            icon_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            v.addWidget(icon_lbl)
+
+            f_opt_title = QFont("Inter Tight", 11, QFont.Weight.DemiBold)
+            f_opt_title.setHintingPreference(QFont.HintingPreference.PreferNoHinting)
+            opt_title_lbl = QtWidgets.QLabel(title_text)
+            opt_title_lbl.setFont(f_opt_title)
+            opt_title_lbl.setWordWrap(True)
+            opt_title_lbl.setStyleSheet("color: #E2E8F0; background: transparent; border: none;")
+            opt_title_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            v.addWidget(opt_title_lbl)
+
+            f_opt_desc = QFont("Inter", 9)
+            f_opt_desc.setHintingPreference(QFont.HintingPreference.PreferNoHinting)
+            opt_desc_lbl = QtWidgets.QLabel(desc_text)
+            opt_desc_lbl.setFont(f_opt_desc)
+            opt_desc_lbl.setWordWrap(True)
+            opt_desc_lbl.setStyleSheet("color: rgba(226,232,240,0.5); background: transparent; border: none;")
+            opt_desc_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            v.addWidget(opt_desc_lbl, 1)
+
+            def _set_style(selected):
+                border_color = accent if selected else "rgba(255,255,255,0.1)"
+                bg = "rgba(96,165,250,0.08)" if selected else "rgba(255,255,255,0.03)"
+                btn.setStyleSheet(f"""
+                    QFrame#ImportOption {{
+                        background: {bg};
+                        border: 1.5px solid {border_color};
+                        border-radius: 12px;
+                    }}
+                    QFrame#ImportOption:hover {{
+                        border: 1.5px solid {accent};
+                    }}
+                """)
+
+            _set_style(source_key == self.selected_source)
+            btn._set_selected = _set_style
+
+            def _on_click(event, key=source_key):
+                self.selected_source = key
+                for k, b in self._option_buttons.items():
+                    b._set_selected(k == key)
+                self.url_input.setVisible(key == "url")
+                if key == "url":
+                    self.url_input.setFocus()
+
+            btn.mousePressEvent = _on_click
+            self._option_buttons[source_key] = btn
+            options_row.addWidget(btn)
+
+        make_option("file", "📁",
+                    self.translations.get("import_source_file_title", "From File"),
+                    self.translations.get("import_source_file_desc", "Pick a PNG or JSON card from your disk"),
+                    "#60A5FA")
+        make_option("url", "🔗",
+                    self.translations.get("import_source_url_title", "From URL"),
+                    self.translations.get("import_source_url_desc", "Paste a chub.ai character link"),
+                    "#A78BFA")
+
+        lay.addLayout(options_row)
+        lay.addSpacing(14)
+
+        f_input = QFont("Inter", 10)
+        f_input.setHintingPreference(QFont.HintingPreference.PreferNoHinting)
+        self.url_input = QtWidgets.QLineEdit()
+        self.url_input.setPlaceholderText(self.translations.get(
+            "import_source_url_placeholder",
+            "https://chub.ai/characters/author/character  (or direct .png link)"
+        ))
+        self.url_input.setFixedHeight(38)
+        self.url_input.setFont(f_input)
+        self.url_input.setVisible(False)
+        self.url_input.setStyleSheet("""
+            QLineEdit {
+                background: rgba(10,10,15,0.6);
+                border: 1px solid rgba(255,255,255,0.12);
+                border-radius: 8px;
+                color: #E2E8F0;
+                padding: 0 12px;
+            }
+            QLineEdit:focus { border-color: rgba(167,139,250,0.6); }
+        """)
+        lay.addWidget(self.url_input)
+
+        lay.addSpacing(16)
+
+        btn_row = QtWidgets.QHBoxLayout()
+        btn_row.setSpacing(10)
+
+        f_btn = QFont("Inter Tight", 11, QFont.Weight.DemiBold)
+        f_btn.setHintingPreference(QFont.HintingPreference.PreferNoHinting)
+
+        btn_cancel = QtWidgets.QPushButton(self.translations.get("call_mode_dialog_cancel", "Cancel"))
+        btn_cancel.setFixedHeight(40)
+        btn_cancel.setFont(f_btn)
+        btn_cancel.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn_cancel.setStyleSheet("""
+            QPushButton {
+                background: rgba(255,255,255,0.05);
+                border: 1px solid rgba(255,255,255,0.1);
+                border-radius: 10px;
+                color: rgba(226,232,240,0.7);
+            }
+            QPushButton:hover {
+                background: rgba(255,255,255,0.1);
+                border-color: rgba(255,255,255,0.2);
+                color: #E2E8F0;
+            }
+        """)
+        btn_cancel.clicked.connect(self.reject)
+
+        btn_confirm = QtWidgets.QPushButton(self.translations.get("import_source_confirm", "Continue"))
+        btn_confirm.setFixedHeight(40)
+        btn_confirm.setFont(f_btn)
+        btn_confirm.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn_confirm.setStyleSheet("""
+            QPushButton {
+                background: rgba(96,165,250,0.12);
+                border: 1px solid rgba(96,165,250,0.35);
+                border-radius: 10px;
+                color: #60A5FA;
+            }
+            QPushButton:hover {
+                background: rgba(96,165,250,0.22);
+                border-color: rgba(96,165,250,0.6);
+            }
+        """)
+        btn_confirm.clicked.connect(self._confirm)
+
+        btn_row.addWidget(btn_cancel, 2)
+        btn_row.addWidget(btn_confirm, 3)
+        lay.addLayout(btn_row)
+
+        root.addWidget(self._card, 0, Qt.AlignmentFlag.AlignCenter)
+
+    def _confirm(self):
+        self.url_text = self.url_input.text().strip()
+        if self.selected_source == "url" and not self.url_text:
+            self.url_input.setFocus()
+            self.url_input.setStyleSheet(self.url_input.styleSheet().replace(
+                "border: 1px solid rgba(255,255,255,0.12);",
+                "border: 1px solid rgba(248,113,113,0.7);"
+            ))
+            return
+        self.accept()
+
+    def _show_overlay(self):
+        if not self.parent():
+            return
+        self._overlay = QtWidgets.QWidget(self.parent())
+        self._overlay.setGeometry(self.parent().rect())
+        self._overlay.show()
+        self._overlay.raise_()
+        self.raise_()
+        self._ov_effect = QGraphicsOpacityEffect(self._overlay)
+        self._ov_effect.setOpacity(0.0)
+        self._overlay.setGraphicsEffect(self._ov_effect)
+        self._overlay.setStyleSheet("background: rgba(0, 0, 0, 180);")
+        self._ov_anim_in = QPropertyAnimation(self._ov_effect, b"opacity")
+        self._ov_anim_in.setDuration(200)
+        self._ov_anim_in.setStartValue(0.0)
+        self._ov_anim_in.setEndValue(1.0)
+        self._ov_anim_in.setEasingCurve(QEasingCurve.Type.OutCubic)
+        self._ov_anim_in.start()
+        self._overlay.mousePressEvent = lambda e: self.reject()
+
+    def _hide_overlay(self, then=None):
+        if not self._overlay:
+            if then:
+                then()
+            return
+        self._ov_anim_out = QPropertyAnimation(self._ov_effect, b"opacity")
+        self._ov_anim_out.setDuration(180)
+        self._ov_anim_out.setStartValue(self._ov_effect.opacity())
+        self._ov_anim_out.setEndValue(0.0)
+        self._ov_anim_out.setEasingCurve(QEasingCurve.Type.InCubic)
+
+        def _cleanup():
+            self._overlay.deleteLater()
+            self._overlay = None
+            if then:
+                then()
+
+        self._ov_anim_out.finished.connect(_cleanup)
+        self._ov_anim_out.start()
+
+    def _animate_in(self):
+        self.setWindowOpacity(0.0)
+        self._dlg_anim_in = QPropertyAnimation(self, b"windowOpacity")
+        self._dlg_anim_in.setDuration(200)
+        self._dlg_anim_in.setStartValue(0.0)
+        self._dlg_anim_in.setEndValue(1.0)
+        self._dlg_anim_in.setEasingCurve(QEasingCurve.Type.OutCubic)
+        self._dlg_anim_in.start()
+
+    def _animate_out(self, then=None):
+        self._dlg_anim_out = QPropertyAnimation(self, b"windowOpacity")
+        self._dlg_anim_out.setDuration(160)
+        self._dlg_anim_out.setStartValue(self.windowOpacity())
+        self._dlg_anim_out.setEndValue(0.0)
+        self._dlg_anim_out.setEasingCurve(QEasingCurve.Type.InCubic)
+        if then:
+            self._dlg_anim_out.finished.connect(then)
+        self._dlg_anim_out.start()
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        if self.parent():
+            parent_rect = self.parent().rect()
+            parent_global = self.parent().mapToGlobal(parent_rect.topLeft())
+            x = parent_global.x() + (parent_rect.width() - self.width()) // 2
+            y = parent_global.y() + (parent_rect.height() - self.height()) // 2
+            self.move(x, y)
+        self._show_overlay()
+        self._animate_in()
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key.Key_Escape:
+            self.reject()
+        elif event.key() in (Qt.Key.Key_Return, Qt.Key.Key_Enter):
+            self._confirm()
+
+    def reject(self):
+        def _finish():
+            self._overlay = None
+            super(CardImportSourceDialog, self).reject()
+        self._animate_out()
+        self._hide_overlay(then=_finish)
+
+    def accept(self):
+        def _finish():
+            self._overlay = None
+            super(CardImportSourceDialog, self).accept()
+        self._animate_out()
+        self._hide_overlay(then=_finish)
+
+
 class SowConfirmDialog(QtWidgets.QDialog):
     def __init__(self, parent=None, title="", text="",
                  confirm_text="Confirm", cancel_text="Cancel",
-                 danger=False):
+                 danger=False, checkbox_text=None):
         super().__init__(parent)
         self.setModal(True)
         self.setWindowFlags(Qt.WindowType.Dialog | Qt.WindowType.FramelessWindowHint)
@@ -5364,8 +6330,13 @@ class SowConfirmDialog(QtWidgets.QDialog):
         self._danger = danger
         self._accent = "#F87171" if danger else "#60A5FA"
         self._overlay = None
+        self._checkbox = None
+        self._checkbox_text = checkbox_text
 
         self._build_ui(title, text, confirm_text, cancel_text)
+
+    def is_checked(self) -> bool:
+        return bool(self._checkbox is not None and self._checkbox.isChecked())
 
     def _build_ui(self, title, text, confirm_text, cancel_text):
         root = QtWidgets.QVBoxLayout(self)
@@ -5420,6 +6391,27 @@ class SowConfirmDialog(QtWidgets.QDialog):
         lbl_text.setWordWrap(True)
         lbl_text.setTextFormat(Qt.TextFormat.RichText)
         lay.addWidget(lbl_text)
+
+        if self._checkbox_text:
+            lay.addSpacing(12)
+            self._checkbox = QtWidgets.QCheckBox(self._checkbox_text)
+            self._checkbox.setChecked(True)
+            self._checkbox.setCursor(Qt.CursorShape.PointingHandCursor)
+            self._checkbox.setStyleSheet("""
+                QCheckBox { color: rgba(226,232,240,0.8); background: transparent; }
+                QCheckBox::indicator {
+                    width: 16px; height: 16px; border-radius: 4px;
+                    border: 1px solid rgba(255,255,255,0.25); background: rgba(255,255,255,0.05);
+                }
+                QCheckBox::indicator:checked {
+                    background: rgba(96,165,250,0.7); border-color: rgba(96,165,250,0.9);
+                }
+            """)
+            checkbox_wrap = QtWidgets.QHBoxLayout()
+            checkbox_wrap.addStretch()
+            checkbox_wrap.addWidget(self._checkbox)
+            checkbox_wrap.addStretch()
+            lay.addLayout(checkbox_wrap)
 
         lay.addSpacing(28)
 
@@ -6199,6 +7191,7 @@ class PersonasEditorDialog(QDialog):
         self.list_widget = QListWidget()
         self.list_widget.setObjectName("ListPersonas")
         self.list_widget.setFont(self.f_list)
+        self.list_widget.setIconSize(QSize(36, 36))
         self.list_widget.setStyleSheet(
             f"QListWidget {{ background: transparent; border: none; outline: none; padding: 8px; }}"
             f"QListWidget::item {{ color: {self._TEXT}; padding: 12px; border-radius: 8px; margin-bottom: 4px; border: 1px solid transparent; }}"
@@ -6370,6 +7363,45 @@ class PersonasEditorDialog(QDialog):
         self.name_input.textChanged.connect(self._update_token_count)
         self.desc_input.textChanged.connect(self._update_token_count)
 
+    def _make_round_icon(self, avatar_path: str, size: int = 72) -> QIcon:
+        if not avatar_path or not os.path.exists(avatar_path):
+            avatar_path = "app/gui/icons/person.png"
+
+        src = QPixmap(avatar_path)
+        if src.isNull():
+            src = QPixmap("app/gui/icons/person.png")
+
+        scaled = src.scaled(
+            size, size,
+            Qt.AspectRatioMode.KeepAspectRatioByExpanding,
+            Qt.TransformationMode.SmoothTransformation
+        )
+        crop_x = (scaled.width() - size) // 2
+        crop_y = (scaled.height() - size) // 2
+        cropped = scaled.copy(crop_x, crop_y, size, size)
+
+        rounded = QPixmap(size, size)
+        rounded.fill(Qt.GlobalColor.transparent)
+
+        painter = QPainter(rounded)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+        painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform, True)
+
+        path = QPainterPath()
+        path.addEllipse(0, 0, size, size)
+        painter.setClipPath(path)
+        painter.drawPixmap(0, 0, cropped)
+
+        painter.setClipping(False)
+        pen = QtGui.QPen(QColor(255, 255, 255, 35), 1.5)
+        painter.setPen(pen)
+        painter.setBrush(Qt.BrushStyle.NoBrush)
+        painter.drawEllipse(QtCore.QRectF(0.75, 0.75, size - 1.5, size - 1.5))
+
+        painter.end()
+
+        return QIcon(rounded)
+    
     def _render_avatar(self, path):
         avatar_size = 110
         self.avatar_label.setFixedSize(avatar_size, avatar_size)
@@ -6440,10 +7472,7 @@ class PersonasEditorDialog(QDialog):
                 item.setSizeHint(QSize(0, 52))
                 
                 av_path = data.get("user_avatar")
-                if av_path and os.path.exists(av_path):
-                     item.setIcon(QIcon(av_path))
-                else:
-                     item.setIcon(QIcon("app/gui/icons/person.png"))
+                item.setIcon(self._make_round_icon(av_path, size=72))
                     
                 if name == self.current_default_persona:
                     item.setForeground(QtGui.QBrush(QColor(self._BLUE)))
@@ -7158,6 +8187,14 @@ class DiscordGatewayDialog(QDialog):
         self._init_fonts()
         self._apply_base_palette()
         self.setup_ui()
+
+        manager = getattr(self.main_window, "discord_manager", None)
+        if manager is not None and hasattr(manager, "state_changed"):
+            manager.state_changed.connect(self._on_discord_state)
+            self.finished.connect(
+                lambda: self._safe_unsubscribe(manager)
+            )
+
         self.update_status_ui()
 
     def _init_fonts(self):
@@ -7249,6 +8286,7 @@ class DiscordGatewayDialog(QDialog):
         self.token_input.setPlaceholderText("Paste your Discord Bot Token here...")
         self.token_input.setFont(self.f_token)
         self.token_input.setFixedHeight(38)
+        self.token_input.setEchoMode(QLineEdit.EchoMode.Password)
         self.token_input.setStyleSheet(
             f"QLineEdit#DGTokenInput {{"
             f"  background: {self._SURF2};"
@@ -7335,22 +8373,39 @@ class DiscordGatewayDialog(QDialog):
         return bar
 
     def update_status_ui(self):
-        if self.main_window.discord_manager and self.main_window.discord_manager.is_running:
-            self.status_badge.setText(f"  {self.translations.get('discord_status_running', 'RUNNING')}  ")
-            self.status_badge.setStyleSheet(
-                f"background: rgba(76, 175, 80, 0.15);"
-                f"color: {self._SUCCESS};"
-                f"border: 1px solid rgba(76, 175, 80, 0.3);"
-                f"border-radius: 6px;"
-            )
+        manager = self.main_window.discord_manager
+        state = getattr(manager, "connection_state", "stopped") if manager else "stopped"
+
+        if state == "running":
+            text = self.translations.get('discord_status_running', 'RUNNING')
+            color, bg, border = self._SUCCESS, "rgba(76, 175, 80, 0.15)", "rgba(76, 175, 80, 0.3)"
+        elif state == "starting":
+            text = self.translations.get('discord_status_connecting', 'CONNECTING')
+            color, bg, border = "#C49A38", "rgba(196, 154, 56, 0.15)", "rgba(196, 154, 56, 0.3)"
+        elif state.startswith("error"):
+            text = self.translations.get('discord_status_error', 'ERROR')
+            color, bg, border = self._DANGER, "rgba(244, 67, 54, 0.15)", "rgba(244, 67, 54, 0.3)"
+            self.status_badge.setToolTip(state.split(":", 1)[1] if ":" in state else "")
         else:
-            self.status_badge.setText(f"  {self.translations.get('discord_status_stopped', 'STOPPED')}  ")
-            self.status_badge.setStyleSheet(
-                f"background: rgba(244, 67, 54, 0.15);"
-                f"color: {self._DANGER};"
-                f"border: 1px solid rgba(244, 67, 54, 0.3);"
-                f"border-radius: 6px;"
-            )
+            text = self.translations.get('discord_status_stopped', 'STOPPED')
+            color, bg, border = self._DANGER, "rgba(244, 67, 54, 0.15)", "rgba(244, 67, 54, 0.3)"
+
+        self.status_badge.setText(f"  {text}  ")
+        self.status_badge.setStyleSheet(
+            f"background: {bg};"
+            f"color: {color};"
+            f"border: 1px solid {border};"
+            f"border-radius: 6px;"
+        )
+
+    def _safe_unsubscribe(self, manager):
+        try:
+            manager.state_changed.disconnect(self._on_discord_state)
+        except (TypeError, RuntimeError):
+            pass
+
+    def _on_discord_state(self, state: str):
+        self.update_status_ui()
 
     def save_token(self):
         from app.configuration.configuration import ConfigurationAPI
@@ -7401,10 +8456,10 @@ class LorebookEditorDialog(QDialog):
  
     def __init__(self, translations, configuration_settings, main_window, parent=None):
         super().__init__(parent)
-        self.translations            = translations
-        self.configuration_settings  = configuration_settings
-        self.main_window             = main_window
- 
+        self.translations = translations
+        self.configuration_settings = configuration_settings
+        self.main_window = main_window
+
         self.setWindowTitle(self.translations.get("lorebook_engine_title", "Lorebook Engine"))
         self.setWindowFlags(
             Qt.WindowType.Dialog
@@ -7571,9 +8626,19 @@ class LorebookEditorDialog(QDialog):
         self.entry_list = QListWidget()
         self.entry_list.setObjectName("LBEntryList")
         self.entry_list.setFont(self.f_entry)
-        self.entry_list.setStyleSheet(self._s_list())
         self.entry_list.setSpacing(2)
         self.entry_list.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.entry_list.setSelectionMode(QtWidgets.QAbstractItemView.SelectionMode.SingleSelection)
+        self.entry_list.setDragEnabled(True)
+        self.entry_list.setAcceptDrops(True)
+        self.entry_list.viewport().setAcceptDrops(True)
+        self.entry_list.setDragDropMode(QtWidgets.QAbstractItemView.DragDropMode.InternalMove)
+        self.entry_list.setDefaultDropAction(Qt.DropAction.MoveAction)
+        self.entry_list.setDropIndicatorShown(True)
+        self.entry_list.setDragDropOverwriteMode(False)
+        self.entry_list.setStyleSheet(self._s_list() + """
+            QListWidget#LBEntryList::item:pressed { background: rgba(196,154,56,0.12); }
+        """)
         lay.addWidget(self.entry_list, 1)
  
         self.btn_new_entry = QPushButton(self.translations.get("lorebook_editor_add_entry", "+ New Entry"))
@@ -7762,21 +8827,117 @@ class LorebookEditorDialog(QDialog):
         self.depth_combo.setFont(self.f_input)
         self.depth_combo.setStyleSheet(self._s_combo("LBDepthCombo"))
 
+        self.recursive_check = QtWidgets.QCheckBox(self.translations.get("lorebook_recursive_label", "Recursive"))
+        self.recursive_check.setObjectName("LBRecursiveCheck")
+        self.recursive_check.setToolTip(self.translations.get(
+            "lorebook_recursive_tooltip",
+            "Activated entries' content can trigger other entries (up to the depth below)."
+        ))
+        self.recursive_check.setFont(self.f_input)
+        self.recursive_check.setStyleSheet(
+            "QCheckBox#LBRecursiveCheck { color: rgba(255,255,255,0.55); background: transparent; }"
+            "QCheckBox#LBRecursiveCheck::indicator { width: 15px; height: 15px; border-radius: 4px;"
+            "  border: 1px solid rgba(255,255,255,0.25); background: rgba(255,255,255,0.05); }"
+            "QCheckBox#LBRecursiveCheck::indicator:checked { background: rgba(96,165,250,0.75); border-color: #60A5FA; }"
+        )
+
+        self.recursion_depth_spin = QSpinBox()
+        self.recursion_depth_spin.setObjectName("LBRecursionDepth")
+        self.recursion_depth_spin.setRange(1, 4)
+        self.recursion_depth_spin.setValue(2)
+        self.recursion_depth_spin.setFixedSize(100, 32)
+        self.recursion_depth_spin.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.recursion_depth_spin.setFont(self.f_input)
+        self.recursion_depth_spin.setToolTip(self.translations.get(
+            "lorebook_recursive_depth_tooltip", "Max recursion passes (1-4)."
+        ))
+        self.recursion_depth_spin.setStyleSheet("""
+            QSpinBox, QDoubleSpinBox {
+                background: rgba(255, 255, 255, 0.03);
+                border: 1px solid rgba(255, 255, 255, 0.06);
+                border-top: 1px solid rgba(255, 255, 255, 0.12);
+                border-radius: 10px;
+                color: rgba(240, 240, 240, 0.95);
+                font-family: 'Inter Tight Medium'; 
+                font-size: 13px;
+                padding: 0px 8px;
+                padding-right: 28px;
+                selection-background-color: rgba(255, 255, 255, 0.15);
+            }
+        
+            QSpinBox:focus, QDoubleSpinBox:focus {
+                border: 1px solid rgba(255, 255, 255, 0.25);
+                background: rgba(255, 255, 255, 0.05);
+            }
+        
+            QSpinBox::up-button, QDoubleSpinBox::up-button {
+                subcontrol-origin: border;
+                subcontrol-position: top right;
+                width: 22px;
+                height: 16px;
+                background: transparent;
+                border: none;
+                margin-top: 3px;
+                margin-right: 4px;
+                border-top-right-radius: 8px;
+            }
+        
+            QSpinBox::down-button, QDoubleSpinBox::down-button {
+                subcontrol-origin: border;
+                subcontrol-position: bottom right;
+                width: 22px;
+                height: 16px;
+                background: transparent;
+                border: none;
+                margin-bottom: 3px;
+                margin-right: 4px;
+                border-bottom-right-radius: 8px;
+            }
+        
+            QSpinBox::up-button:hover, QSpinBox::down-button:hover,
+            QDoubleSpinBox::up-button:hover, QDoubleSpinBox::down-button:hover {
+                background: rgba(255, 255, 255, 0.08);
+            }
+        
+            QSpinBox::up-arrow, QDoubleSpinBox::up-arrow {
+                image: url(app/gui/icons/up_arrow.png);
+                width: 10px; 
+                height: 10px;
+            }
+        
+            QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {
+                image: url(app/gui/icons/down_arrow.png);
+                width: 10px; 
+                height: 10px;
+            }
+            QToolTip {
+                background-color: rgba(25, 25, 30, 0.95); 
+                color: #E0E0E0; 
+                border: 1px solid rgba(255, 255, 255, 0.15); 
+                border-radius: 6px; 
+                padding: 6px 10px; font-size: 13px; 
+                font-family: 'Inter Tight SemiBold';
+            }
+        """)
+
         self.token_counter_lbl = QLabel("Tokens: 0")
         self.token_counter_lbl.setFont(self.f_label)
         self.token_counter_lbl.setStyleSheet(f"color: {self._TEXT_S}; margin-left: 12px; background: transparent; border: none;")
- 
+
         self.btn_import = self._text_icon_btn("app/gui/icons/import.png", self.translations.get("lorebook_editor_import_lorebook", "Import JSON"), "LBBtnImport")
         self.btn_export = self._text_icon_btn("app/gui/icons/export.png", self.translations.get("lorebook_editor_export_lorebook", "Export JSON"), "LBBtnExport")
- 
+
         self.btn_save_all = QPushButton(self.translations.get("lorebook_apply_changes_btn", "APPLY CHANGES"))
         self.btn_save_all.setObjectName("LBBtnSave")
         self.btn_save_all.setFixedSize(150, 32)
         self.btn_save_all.setFont(self.f_btn)
         self.btn_save_all.setStyleSheet(self._s_accent_btn("LBBtnSave"))
- 
+
         lay.addWidget(depth_lbl)
         lay.addWidget(self.depth_combo)
+        lay.addSpacing(10)
+        lay.addWidget(self.recursive_check)
+        lay.addWidget(self.recursion_depth_spin)
         lay.addWidget(self.token_counter_lbl)
         lay.addStretch()
         lay.addWidget(self.btn_import)
@@ -7850,6 +9011,7 @@ class LorebookEditorDialog(QDialog):
     def _connect_signals(self):
         self.lorebook_combo.currentIndexChanged.connect(self.apply_current_lorebook)
         self.entry_list.itemClicked.connect(self.select_entry)
+        self.entry_list.model().rowsMoved.connect(self._on_entries_reordered)
         self.search_bar.textChanged.connect(self.populate_entry_list)
         self.btn_new_entry.clicked.connect(self.add_entry)
         self.btn_del_entry.clicked.connect(self.delete_entry)
@@ -8021,6 +9183,15 @@ class LorebookEditorDialog(QDialog):
             self.depth_combo.setCurrentIndex(
                 max(0, self.lorebooks[name].get("n_depth", 3) - 1)
             )
+            self.recursive_check.setChecked(
+                bool(self.lorebooks[name].get("recursive_scanning", True))
+            )
+            try:
+                self.recursion_depth_spin.setValue(
+                    int(self.lorebooks[name].get("recursion_depth", 2) or 2)
+                )
+            except (TypeError, ValueError):
+                self.recursion_depth_spin.setValue(2)
             self.form_widget.setVisible(False)
             self.empty_state.setVisible(True)
             self.populate_entry_list()
@@ -8045,9 +9216,11 @@ class LorebookEditorDialog(QDialog):
             it = QListWidgetItem(display)
             it.setData(Qt.ItemDataRole.UserRole, i)
             it.setSizeHint(QtCore.QSize(0, 40))
+            it.setToolTip(self.translations.get("lorebook_entry_drag_tooltip", "Drag to reorder"))
+            it.setFlags((it.flags() | Qt.ItemFlag.ItemIsDragEnabled) & ~Qt.ItemFlag.ItemIsDropEnabled)
             self.entry_list.addItem(it)
             shown += 1
- 
+
         total = len(entries)
         if filt:
             self.lbl_count.setText(
@@ -8057,7 +9230,82 @@ class LorebookEditorDialog(QDialog):
             self.lbl_count.setText(
                 self.translations.get("lorebook_entries_count", "{total} entries").format(total=total)
             )
- 
+
+        is_filtered = bool(self.search_bar.text().strip())
+        self.entry_list.setDragEnabled(not is_filtered)
+        self.entry_list.setAcceptDrops(not is_filtered)
+        self.entry_list.viewport().setAcceptDrops(not is_filtered)
+
+    def _on_entries_reordered(self, parent, start, end, destination, row):
+        if self.is_programmatic_change:
+            return
+        if not self.current_lorebook_name or self.current_lorebook_name not in self.lorebooks:
+            return
+        lb = self.lorebooks.get(self.current_lorebook_name)
+        if not lb:
+            return
+
+        if self.search_bar.text().strip():
+            self.is_programmatic_change = True
+            try:
+                self.populate_entry_list()
+                if 0 <= self.current_entry_index < self.entry_list.count():
+                    for i in range(self.entry_list.count()):
+                        it = self.entry_list.item(i)
+                        if it.data(Qt.ItemDataRole.UserRole) == self.current_entry_index:
+                            self.entry_list.setCurrentRow(i)
+                            break
+            finally:
+                self.is_programmatic_change = False
+            return
+
+        entries = lb.get("entries", [])
+        if self.entry_list.count() != len(entries):
+            self.populate_entry_list()
+            return
+
+        new_order_old_indices = []
+        for i in range(self.entry_list.count()):
+            it = self.entry_list.item(i)
+            old_idx = it.data(Qt.ItemDataRole.UserRole)
+            if old_idx is None:
+                self.populate_entry_list()
+                return
+            try:
+                new_order_old_indices.append(int(old_idx))
+            except (TypeError, ValueError):
+                self.populate_entry_list()
+                return
+
+        if new_order_old_indices == list(range(len(entries))):
+            return
+
+        cur_item = self.entry_list.currentItem()
+        selected_old_idx = cur_item.data(Qt.ItemDataRole.UserRole) if cur_item else None
+
+        try:
+            new_entries = [entries[old_idx] for old_idx in new_order_old_indices]
+        except IndexError:
+            self.populate_entry_list()
+            return
+
+        self.is_programmatic_change = True
+        try:
+            lb["entries"] = new_entries
+            self.configuration_settings.update_lorebook(self.current_lorebook_name, lb)
+            for i in range(self.entry_list.count()):
+                it = self.entry_list.item(i)
+                it.setData(Qt.ItemDataRole.UserRole, i)
+            if selected_old_idx is not None:
+                try:
+                    self.current_entry_index = new_order_old_indices.index(int(selected_old_idx))
+                except ValueError:
+                    self.current_entry_index = self.entry_list.currentRow()
+            else:
+                self.current_entry_index = self.entry_list.currentRow()
+        finally:
+            self.is_programmatic_change = False
+
     def select_entry(self, item):
         if not item or self.current_lorebook_name not in self.lorebooks:
             return
@@ -8267,6 +9515,12 @@ class LorebookEditorDialog(QDialog):
             self.lorebooks[self.current_lorebook_name]["n_depth"] = (
                 self.depth_combo.currentIndex() + 1
             )
+            self.lorebooks[self.current_lorebook_name]["recursive_scanning"] = (
+                self.recursive_check.isChecked()
+            )
+            self.lorebooks[self.current_lorebook_name]["recursion_depth"] = (
+                self.recursion_depth_spin.value()
+            )
         self.configuration_settings.save_lorebooks(self.lorebooks)
         
         title = self.translations.get("lorebook_editor_saved", "Saved")
@@ -8381,11 +9635,14 @@ class AuthorNotesEditorDialog(QDialog):
     _BLUE_HOV_BD = "rgba(75, 184, 255, 0.55)"
     _BLUE_BRT    = "#82CDFF"
 
-    def __init__(self, translations, configuration_settings, main_window, parent=None):
+    def __init__(self, translations, configuration_settings, main_window, parent=None,
+                 character_name=None, configuration_characters=None):
         super().__init__(parent)
         self.translations = translations
         self.configuration_settings = configuration_settings
         self.main_window = main_window
+        self.character_name = character_name
+        self.configuration_characters = configuration_characters
 
         self.setWindowTitle(self.translations.get("author_notes_editor_title", "Author Notes Editor"))
         self.setWindowIcon(QIcon("app/gui/icons/logotype.ico"))
@@ -8477,6 +9734,123 @@ class AuthorNotesEditorDialog(QDialog):
         desc_lbl.setWordWrap(True)
         desc_lbl.setStyleSheet(f"color: {self._TEXT_S}; line-height: 1.4;")
         lay.addWidget(desc_lbl)
+
+        self.scope = "chat" if self.character_name else "global"
+        if self.character_name:
+            scope_row = QHBoxLayout()
+            scope_row.setSpacing(10)
+
+            scope_lbl = QLabel(self.translations.get("author_notes_scope_label", "SCOPE"))
+            scope_lbl.setFont(self.f_label)
+            scope_lbl.setStyleSheet(f"color: {self._TEXT_S}; letter-spacing: 0.8px;")
+            scope_row.addWidget(scope_lbl)
+
+            self.scope_combo = QComboBox()
+            self.scope_combo.setObjectName("ANScopeCombo")
+            self.scope_combo.setFixedHeight(32)
+            self.scope_combo.setFont(self.f_input)
+            self.scope_combo.addItems([
+                self.translations.get("author_notes_scope_chat", f"This chat only"),
+                self.translations.get("author_notes_scope_global", "Global (all characters & chats)"),
+            ])
+            self.scope_combo.setStyleSheet(
+                f"QComboBox#ANScopeCombo {{"
+                f"  background: {self._SURF2}; border: 1px solid {self._BORDER};"
+                f"  border-radius: 6px; color: {self._TEXT}; padding: 0 10px;"
+                f"}}"
+                f"QComboBox#ANScopeCombo::drop-down {{ border: none; width: 22px; }}"
+            )
+            self.scope_combo.currentIndexChanged.connect(self._on_scope_changed)
+            scope_row.addWidget(self.scope_combo)
+
+            self.depth_lbl = QLabel(self.translations.get("author_notes_depth_label", "INSERT DEPTH"))
+            self.depth_lbl.setFont(self.f_label)
+            self.depth_lbl.setStyleSheet(f"color: {self._TEXT_S}; letter-spacing: 0.8px;")
+            scope_row.addWidget(self.depth_lbl)
+
+            self.depth_spin = QSpinBox()
+            self.depth_spin.setObjectName("ANDepthSpin")
+            self.depth_spin.setRange(0, 20)
+            self.depth_spin.setValue(3)
+            self.depth_spin.setFixedHeight(32)
+            self.depth_spin.setFixedWidth(100)
+            self.depth_spin.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.depth_spin.setFont(self.f_input)
+            self.depth_spin.setToolTip(self.translations.get(
+                "author_notes_depth_tooltip",
+                "How many messages from the end of the history the note is placed at. 0 = right before your message."
+            ))
+            self.depth_spin.setStyleSheet("""
+                QSpinBox, QDoubleSpinBox {
+                    background: rgba(255, 255, 255, 0.03);
+                    border: 1px solid rgba(255, 255, 255, 0.06);
+                    border-top: 1px solid rgba(255, 255, 255, 0.12);
+                    border-radius: 10px;
+                    color: rgba(240, 240, 240, 0.95);
+                    font-family: 'Inter Tight Medium'; 
+                    font-size: 13px;
+                    padding: 0px 8px;
+                    padding-right: 28px;
+                    selection-background-color: rgba(255, 255, 255, 0.15);
+                }
+            
+                QSpinBox:focus, QDoubleSpinBox:focus {
+                    border: 1px solid rgba(255, 255, 255, 0.25);
+                    background: rgba(255, 255, 255, 0.05);
+                }
+            
+                QSpinBox::up-button, QDoubleSpinBox::up-button {
+                    subcontrol-origin: border;
+                    subcontrol-position: top right;
+                    width: 22px;
+                    height: 16px;
+                    background: transparent;
+                    border: none;
+                    margin-top: 3px;
+                    margin-right: 4px;
+                    border-top-right-radius: 8px;
+                }
+            
+                QSpinBox::down-button, QDoubleSpinBox::down-button {
+                    subcontrol-origin: border;
+                    subcontrol-position: bottom right;
+                    width: 22px;
+                    height: 16px;
+                    background: transparent;
+                    border: none;
+                    margin-bottom: 3px;
+                    margin-right: 4px;
+                    border-bottom-right-radius: 8px;
+                }
+            
+                QSpinBox::up-button:hover, QSpinBox::down-button:hover,
+                QDoubleSpinBox::up-button:hover, QDoubleSpinBox::down-button:hover {
+                    background: rgba(255, 255, 255, 0.08);
+                }
+            
+                QSpinBox::up-arrow, QDoubleSpinBox::up-arrow {
+                    image: url(app/gui/icons/up_arrow.png);
+                    width: 10px; 
+                    height: 10px;
+                }
+            
+                QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {
+                    image: url(app/gui/icons/down_arrow.png);
+                    width: 10px; 
+                    height: 10px;
+                }
+                QToolTip {
+                    background-color: rgba(25, 25, 30, 0.95); 
+                    color: #E0E0E0; 
+                    border: 1px solid rgba(255, 255, 255, 0.15); 
+                    border-radius: 6px; 
+                    padding: 6px 10px; font-size: 13px; 
+                    font-family: 'Inter Tight SemiBold';
+                }
+            """)
+            scope_row.addWidget(self.depth_spin)
+            scope_row.addStretch()
+            lay.addLayout(scope_row)
 
         input_lbl = QLabel(self.translations.get("author_notes_input_label", "DIRECTIVES CONTENT"))
         input_lbl.setFont(self.f_label)
@@ -8572,13 +9946,68 @@ class AuthorNotesEditorDialog(QDialog):
 
         return bar
 
+    def _current_chat_data(self):
+        if not self.character_name or not self.configuration_characters:
+            return None, None
+        try:
+            config = self.configuration_characters.load_configuration()
+            char_data = config.get("character_list", {}).get(self.character_name)
+            if not char_data:
+                return None, None
+            chat_id = char_data.get("current_chat", "default")
+            chat_data = char_data.get("chats", {}).get(chat_id, {})
+            return char_data, chat_data
+        except Exception:
+            return None, None
+
+    def _on_scope_changed(self, index):
+        self.scope = "chat" if index == 0 else "global"
+        if hasattr(self, "depth_spin"):
+            self.depth_spin.setVisible(self.scope == "chat")
+            self.depth_lbl.setVisible(self.scope == "chat")
+        self.load_data()
+
     def load_data(self):
-        current_notes = self.configuration_settings.get_user_data("author_notes") or ""
-        self.notes_edit.setPlainText(current_notes)
+        scope_is_chat = (self.scope == "chat" and self.character_name)
+        if scope_is_chat:
+            _, chat_data = self._current_chat_data()
+            note = chat_data.get("author_notes", {}) if isinstance(chat_data, dict) else {}
+            if not isinstance(note, dict):
+                note = {}
+            self.notes_edit.setPlainText(str(note.get("content", "") or ""))
+            if hasattr(self, "depth_spin"):
+                try:
+                    self.depth_spin.setValue(max(0, min(20, int(note.get("depth", 3) or 0))))
+                except (TypeError, ValueError):
+                    self.depth_spin.setValue(3)
+        else:
+            current_notes = self.configuration_settings.get_user_data("author_notes") or ""
+            self.notes_edit.setPlainText(current_notes)
 
     def save_notes(self):
         new_notes = self.notes_edit.toPlainText().strip()
-        self.configuration_settings.update_user_data("author_notes", new_notes)
+        scope_is_chat = (self.scope == "chat" and self.character_name)
+
+        if scope_is_chat:
+            char_data, chat_data = self._current_chat_data()
+            if char_data is None or not chat_data:
+                sow_toast(
+                    parent=self.main_window,
+                    title=self.translations.get("author_notes_title", "Author's Notes"),
+                    text=self.translations.get("author_notes_scope_error", "Could not resolve the current chat."),
+                    msg_type="error"
+                )
+                return
+            chat_id = char_data.get("current_chat", "default")
+            chat_data["author_notes"] = {
+                "content": new_notes,
+                "depth": self.depth_spin.value() if hasattr(self, "depth_spin") else 3,
+            }
+            config = self.configuration_characters.load_configuration()
+            config["character_list"][self.character_name] = char_data
+            self.configuration_characters.save_configuration_edit(config)
+        else:
+            self.configuration_settings.update_user_data("author_notes", new_notes)
 
         sow_toast(
             parent=self.main_window,
@@ -9048,8 +10477,8 @@ class ImageGenSettingsDialog(QDialog):
             | Qt.WindowType.WindowCloseButtonHint
         )
         
-        self.setMinimumSize(860, 540)
-        self.resize(860, 540)
+        self.setMinimumSize(920, 620)
+        self.resize(920, 620)
 
         self._init_fonts()
         self._apply_base_palette()
@@ -9104,7 +10533,7 @@ class ImageGenSettingsDialog(QDialog):
         )
         left_col.addWidget(self.chk_enable)
 
-        left_col.addWidget(self._build_card_label(self.translations.get("image_gen_grp_connection", "CONNECTION SETTINGS")))
+        left_col.addWidget(self._build_card_label(self.translations.get("image_gen_grp_connection", "CONNECTION & MODEL SETTINGS")))
         
         conn_card = QFrame()
         conn_card.setObjectName("conn_card")
@@ -9113,21 +10542,78 @@ class ImageGenSettingsDialog(QDialog):
         conn_lay.setContentsMargins(16, 16, 16, 16)
         conn_lay.setSpacing(12)
 
+        # 1. Provider
         self.cb_provider = QComboBox()
         self.cb_provider.setObjectName("IGProviderCombo")
         self.cb_provider.setFont(self.f_input)
-        self.cb_provider.addItems(["Automatic1111", "ComfyUI (A1111 API)", "DALL-E 3", "NovelAI", "FLUX"])
+        self.cb_provider.addItems(["Automatic1111", "ComfyUI", "DALL-E 3", "NovelAI", "FLUX"])
         current_prov = self.configuration_settings.get_main_setting("image_provider") or "Automatic1111"
-        self.cb_provider.setCurrentText(current_prov)
+        if "ComfyUI" in current_prov:
+            self.cb_provider.setCurrentText("ComfyUI")
+        else:
+            self.cb_provider.setCurrentText(current_prov)
         self.cb_provider.setStyleSheet(self._s_combo("IGProviderCombo"))
 
+        # 2. Endpoint URL
         self.le_url = QLineEdit()
         self.le_url.setObjectName("IGApiUrlEdit")
         self.le_url.setFont(self.f_input)
-        self.le_url.setText(self.configuration_settings.get_main_setting("image_api_url") or "http://127.0.0.1:7860")
-        self.le_url.setPlaceholderText("http://127.0.0.1:7860")
+        self.le_url.setText(self.configuration_settings.get_main_setting("image_api_url") or "http://127.0.0.1:8188")
+        self.le_url.setPlaceholderText("http://127.0.0.1:8188")
         self.le_url.setStyleSheet(self._s_input("IGApiUrlEdit"))
 
+        # 3. Model / Checkpoint Name (For ComfyUI & A1111)
+        self.le_checkpoint = QLineEdit()
+        self.le_checkpoint.setObjectName("IGCheckpointEdit")
+        self.le_checkpoint.setFont(self.f_input)
+        self.le_checkpoint.setText(self.configuration_settings.get_main_setting("image_checkpoint") or "")
+        self.le_checkpoint.setPlaceholderText("Optional: e.g. pony, animagine, or model filename")
+        self.le_checkpoint.setStyleSheet(self._s_input("IGCheckpointEdit"))
+
+        self.lbl_checkpoint = QLabel(self.translations.get("image_gen_checkpoint", "Model / Checkpoint:"))
+        self.lbl_checkpoint.setFont(self.f_input)
+        self.lbl_checkpoint.setStyleSheet(f"color: {self._TEXT_S}; border: none;")
+
+        # 4. Custom Workflow JSON (ComfyUI only)
+        self.workflow_container = QWidget()
+        self.workflow_container.setStyleSheet("background: transparent; border: none;")
+        wf_layout = QHBoxLayout(self.workflow_container)
+        wf_layout.setContentsMargins(0, 0, 0, 0)
+        wf_layout.setSpacing(6)
+
+        self.le_custom_workflow = QLineEdit()
+        self.le_custom_workflow.setObjectName("IGWorkflowEdit")
+        self.le_custom_workflow.setFont(self.f_input)
+        self.le_custom_workflow.setText(self.configuration_settings.get_main_setting("comfyui_custom_workflow_path") or "")
+        self.le_custom_workflow.setPlaceholderText("Optional custom workflow_api.json")
+        self.le_custom_workflow.setStyleSheet(self._s_input("IGWorkflowEdit"))
+
+        self.btn_browse_workflow = QPushButton("📁")
+        self.btn_browse_workflow.setFixedSize(34, 34)
+        self.btn_browse_workflow.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.btn_browse_workflow.setToolTip(self.translations.get("browse_workflow_tooltip", "Select workflow_api.json"))
+        self.btn_browse_workflow.setStyleSheet(f"""
+            QPushButton {{
+                background: {self._SURF2};
+                border: 1px solid {self._BORDER};
+                border-radius: 6px;
+                color: {self._TEXT};
+            }}
+            QPushButton:hover {{
+                background: {self._SURF3};
+                border-color: {self._BORDER_M};
+            }}
+        """)
+        self.btn_browse_workflow.clicked.connect(self._browse_workflow_file)
+
+        wf_layout.addWidget(self.le_custom_workflow, 1)
+        wf_layout.addWidget(self.btn_browse_workflow)
+
+        self.lbl_custom_workflow = QLabel(self.translations.get("image_gen_custom_workflow", "Custom Workflow:"))
+        self.lbl_custom_workflow.setFont(self.f_input)
+        self.lbl_custom_workflow.setStyleSheet(f"color: {self._TEXT_S}; border: none;")
+
+        # 5. Cloud API Key
         self.le_api_key = QLineEdit()
         self.le_api_key.setObjectName("IGApiKeyEdit")
         self.le_api_key.setFont(self.f_input)
@@ -9139,13 +10625,16 @@ class ImageGenSettingsDialog(QDialog):
         self.lbl_api_key.setFont(self.f_input)
         self.lbl_api_key.setStyleSheet(f"color: {self._TEXT_S}; border: none;")
 
-        lbl_prov = QLabel(self.translations.get("image_gen_provider", "Provider:"))
-        lbl_prov.setStyleSheet(f"color: {self._TEXT_S}; border: none;"); lbl_prov.setFont(self.f_input)
-        lbl_url = QLabel(self.translations.get("image_gen_api_url", "API URL (Local only):"))
-        lbl_url.setStyleSheet(f"color: {self._TEXT_S}; border: none;"); lbl_url.setFont(self.f_input)
+        self.lbl_prov = QLabel(self.translations.get("image_gen_provider", "Provider:"))
+        self.lbl_prov.setStyleSheet(f"color: {self._TEXT_S}; border: none;"); self.lbl_prov.setFont(self.f_input)
+        
+        self.lbl_url = QLabel(self.translations.get("image_gen_api_url", "API URL (Local only):"))
+        self.lbl_url.setStyleSheet(f"color: {self._TEXT_S}; border: none;"); self.lbl_url.setFont(self.f_input)
 
-        conn_lay.addRow(lbl_prov, self.cb_provider)
-        conn_lay.addRow(lbl_url, self.le_url)
+        conn_lay.addRow(self.lbl_prov, self.cb_provider)
+        conn_lay.addRow(self.lbl_url, self.le_url)
+        conn_lay.addRow(self.lbl_checkpoint, self.le_checkpoint)
+        conn_lay.addRow(self.lbl_custom_workflow, self.workflow_container)
         conn_lay.addRow(self.lbl_api_key, self.le_api_key)
         left_col.addWidget(conn_card)
 
@@ -9191,7 +10680,7 @@ class ImageGenSettingsDialog(QDialog):
         self.le_prefix = QLineEdit()
         self.le_prefix.setObjectName("IGPrefixEdit")
         self.le_prefix.setFont(self.f_input)
-        self.le_prefix.setText(self.configuration_settings.get_main_setting("image_prefix_prompt") or "masterpiece, best quality")
+        self.le_prefix.setText(self.configuration_settings.get_main_setting("image_prefix_prompt") or "masterpiece, best quality, vivid colors")
         self.le_prefix.setStyleSheet(self._s_input("IGPrefixEdit"))
         
         lbl_neg = QLabel(self.translations.get("image_gen_negative", "Negative Prompt:"))
@@ -9201,7 +10690,7 @@ class ImageGenSettingsDialog(QDialog):
         self.le_neg = QLineEdit()
         self.le_neg.setObjectName("IGNegEdit")
         self.le_neg.setFont(self.f_input)
-        self.le_neg.setText(self.configuration_settings.get_main_setting("image_negative_prompt") or "worst quality, bad anatomy, bad hands, blurry")
+        self.le_neg.setText(self.configuration_settings.get_main_setting("image_negative_prompt") or "worst quality, low quality, bad anatomy, blurry")
         self.le_neg.setStyleSheet(self._s_input("IGNegEdit"))
 
         prompt_lay.addWidget(lbl_prefix)
@@ -9438,6 +10927,16 @@ class ImageGenSettingsDialog(QDialog):
         col.addWidget(sb)
         return col, sb
 
+    def _browse_workflow_file(self):
+        file_path, _ = QFileDialog.getOpenFileName(
+            self,
+            self.translations.get("select_workflow_dialog", "Select ComfyUI Workflow (API JSON)"),
+            "",
+            "JSON Files (*.json);;All Files (*)"
+        )
+        if file_path:
+            self.le_custom_workflow.setText(file_path)
+
     def _setup_logic(self):
         self.cb_provider.currentTextChanged.connect(self._update_api_key_visibility)
         self.le_api_key.textChanged.connect(self._save_api_key_realtime)
@@ -9445,37 +10944,57 @@ class ImageGenSettingsDialog(QDialog):
 
     def _update_api_key_visibility(self):
         prov = self.cb_provider.currentText()
-        if prov in ["Automatic1111", "ComfyUI (A1111 API)", "DALL-E 3"]:
+
+        if prov in ("Automatic1111", "ComfyUI"):
             self.lbl_api_key.hide()
             self.le_api_key.hide()
+            
+            self.lbl_url.show()
+            self.le_url.show()
+            self.lbl_checkpoint.show()
+            self.le_checkpoint.show()
+
+            if prov == "ComfyUI":
+                self.lbl_custom_workflow.show()
+                self.workflow_container.show()
+                self.le_url.setPlaceholderText("http://127.0.0.1:8188")
+                if not self.le_url.text() or self.le_url.text() == "http://127.0.0.1:7860":
+                    self.le_url.setText("http://127.0.0.1:8188")
+            else:
+                self.lbl_custom_workflow.hide()
+                self.workflow_container.hide()
+                self.le_url.setPlaceholderText("http://127.0.0.1:7860")
+                if not self.le_url.text() or self.le_url.text() == "http://127.0.0.1:8188":
+                    self.le_url.setText("http://127.0.0.1:7860")
         else:
+            self.lbl_url.hide()
+            self.le_url.hide()
+            self.lbl_checkpoint.hide()
+            self.le_checkpoint.hide()
+            self.lbl_custom_workflow.hide()
+            self.workflow_container.hide()
+
             self.lbl_api_key.show()
             self.le_api_key.show()
-            token_key = f"{prov.upper()}_API_TOKEN"
+
+            token_key = "OPEN_AI_API_TOKEN" if prov == "DALL-E 3" else f"{prov.upper()}_API_TOKEN"
             token = self.configuration_api.get_token(token_key)
             self.le_api_key.blockSignals(True)
             self.le_api_key.setText(token if token else "")
             self.le_api_key.blockSignals(False)
 
-        if prov == "ComfyUI (A1111 API)":
-            self.le_url.setPlaceholderText("http://127.0.0.1:8188")
-            if self.le_url.text() == "http://127.0.0.1:7860" or not self.le_url.text():
-                self.le_url.setText("http://127.0.0.1:8188")
-        elif prov == "Automatic1111":
-            self.le_url.setPlaceholderText("http://127.0.0.1:7860")
-            if self.le_url.text() == "http://127.0.0.1:8188" or not self.le_url.text():
-                self.le_url.setText("http://127.0.0.1:7860")
-
     def _save_api_key_realtime(self, text):
         prov = self.cb_provider.currentText()
-        if prov not in ["Automatic1111", "ComfyUI (A1111 API)", "DALL-E 3"]:
-            token_key = f"{prov.upper()}_API_TOKEN"
+        if prov not in ("Automatic1111", "ComfyUI"):
+            token_key = "OPEN_AI_API_TOKEN" if prov == "DALL-E 3" else f"{prov.upper()}_API_TOKEN"
             self.configuration_api.save_api_token(token_key, text)
 
     def _save_and_close(self):
         self.configuration_settings.update_main_setting("image_gen_enabled", self.chk_enable.isChecked())
         self.configuration_settings.update_main_setting("image_provider", self.cb_provider.currentText())
         self.configuration_settings.update_main_setting("image_api_url", self.le_url.text().strip())
+        self.configuration_settings.update_main_setting("image_checkpoint", self.le_checkpoint.text().strip())
+        self.configuration_settings.update_main_setting("comfyui_custom_workflow_path", self.le_custom_workflow.text().strip())
         self.configuration_settings.update_main_setting("image_prefix_prompt", self.le_prefix.text().strip())
         self.configuration_settings.update_main_setting("image_negative_prompt", self.le_neg.text().strip())
         self.configuration_settings.update_main_setting("image_width", self.sb_width.value())
@@ -10083,3 +11602,726 @@ class SceneFolderCard(QtWidgets.QFrame):
                              count_text)
 
         painter.end()
+
+class PersonaQuickButton(QtWidgets.QPushButton):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setFixedSize(30, 30)
+        self.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
+        self.setFocusPolicy(QtCore.Qt.FocusPolicy.NoFocus)
+        self._pixmap = None
+        self._is_hovered = False
+        self.setAttribute(QtCore.Qt.WidgetAttribute.WA_Hover, True)
+        self.setStyleSheet("""
+        QPushButton {
+            background: transparent; 
+            border: none; 
+            outline: none;
+        }
+        QToolTip { 
+            background-color: rgba(25, 25, 30, 0.95); 
+            color: #E0E0E0; 
+            border: 1px solid rgba(255, 255, 255, 0.15); 
+            border-radius: 6px; 
+            padding: 6px 10px; font-size: 12px; 
+            font-weight: 500; 
+        }
+        """)
+
+    def set_avatar(self, avatar_path: str):
+        if not avatar_path or not os.path.exists(avatar_path):
+            avatar_path = "app/gui/icons/person.png"
+            
+        src = QtGui.QPixmap(avatar_path)
+        if src.isNull():
+            src = QtGui.QPixmap("app/gui/icons/person.png")
+
+        target_size = 60
+        scaled = src.scaled(
+            target_size, target_size,
+            QtCore.Qt.AspectRatioMode.KeepAspectRatioByExpanding,
+            QtCore.Qt.TransformationMode.SmoothTransformation
+        )
+        crop_x = (scaled.width() - target_size) // 2
+        crop_y = (scaled.height() - target_size) // 2
+        cropped = scaled.copy(crop_x, crop_y, target_size, target_size)
+
+        rounded = QtGui.QPixmap(target_size, target_size)
+        rounded.fill(QtCore.Qt.GlobalColor.transparent)
+
+        p = QtGui.QPainter(rounded)
+        p.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing, True)
+        p.setRenderHint(QtGui.QPainter.RenderHint.SmoothPixmapTransform, True)
+        path = QtGui.QPainterPath()
+        path.addEllipse(0, 0, target_size, target_size)
+        p.setClipPath(path)
+        p.drawPixmap(0, 0, cropped)
+        p.end()
+
+        self._pixmap = rounded
+        self.update()
+
+    def enterEvent(self, event):
+        self._is_hovered = True
+        self.update()
+        super().enterEvent(event)
+
+    def leaveEvent(self, event):
+        self._is_hovered = False
+        self.update()
+        super().leaveEvent(event)
+
+    @safe_paint
+    def paintEvent(self, event):
+        painter = QtGui.QPainter(self)
+        painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing, True)
+        painter.setRenderHint(QtGui.QPainter.RenderHint.SmoothPixmapTransform, True)
+
+        rect = self.rect()
+        w, h = rect.width(), rect.height()
+
+        if self._pixmap and not self._pixmap.isNull():
+            painter.drawPixmap(rect, self._pixmap)
+        else:
+            painter.setBrush(QtGui.QColor(35, 35, 45))
+            painter.setPen(QtCore.Qt.PenStyle.NoPen)
+            painter.drawEllipse(rect.adjusted(1, 1, -1, -1))
+
+        if self._is_hovered:
+            pen = QtGui.QPen(QtGui.QColor(96, 165, 250, 220), 2.0)
+        else:
+            pen = QtGui.QPen(QtGui.QColor(255, 255, 255, 45), 1.5)
+
+        painter.setPen(pen)
+        painter.setBrush(QtCore.Qt.BrushStyle.NoBrush)
+        painter.drawEllipse(QtCore.QRectF(1.0, 1.0, w - 2.0, h - 2.0))
+
+class ContextInspectorCard(QtWidgets.QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowFlags(
+            QtCore.Qt.WindowType.ToolTip |
+            QtCore.Qt.WindowType.FramelessWindowHint |
+            QtCore.Qt.WindowType.NoDropShadowWindowHint
+        )
+        self.setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground, True)
+        self.setAttribute(QtCore.Qt.WidgetAttribute.WA_ShowWithoutActivating, True)
+
+        layout = QtWidgets.QVBoxLayout(self)
+        layout.setContentsMargins(6, 6, 6, 6)
+
+        self.frame = QtWidgets.QFrame(self)
+        self.frame.setObjectName("InspectorFrame")
+        self.frame.setStyleSheet("""
+            QFrame#InspectorFrame {
+                background-color: #0E0E14;
+                border: 1px solid rgba(255, 255, 255, 0.12);
+                border-radius: 12px;
+            }
+            QLabel {
+                background: transparent;
+                border: none;
+                color: #E2E8F0;
+            }
+        """)
+
+        shadow = QtWidgets.QGraphicsDropShadowEffect(self.frame)
+        shadow.setBlurRadius(20)
+        shadow.setColor(QtGui.QColor(0, 0, 0, 180))
+        shadow.setOffset(0, 4)
+        self.frame.setGraphicsEffect(shadow)
+
+        self.frame_layout = QtWidgets.QVBoxLayout(self.frame)
+        self.frame_layout.setContentsMargins(14, 12, 14, 12)
+        self.frame_layout.setSpacing(6)
+
+        self.content_label = QtWidgets.QLabel(self.frame)
+        self.content_label.setTextFormat(QtCore.Qt.TextFormat.RichText)
+        self.frame_layout.addWidget(self.content_label)
+
+        layout.addWidget(self.frame)
+
+    def set_html(self, html_text: str):
+        self.content_label.setText(html_text)
+        self.adjustSize()
+
+
+class TokenBudgetBarWidget(QtWidgets.QFrame):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setFixedHeight(28)
+        self.setObjectName("TokenBudgetBar")
+        self.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WhatsThisCursor))
+        
+        self.total_tokens = 0
+        self.max_tokens = 8192
+        self.breakdown = {}
+        self._popover = None
+        self._tooltip_html = ""
+
+        self.layout = QtWidgets.QHBoxLayout(self)
+        self.layout.setContentsMargins(10, 2, 10, 2)
+        self.layout.setSpacing(7)
+
+        self.status_dot = QtWidgets.QLabel("●")
+        self.status_dot.setFixedSize(12, 12)
+        self.status_dot.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        self.status_dot.setStyleSheet("color: #4ADE80; font-size: 10px; background: transparent; border: none;")
+
+        self.lbl_text = QtWidgets.QLabel("0 / 8,192 tok")
+        fnt = QtGui.QFont("Inter Tight SemiBold", 9, QtGui.QFont.Weight.Bold)
+        fnt.setHintingPreference(QtGui.QFont.HintingPreference.PreferNoHinting)
+        self.lbl_text.setFont(fnt)
+        self.lbl_text.setStyleSheet("background: transparent; border: none;")
+
+        self.layout.addWidget(self.status_dot)
+        self.layout.addWidget(self.lbl_text)
+
+        self.setStyleSheet("""
+            QFrame#TokenBudgetBar {
+                background-color: rgba(255, 255, 255, 0.025);
+                border: 1px solid rgba(255, 255, 255, 0.07);
+                border-radius: 14px;
+            }
+            QFrame#TokenBudgetBar:hover {
+                background-color: rgba(255, 255, 255, 0.055);
+                border: 1px solid rgba(255, 255, 255, 0.18);
+            }
+        """)
+
+    def enterEvent(self, event):
+        if self._tooltip_html:
+            if not self._popover:
+                self._popover = ContextInspectorCard()
+            self._popover.set_html(self._tooltip_html)
+            
+            bar_global = self.mapToGlobal(QtCore.QPoint(0, 0))
+            x = bar_global.x() + (self.width() - self._popover.width()) // 2
+            y = bar_global.y() + self.height() + 4
+            self._popover.move(x, y)
+            self._popover.show()
+        super().enterEvent(event)
+
+    def leaveEvent(self, event):
+        if self._popover:
+            self._popover.close()
+            self._popover.deleteLater()
+            self._popover = None
+        super().leaveEvent(event)
+
+    def update_budget(self, total: int, max_tok: int, breakdown: dict):
+        self.total_tokens = total
+        self.max_tokens = max_tok if max_tok > 0 else 8192
+        self.breakdown = breakdown
+
+        pct = min(100, int((total / self.max_tokens) * 100)) if self.max_tokens > 0 else 0
+
+        if pct < 60:
+            accent = "#4ADE80"
+            status_text = "Optimal"
+        elif pct < 85:
+            accent = "#FBBF24"
+            status_text = "Moderate"
+        else:
+            accent = "#F87171"
+            status_text = "Critical"
+
+        max_str = "∞" if max_tok <= 0 else f"{self.max_tokens:,}"
+
+        self.status_dot.setStyleSheet(f"color: {accent}; font-size: 10px; background: transparent; border: none;")
+        self.lbl_text.setText(f"<span style='color:{accent}; font-weight:bold;'>{total:,}</span> <span style='color:rgba(255,255,255,0.4);'>/ {max_str} tok</span>")
+
+        sys_tok = breakdown.get("system", 0)
+        mem_tok = breakdown.get("memory", 0)
+        lore_tok = breakdown.get("lore", 0)
+        hist_tok = breakdown.get("history", 0)
+        free_tok = max(0, self.max_tokens - total) if max_tok > 0 else "Unlimited"
+
+        def _get_pct(val):
+            return f"{(val / self.max_tokens * 100):.1f}%" if self.max_tokens > 0 else "0%"
+
+        if pct >= 85:
+            tip_html = "<span style='color: #F87171;'>⚠️ Context near limit — Run Summarization or prune history.</span>"
+        elif hist_tok > (self.max_tokens * 0.45):
+            tip_html = "<span style='color: #FBBF24;'>💡 Chat history is large — Consider summarizing soon.</span>"
+        else:
+            tip_html = "<span style='color: rgba(255,255,255,0.35);'>✨ Memory load is balanced and healthy.</span>"
+
+        self._tooltip_html = f"""
+        <div style='font-family: Inter, Segoe UI, sans-serif; font-size: 12px; line-height: 1.45; min-width: 270px;'>
+            <table width='100%' style='margin-bottom: 6px;'>
+                <tr>
+                    <td align='left'><b style='color: #FFFFFF; font-size: 12px; letter-spacing: 0.5px;'>CONTEXT INSPECTOR</b></td>
+                    <td align='right'><span style='color: {accent}; font-weight: bold; font-size: 11px;'>{status_text.upper()} ({pct}%)</span></td>
+                </tr>
+            </table>
+
+            <hr style='border: none; border-top: 1px solid rgba(255,255,255,0.08); margin: 6px 0;'>
+
+            <table width='100%' style='border-spacing: 0px 4px;'>
+                <tr>
+                    <td style='color: #27f2ef;'>● <span style='color: rgba(255,255,255,0.85);'>System & Card</span></td>
+                    <td align='right' style='color: #FFFFFF; font-family: Consolas, monospace;'>{sys_tok:,} <span style='color: rgba(255,255,255,0.35); font-size: 10px;'>({_get_pct(sys_tok)})</span></td>
+                </tr>
+                <tr>
+                    <td style='color: #A78BFA;'>● <span style='color: rgba(255,255,255,0.85);'>Soul Memory</span></td>
+                    <td align='right' style='color: #FFFFFF; font-family: Consolas, monospace;'>{mem_tok:,} <span style='color: rgba(255,255,255,0.35); font-size: 10px;'>({_get_pct(mem_tok)})</span></td>
+                </tr>
+                <tr>
+                    <td style='color: #67bd0b;'>● <span style='color: rgba(255,255,255,0.85);'>Active Lorebooks</span></td>
+                    <td align='right' style='color: #FFFFFF; font-family: Consolas, monospace;'>{lore_tok:,} <span style='color: rgba(255,255,255,0.35); font-size: 10px;'>({_get_pct(lore_tok)})</span></td>
+                </tr>
+                <tr>
+                    <td style='color: #FBBF24;'>● <span style='color: rgba(255,255,255,0.85);'>Chat History</span></td>
+                    <td align='right' style='color: #FFFFFF; font-family: Consolas, monospace;'>{hist_tok:,} <span style='color: rgba(255,255,255,0.35); font-size: 10px;'>({_get_pct(hist_tok)})</span></td>
+                </tr>
+                <tr>
+                    <td style='color: #64748B;'>○ <span style='color: rgba(255,255,255,0.5);'>Available Budget</span></td>
+                    <td align='right' style='color: rgba(255,255,255,0.6); font-family: Consolas, monospace;'>{free_tok if isinstance(free_tok, str) else f'{free_tok:,}'} <span style='color: rgba(255,255,255,0.35); font-size: 10px;'>({_get_pct(free_tok) if isinstance(free_tok, int) else '-'})</span></td>
+                </tr>
+            </table>
+
+            <hr style='border: none; border-top: 1px solid rgba(255,255,255,0.08); margin: 6px 0;'>
+
+            <div style='font-size: 11px; padding-top: 2px;'>
+                {tip_html}
+            </div>
+        </div>
+        """
+
+class AudioHudPopup(QtWidgets.QWidget):
+    volumeChanged = QtCore.pyqtSignal(int)
+    trackChanged = QtCore.pyqtSignal(str)
+    ambientToggled = QtCore.pyqtSignal(bool)
+
+    def __init__(self, translations=None, parent=None):
+        super().__init__(parent, QtCore.Qt.WindowType.Popup | QtCore.Qt.WindowType.FramelessWindowHint | QtCore.Qt.WindowType.NoDropShadowWindowHint)
+        self.translations = translations or {}
+        self.setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground, True)
+        self.setAttribute(QtCore.Qt.WidgetAttribute.WA_DeleteOnClose, True)
+        self.setFixedSize(320, 230)
+
+        def _get_font(family="Inter Tight Medium", size=10, bold=False):
+            f = QtGui.QFont(family, size)
+            if bold:
+                f.setBold(True)
+                f.setWeight(QtGui.QFont.Weight.Bold)
+            f.setHintingPreference(QtGui.QFont.HintingPreference.PreferNoHinting)
+            return f
+
+        self._font_fn = _get_font
+
+        self._icon_play = QtGui.QIcon("app/gui/icons/play.png")
+        if os.path.exists("app/gui/icons/pause.png"):
+            self._icon_pause = QtGui.QIcon("app/gui/icons/pause.png")
+        else:
+            self._icon_pause = QtGui.QIcon("app/gui/icons/stop.png")
+
+        self.setStyleSheet("""
+            QFrame#AudioHudMainFrame {
+                background-color: rgba(18, 18, 24, 0.98);
+                border: 1px solid rgba(255, 255, 255, 0.12);
+                border-radius: 14px;
+            }
+            QLabel {
+                color: #DEDAD2;
+                font-family: 'Inter Tight Medium', 'Segoe UI';
+                font-size: 11px;
+                border: none;
+                background: transparent;
+            }
+            QComboBox {
+                background-color: rgba(255, 255, 255, 0.05);
+                color: #E2E8F0;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 8px;
+                padding: 6px 10px;
+                font-family: 'Inter Tight Medium';
+                font-size: 11px;
+            }
+            QComboBox:hover {
+                border-color: rgba(75, 184, 255, 0.4);
+                background-color: rgba(255, 255, 255, 0.08);
+            }
+            QComboBox QAbstractItemView {
+                background-color: rgb(24, 24, 30);
+                color: #E2E8F0;
+                border: 1px solid rgba(255, 255, 255, 0.15);
+                border-radius: 8px;
+                selection-background-color: rgba(75, 184, 255, 0.25);
+                padding: 4px;
+                outline: none;
+            }
+            QSlider::groove:horizontal {
+                height: 4px;
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 2px;
+            }
+            QSlider::sub-page:horizontal {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #4BB8FF, stop:1 #82CDFF);
+                border-radius: 2px;
+            }
+            QSlider::handle:horizontal {
+                background: #FFFFFF;
+                width: 14px;
+                height: 14px;
+                margin: -5px 0;
+                border-radius: 7px;
+            }
+            QSlider::handle:horizontal:hover {
+                background: #82CDFF;
+            }
+        """)
+
+        root_layout = QtWidgets.QVBoxLayout(self)
+        root_layout.setContentsMargins(15, 15, 15, 15)
+
+        main_card = QtWidgets.QFrame()
+        main_card.setObjectName("AudioHudMainFrame")
+        
+        shadow = QtWidgets.QGraphicsDropShadowEffect(main_card)
+        shadow.setBlurRadius(14)
+        shadow.setColor(QtGui.QColor(0, 0, 0, 160))
+        shadow.setOffset(0, 4)
+        main_card.setGraphicsEffect(shadow)
+
+        card_layout = QtWidgets.QVBoxLayout(main_card)
+        card_layout.setContentsMargins(14, 12, 14, 12)
+        card_layout.setSpacing(10)
+
+        header_row = QtWidgets.QHBoxLayout()
+        header_row.setSpacing(8)
+
+        icon_lbl = QtWidgets.QLabel()
+        icon_pix = QtGui.QIcon("app/gui/icons/voice.png").pixmap(15, 15)
+        if not icon_pix.isNull():
+            icon_lbl.setPixmap(icon_pix)
+        header_row.addWidget(icon_lbl)
+
+        title_lbl = QtWidgets.QLabel(self.translations.get("audio_hud_title", "AMBIENT AUDIO").upper())
+        title_lbl.setFont(_get_font("Inter Tight SemiBold", 10, bold=True))
+        title_lbl.setStyleSheet("color: #82CDFF; letter-spacing: 1px; border: none; background: transparent;")
+        header_row.addWidget(title_lbl)
+        header_row.addStretch()
+
+        self.btn_toggle = QtWidgets.QPushButton()
+        self.btn_toggle.setFixedSize(28, 28)
+        self.btn_toggle.setIconSize(QtCore.QSize(13, 13))
+        self.btn_toggle.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
+        self.btn_toggle.setCheckable(True)
+        self.btn_toggle.setStyleSheet("""
+            QPushButton {
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 14px;
+            }
+            QPushButton:hover { background: rgba(75, 184, 255, 0.2); border-color: #4BB8FF; }
+            QPushButton:checked { background: rgba(74, 222, 128, 0.2); border-color: #4ADE80; }
+        """)
+        self.btn_toggle.toggled.connect(self._on_toggle_clicked)
+        header_row.addWidget(self.btn_toggle)
+        card_layout.addLayout(header_row)
+
+        track_row = QtWidgets.QVBoxLayout()
+        track_row.setSpacing(4)
+        track_lbl = QtWidgets.QLabel(self.translations.get("audio_hud_track_label", "SOUNDSCAPE TRACK"))
+        track_lbl.setFont(_get_font("Inter Tight SemiBold", 8, bold=True))
+        track_lbl.setStyleSheet("color: #6F6B63; letter-spacing: 0.8px; border: none; background: transparent;")
+        
+        self.combo_tracks = QtWidgets.QComboBox()
+        self.combo_tracks.setFont(_get_font("Inter Tight Medium", 10))
+        self.combo_tracks.setFocusPolicy(QtCore.Qt.FocusPolicy.NoFocus)
+        self.combo_tracks.currentIndexChanged.connect(self._on_track_changed)
+        track_row.addWidget(track_lbl)
+        track_row.addWidget(self.combo_tracks)
+        card_layout.addLayout(track_row)
+
+        vol_row = QtWidgets.QVBoxLayout()
+        vol_row.setSpacing(4)
+        
+        vol_header = QtWidgets.QHBoxLayout()
+        vol_title = QtWidgets.QLabel(self.translations.get("audio_hud_volume_label", "VOLUME"))
+        vol_title.setFont(_get_font("Inter Tight SemiBold", 8, bold=True))
+        vol_title.setStyleSheet("color: #6F6B63; letter-spacing: 0.8px; border: none; background: transparent;")
+        
+        self.lbl_vol_val = QtWidgets.QLabel("50%")
+        self.lbl_vol_val.setFont(_get_font("Inter Tight SemiBold", 10, bold=True))
+        self.lbl_vol_val.setStyleSheet("color: #82CDFF; border: none; background: transparent;")
+        vol_header.addWidget(vol_title)
+        vol_header.addStretch()
+        vol_header.addWidget(self.lbl_vol_val)
+        vol_row.addLayout(vol_header)
+
+        self.slider_vol = QtWidgets.QSlider(QtCore.Qt.Orientation.Horizontal)
+        self.slider_vol.setRange(0, 100)
+        self.slider_vol.setValue(50)
+        self.slider_vol.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
+        self.slider_vol.valueChanged.connect(self._on_volume_slider_changed)
+        vol_row.addWidget(self.slider_vol)
+        card_layout.addLayout(vol_row)
+
+        root_layout.addWidget(main_card)
+
+    def set_state(self, is_enabled: bool, volume: int, current_track_file: str, tracks_dict: dict):
+        self.btn_toggle.blockSignals(True)
+        self.combo_tracks.blockSignals(True)
+        self.slider_vol.blockSignals(True)
+
+        self.btn_toggle.setChecked(is_enabled)
+        self.btn_toggle.setIcon(self._icon_pause if is_enabled else self._icon_play)
+        self.btn_toggle.setToolTip("Pause" if is_enabled else "Play")
+
+        self.slider_vol.setValue(volume)
+        self.lbl_vol_val.setText(f"{volume}%")
+
+        self.combo_tracks.clear()
+        selected_idx = 0
+        for idx, (display_name, filename) in enumerate(tracks_dict.items()):
+            self.combo_tracks.addItem(display_name, userData=filename)
+            if current_track_file and (filename in current_track_file or display_name.lower() in current_track_file.lower()):
+                selected_idx = idx
+
+        if self.combo_tracks.count() > 0:
+            self.combo_tracks.setCurrentIndex(selected_idx)
+
+        self.btn_toggle.blockSignals(False)
+        self.combo_tracks.blockSignals(False)
+        self.slider_vol.blockSignals(False)
+
+    def _on_toggle_clicked(self, checked):
+        self.btn_toggle.setIcon(self._icon_pause if checked else self._icon_play)
+        self.btn_toggle.setToolTip("Pause" if checked else "Play")
+        self.ambientToggled.emit(checked)
+
+    def _on_track_changed(self, index):
+        if index >= 0:
+            filename = self.combo_tracks.itemData(index)
+            if filename:
+                self.trackChanged.emit(filename)
+
+    def _on_volume_slider_changed(self, value):
+        self.lbl_vol_val.setText(f"{value}%")
+        self.volumeChanged.emit(value)
+
+
+class ChatAudioHudButton(QtWidgets.QPushButton):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setFixedHeight(34)
+        self.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
+        self.setFocusPolicy(QtCore.Qt.FocusPolicy.NoFocus)
+
+        self._is_playing = False
+        self._track_name = "Ambience"
+        self._volume = 50
+        self._eq_phase = 0.0
+        self._display_text = "Muted"
+        self._calculated_width = 110
+
+        self._font = QtGui.QFont("Inter Tight SemiBold", 9)
+        self._font.setHintingPreference(QtGui.QFont.HintingPreference.PreferNoHinting)
+        self.setFont(self._font)
+
+        self._anim_timer = QtCore.QTimer(self)
+        self._anim_timer.setInterval(60)
+        self._anim_timer.timeout.connect(self._tick_eq)
+
+        self.setStyleSheet("""
+            QPushButton {
+                background-color: rgba(255, 255, 255, 0.035);
+                border: 1px solid rgba(255, 255, 255, 0.08);
+                border-radius: 17px;
+            }
+            QPushButton:hover {
+                background-color: rgba(75, 184, 255, 0.12);
+                border-color: rgba(75, 184, 255, 0.35);
+            }
+            QPushButton:pressed {
+                background-color: rgba(75, 184, 255, 0.06);
+            }
+        """)
+
+        self._recalculate_size()
+
+    def sizeHint(self):
+        return QtCore.QSize(self._calculated_width, 34)
+
+    def _recalculate_size(self):
+        if self._is_playing:
+            self._display_text = f"{self._track_name}  {self._volume}%"
+        else:
+            self._display_text = "Muted"
+
+        fm = QtGui.QFontMetrics(self._font)
+        text_w = fm.horizontalAdvance(self._display_text)
+
+        total_w = 12 + 12 + 8 + text_w + 14
+        self._calculated_width = max(95, total_w)
+        self.setFixedWidth(self._calculated_width)
+        self.updateGeometry()
+
+    def update_info(self, is_playing: bool, track_name: str, volume: int):
+        self._is_playing = is_playing
+        self._track_name = track_name if track_name else "Ambience"
+        self._volume = volume
+
+        if self._is_playing and not self._anim_timer.isActive():
+            self._anim_timer.start()
+        elif not self._is_playing and self._anim_timer.isActive():
+            self._anim_timer.stop()
+
+        self._recalculate_size()
+        self.update()
+
+    def _tick_eq(self):
+        self._eq_phase += 0.25
+        self.update()
+
+    def paintEvent(self, event):
+        super().paintEvent(event)
+        painter = QtGui.QPainter(self)
+        painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing, True)
+        painter.setRenderHint(QtGui.QPainter.RenderHint.SmoothPixmapTransform, True)
+
+        w, h = self.width(), self.height()
+
+        bar_w = 2.5
+        spacing = 2.0
+        start_x = 12.0
+        center_y = h / 2.0
+
+        for i in range(3):
+            if self._is_playing:
+                import math
+                height_mult = (math.sin(self._eq_phase + i * 1.5) + 1.0) / 2.0
+                bar_h = 4.0 + height_mult * 10.0
+                bar_color = QtGui.QColor(75, 184, 255, 230)
+            else:
+                bar_h = 3.0
+                bar_color = QtGui.QColor(255, 255, 255, 60)
+
+            x = start_x + i * (bar_w + spacing)
+            y = center_y - (bar_h / 2.0)
+
+            painter.setPen(QtCore.Qt.PenStyle.NoPen)
+            painter.setBrush(bar_color)
+            painter.drawRoundedRect(QtCore.QRectF(x, y, bar_w, bar_h), 1.2, 1.2)
+
+        painter.setPen(QtGui.QColor(240, 240, 240, 220) if self._is_playing else QtGui.QColor(160, 160, 160, 150))
+        painter.setFont(self._font)
+
+        text_start_x = start_x + 3 * (bar_w + spacing) + 6.0
+        text_rect = QtCore.QRectF(text_start_x, 0, w - text_start_x - 10.0, h)
+        painter.drawText(text_rect, QtCore.Qt.AlignmentFlag.AlignVCenter | QtCore.Qt.AlignmentFlag.AlignLeft, self._display_text)
+        painter.end()
+
+class GlobalDownloadChip(QtWidgets.QFrame):
+    open_requested = QtCore.pyqtSignal()
+    cancel_requested = QtCore.pyqtSignal(str)
+
+    def __init__(self, coordinator=None, translations=None, parent=None):
+        super().__init__(parent)
+        self._coordinator = coordinator
+        self._translations = translations or {}
+        self._current_name = None
+
+        self.setObjectName("globalDownloadChip")
+        self.setFixedHeight(52)
+        self.setStyleSheet("""
+            QFrame#globalDownloadChip {
+                background-color: rgba(59, 130, 246, 0.10);
+                border: 1px solid rgba(59, 130, 246, 0.28);
+                border-radius: 10px;
+            }
+            QFrame#globalDownloadChip:hover {
+                background-color: rgba(59, 130, 246, 0.18);
+            }
+            QLabel { background: transparent; border: none; }
+        """)
+
+        lay = QtWidgets.QVBoxLayout(self)
+        lay.setContentsMargins(10, 8, 8, 8)
+        lay.setSpacing(5)
+
+        top_row = QtWidgets.QHBoxLayout()
+        top_row.setSpacing(6)
+
+        self.name_label = QLabel("...")
+        f = QtGui.QFont("Inter Tight SemiBold", 9)
+        f.setHintingPreference(QFont.HintingPreference.PreferNoHinting)
+        self.name_label.setFont(f)
+        self.name_label.setStyleSheet("color: #BFDBFE;")
+        self.name_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignVCenter | QtCore.Qt.AlignmentFlag.AlignLeft)
+        top_row.addWidget(self.name_label, 1)
+
+        self.cancel_btn = QPushButton("✕")
+        f = QtGui.QFont()
+        f.setHintingPreference(QFont.HintingPreference.PreferNoHinting)
+        self.cancel_btn.setFont(f)
+        self.cancel_btn.setFixedSize(20, 20)
+        self.cancel_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.cancel_btn.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.cancel_btn.setToolTip(self._translations.get("download_chip_cancel", "Cancel download"))
+        self.cancel_btn.setStyleSheet("""
+            QPushButton {
+                background: transparent; color: rgba(255,255,255,0.55);
+                border: none; border-radius: 10px; font-size: 11px; font-weight: bold;
+            }
+            QPushButton:hover { background: rgba(239, 68, 68, 0.35); color: white; }
+        """)
+        self.cancel_btn.clicked.connect(self._on_cancel_clicked)
+        top_row.addWidget(self.cancel_btn)
+
+        lay.addLayout(top_row)
+
+        self.progress_bar = QtWidgets.QProgressBar()
+        self.progress_bar.setFixedHeight(4)
+        self.progress_bar.setTextVisible(False)
+        self.progress_bar.setRange(0, 100)
+        self.progress_bar.setStyleSheet("""
+            QProgressBar {
+                background-color: rgba(0, 0, 0, 0.35);
+                border: none;
+                border-radius: 2px;
+            }
+            QProgressBar::chunk {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #3B82F6, stop:1 #8B5CF6);
+                border-radius: 2px;
+            }
+        """)
+        lay.addWidget(self.progress_bar)
+
+        self.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.setToolTip(self._translations.get(
+            "download_chip_tooltip",
+            "A model is downloading in the background.\nClick to open the Models Hub."
+        ))
+        self.hide()
+
+        if self._coordinator is not None:
+            self._coordinator.updated.connect(self._on_updated)
+            self._on_updated()
+
+    def _on_updated(self, *args):
+        if self._coordinator is None:
+            return
+        name, percent = self._coordinator.summary()
+        has_active = self._coordinator.has_active()
+        self.setVisible(has_active)
+        if not has_active or not name:
+            return
+
+        display = name if len(name) <= 26 else name[:23] + "..."
+        self.name_label.setText(display)
+        self.name_label.setToolTip(name)
+        self.progress_bar.setValue(max(0, min(100, percent)))
+        self._current_name = name
+
+    def _on_cancel_clicked(self):
+        if self._current_name and self._coordinator is not None:
+            self._coordinator.cancel_by_name(self._current_name)
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            self.open_requested.emit()
+        super().mousePressEvent(event)

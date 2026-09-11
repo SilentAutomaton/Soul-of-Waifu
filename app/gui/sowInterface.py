@@ -7,7 +7,10 @@ from PyQt6.QtWidgets import QPushButton, QVBoxLayout, QLabel, QGraphicsDropShado
 from PyQt6.QtCore import Qt, QPointF, QTimer, QPropertyAnimation, QEasingCurve, pyqtProperty, QRectF, QPoint
 from PyQt6.QtGui import QColor, QPainter, QRadialGradient, QCursor, QFont, QPixmap, QPen, QBrush
 
-from app.gui.custom_widgets import LocalModelStatusWidget, SowConfirmDialog, SowInputDialog, sow_toast, safe_paint
+from app.gui.custom_widgets import (
+    LocalModelStatusWidget, SowConfirmDialog, SowInputDialog, sow_toast, safe_paint,
+    TokenBudgetBarWidget, PersonaQuickButton, ChatAudioHudButton, SLIDER_STYLE_DARK
+)
 from app.gui.soul_stage_page import SoulStagePage
 from app.configuration import configuration
 
@@ -336,7 +339,28 @@ class Ui_MainWindow(object):
 
         spacerItem2 = QtWidgets.QSpacerItem(399, 20, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)
         self.gridLayout_8.addItem(spacerItem2, 0, 2, 1, 1)
-        self.gridLayout_7.addWidget(self.frame_main_button, 4, 0, 2, 1, QtCore.Qt.AlignmentFlag.AlignVCenter)
+        spacerItem_top = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Expanding)
+        self.gridLayout_7.addItem(spacerItem_top, 0, 0, 1, 1)
+
+        self.main_no_characters_advice_label = QtWidgets.QLabel(parent=self.main_no_characters_page)
+        self.main_no_characters_advice_label.setMinimumSize(QtCore.QSize(500, 31))
+        font = QtGui.QFont()
+        font.setFamily("Comfortaa")
+        font.setPointSize(16)
+        font.setBold(True)
+        font.setHintingPreference(QFont.HintingPreference.PreferNoHinting)
+        self.main_no_characters_advice_label.setFont(font)
+        self.main_no_characters_advice_label.setStyleSheet("background-color: transparent;\n"
+"color: rgb(227, 227, 227);\n"
+"border: none;")
+        self.main_no_characters_advice_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        self.main_no_characters_advice_label.setWordWrap(True)
+        self.main_no_characters_advice_label.setObjectName("main_no_characters_advice_label")
+        self.gridLayout_7.addWidget(self.main_no_characters_advice_label, 1, 0, 1, 1)
+
+        spacerItem4 = QtWidgets.QSpacerItem(16, 14, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed)
+        self.gridLayout_7.addItem(spacerItem4, 2, 0, 1, 1)
+
         self.main_no_characters_description_label = QtWidgets.QLabel(parent=self.main_no_characters_page)
         self.main_no_characters_description_label.setMinimumSize(QtCore.QSize(500, 51))
         self.main_no_characters_description_label.setMaximumSize(QtCore.QSize(16777215, 16777215))
@@ -352,33 +376,21 @@ class Ui_MainWindow(object):
         self.main_no_characters_description_label.setFont(font)
         self.main_no_characters_description_label.setAcceptDrops(False)
         self.main_no_characters_description_label.setStyleSheet("background-color: transparent;\n"
-"color: rgb(227, 227, 227);\n"
+"color: rgba(227, 227, 227, 0.7);\n"
 "border: none;")
         self.main_no_characters_description_label.setScaledContents(False)
         self.main_no_characters_description_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         self.main_no_characters_description_label.setWordWrap(True)
         self.main_no_characters_description_label.setObjectName("main_no_characters_description_label")
-        self.gridLayout_7.addWidget(self.main_no_characters_description_label, 0, 0, 1, 1)
-        spacerItem3 = QtWidgets.QSpacerItem(20, 385, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Expanding)
+        self.gridLayout_7.addWidget(self.main_no_characters_description_label, 3, 0, 1, 1)
+
+        spacerItem5 = QtWidgets.QSpacerItem(20, 32, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed)
+        self.gridLayout_7.addItem(spacerItem5, 4, 0, 1, 1)
+
+        self.gridLayout_7.addWidget(self.frame_main_button, 5, 0, 1, 1, QtCore.Qt.AlignmentFlag.AlignVCenter)
+
+        spacerItem3 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Expanding)
         self.gridLayout_7.addItem(spacerItem3, 6, 0, 1, 1)
-        self.main_no_characters_advice_label = QtWidgets.QLabel(parent=self.main_no_characters_page)
-        self.main_no_characters_advice_label.setMinimumSize(QtCore.QSize(500, 31))
-        font = QtGui.QFont()
-        font.setFamily("Comfortaa")
-        font.setPointSize(14)
-        font.setBold(True)
-        font.setHintingPreference(QFont.HintingPreference.PreferNoHinting)
-        self.main_no_characters_advice_label.setFont(font)
-        self.main_no_characters_advice_label.setStyleSheet("background-color: transparent;\n"
-"color: rgb(227, 227, 227);\n"
-"border: none;")
-        self.main_no_characters_advice_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-        self.main_no_characters_advice_label.setObjectName("main_no_characters_advice_label")
-        self.gridLayout_7.addWidget(self.main_no_characters_advice_label, 2, 0, 1, 1)
-        spacerItem4 = QtWidgets.QSpacerItem(16, 10, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed)
-        self.gridLayout_7.addItem(spacerItem4, 3, 0, 1, 1)
-        spacerItem5 = QtWidgets.QSpacerItem(20, 200, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed)
-        self.gridLayout_7.addItem(spacerItem5, 1, 0, 1, 1)
         self.stackedWidget.addWidget(self.main_no_characters_page)
         
         self.main_characters_page = QtWidgets.QWidget()
@@ -947,11 +959,13 @@ class Ui_MainWindow(object):
         row_avatar_name = QtWidgets.QHBoxLayout()
         row_avatar_name.setSpacing(20)
         
-        self.character_image_building_label = QtWidgets.QLabel("Avatar")
         self.pushButton_import_character_image = QtWidgets.QPushButton()
         self.pushButton_import_character_image.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.pushButton_import_character_image.setFixedSize(100, 100)
         self.pushButton_import_character_image.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
+        self.pushButton_import_character_image.setToolTip(
+            self.translations.get("import_character_image_tooltip", "Click to upload an avatar image")
+        )
         self.pushButton_import_character_image.setStyleSheet(
             f"QPushButton {{ background-color: {self._SURF2}; border: 2px dashed {self._BORDER_M}; border-radius: 12px; }}"
             f"QPushButton:hover {{ border: 2px dashed {self._BLUE}; background-color: {self._SURF3}; }}"
@@ -962,16 +976,19 @@ class Ui_MainWindow(object):
         self.pushButton_import_character_image.setIconSize(QtCore.QSize(32, 32))
         
         avatar_vbox = QtWidgets.QVBoxLayout()
+        avatar_vbox.setSpacing(6)
         avatar_vbox.addWidget(self.pushButton_import_character_image)
         avatar_vbox.addStretch()
         row_avatar_name.addLayout(avatar_vbox)
 
         vbox_name = QtWidgets.QVBoxLayout()
-        self.character_name_building_label = QtWidgets.QLabel("Character Name")
+        self.character_name_building_label = QtWidgets.QLabel("Character Name <span style='color:#F87171;'>*</span>")
         self.character_name_building_label.setFont(font_label)
         self.character_name_building_label.setStyleSheet(f"color: {self._TEXT_S}; background: transparent; border: none;")
+        self.character_name_building_label.setToolTip(self.translations.get("required_field_tooltip", "Required field"))
         
         self.lineEdit_character_name_building = QtWidgets.QLineEdit()
+        self.lineEdit_character_name_building.setObjectName("lineEdit_character_name_building")
         self.lineEdit_character_name_building.setFont(font_input)
         self.lineEdit_character_name_building.setFixedHeight(45)
         self.lineEdit_character_name_building.setStyleSheet(input_style)
@@ -1023,10 +1040,12 @@ class Ui_MainWindow(object):
         self.dialogues_title = self.translations.get("character_creator_title_dialogues", "Dialogues & Greetings")
         self.card_dial, layout_dial = create_glass_card_building(self.dialogues_title)
         
-        self.first_message_building_label = QtWidgets.QLabel("First Message")
+        self.first_message_building_label = QtWidgets.QLabel("First Message <span style='color:#F87171;'>*</span>")
         self.first_message_building_label.setFont(font_label)
         self.first_message_building_label.setStyleSheet(f"color: {self._TEXT_S}; background: transparent; border: none;")
+        self.first_message_building_label.setToolTip(self.translations.get("required_field_tooltip", "Required field"))
         self.textEdit_first_message_building = AutoResizingTextEdit()
+        self.textEdit_first_message_building.setObjectName("textEdit_first_message_building")
         self.textEdit_first_message_building.setFont(font_input)
         self.textEdit_first_message_building.setStyleSheet(input_style)
         
@@ -1452,8 +1471,56 @@ class Ui_MainWindow(object):
         self.nsfw_layout.addWidget(self.label_nsfw)
         self.nsfw_layout.addWidget(self.checkBox_enable_nsfw)
 
+        # --- Soul Hub filters ---
+        hub_filter_style = """
+            QComboBox {
+                background-color: rgba(255, 255, 255, 0.04);
+                color: #DEDAD2;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 10px;
+                padding: 6px 12px;
+                font-family: 'Inter Tight Medium';
+                font-size: 12px;
+            }
+            QComboBox:hover { border-color: rgba(75, 184, 255, 0.4); }
+            QComboBox::drop-down { border: none; width: 22px; }
+            QComboBox QAbstractItemView {
+                background-color: rgb(24, 24, 30);
+                color: #E2E8F0;
+                border: 1px solid rgba(255, 255, 255, 0.15);
+                border-radius: 8px;
+                selection-background-color: rgba(75, 184, 255, 0.25);
+                padding: 4px;
+                outline: none;
+            }
+        """
+
+        self.comboBox_hub_tag = QtWidgets.QComboBox(parent=self.charactersgateway_page)
+        self.comboBox_hub_tag.setObjectName("comboBox_hub_tag")
+        self.comboBox_hub_tag.setFixedHeight(34)
+        self.comboBox_hub_tag.setMinimumWidth(150)
+        self.comboBox_hub_tag.setFont(font_nsfw)
+        self.comboBox_hub_tag.setStyleSheet(hub_filter_style)
+        self.comboBox_hub_tag.setToolTip(self.translations.get("hub_tag_tooltip", "Filter by tag"))
+        self.comboBox_hub_tag.hide()
+
+        self.comboBox_hub_sort = QtWidgets.QComboBox(parent=self.charactersgateway_page)
+        self.comboBox_hub_sort.setObjectName("comboBox_hub_sort")
+        self.comboBox_hub_sort.setFixedHeight(34)
+        self.comboBox_hub_sort.setMinimumWidth(130)
+        self.comboBox_hub_sort.setFont(font_nsfw)
+        self.comboBox_hub_sort.setStyleSheet(hub_filter_style)
+        self.comboBox_hub_sort.setToolTip(self.translations.get("hub_sort_tooltip", "Sort results"))
+        self.comboBox_hub_sort.hide()
+
+        self.hub_filters_layout = QtWidgets.QHBoxLayout()
+        self.hub_filters_layout.setSpacing(10)
+        self.hub_filters_layout.addWidget(self.comboBox_hub_tag)
+        self.hub_filters_layout.addWidget(self.comboBox_hub_sort)
+
         self.header_layout.addWidget(self.search_bar_widget)
         self.header_layout.addLayout(self.nsfw_layout)
+        self.header_layout.addLayout(self.hub_filters_layout)
         self.verticalLayout_3.addLayout(self.header_layout)
 
         self.gateway_main_layout = QtWidgets.QHBoxLayout()
@@ -1498,7 +1565,7 @@ class Ui_MainWindow(object):
         """)
 
         item_soul = QtWidgets.QListWidgetItem("Soul Gateway")
-        item_chub = QtWidgets.QListWidgetItem("Chub AI Hub")
+        item_chub = QtWidgets.QListWidgetItem(self.translations.get("chub_ai_tab", "Chub AI"))
         item_lore = QtWidgets.QListWidgetItem(self.translations.get("world_lorebook_gateway", "World Lorebooks"))
         item_scenes = QtWidgets.QListWidgetItem(self.translations.get("soul_stage_scenarios", "Soul Stage Scenarios"))
 
@@ -1746,11 +1813,12 @@ class Ui_MainWindow(object):
         self.options_sidebar_layout.addWidget(self.options_menu)
         
         tab_data = [
-            ("API & Providers", "app/gui/icons/system.png"),
             ("System & UI", "app/gui/icons/config.png"),
+            ("API & Providers", "app/gui/icons/system.png"),
             ("Local LLM", "app/gui/icons/ai.png"),
+            ("Tool Calling & MCP", "app/gui/icons/modules.png"),
             ("SoW Modules", "app/gui/icons/tools.png"),
-            ("Tool Calling & MCP", "app/gui/icons/modules.png")
+            ("Appearance", "app/gui/icons/background_icon.png")
         ]
 
         for name, icon_path in tab_data:
@@ -1958,7 +2026,14 @@ class Ui_MainWindow(object):
             header_layout.addWidget(lbl)
             header_layout.addWidget(line, 1)
             return header_layout
-        
+
+        font_label = QtGui.QFont(font_label)
+        font_label.setHintingPreference(QtGui.QFont.HintingPreference.PreferNoHinting)
+        font_input = QtGui.QFont(font_input)
+        font_input.setHintingPreference(QtGui.QFont.HintingPreference.PreferNoHinting)
+        font_title = QtGui.QFont(font_title)
+        font_title.setHintingPreference(QtGui.QFont.HintingPreference.PreferNoHinting)
+
         # =================================================================
         # System & UI
         # =================================================================
@@ -2189,6 +2264,7 @@ class Ui_MainWindow(object):
         self.lineEdit_api_token_options = QtWidgets.QLineEdit()
         self.lineEdit_api_token_options.setFont(font_input)
         self.lineEdit_api_token_options.setFixedHeight(40)
+        self.lineEdit_api_token_options.setEchoMode(QtWidgets.QLineEdit.EchoMode.Password)
         self.lineEdit_api_token_options.setObjectName("lineEdit_api_token_options")
         form_api.addRow(self.conversation_method_token_title_label, self.lineEdit_api_token_options)
 
@@ -2284,14 +2360,27 @@ class Ui_MainWindow(object):
         self.lineEdit_search_openrouter_models.setFixedHeight(40)
         self.lineEdit_search_openrouter_models.setPlaceholderText("Search models...")
         self.lineEdit_search_openrouter_models.setObjectName("lineEdit_search_openrouter_models")
-        self.comboBox_openrouter_models = QtWidgets.QComboBox()
+        self.comboBox_openrouter_models = NoScrollComboBox()
         self.comboBox_openrouter_models.setFont(font_input)
         self.comboBox_openrouter_models.setFixedHeight(40)
         self.comboBox_openrouter_models.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.comboBox_openrouter_models.setObjectName("comboBox_openrouter_models")
-        
+
+        self.pushButton_choose_openrouter_model = QtWidgets.QPushButton(
+            self.translations.get("choose_button_text", "Choose")
+        )
+        self.pushButton_choose_openrouter_model.setFont(font_input)
+        self.pushButton_choose_openrouter_model.setFixedHeight(40)
+        self.pushButton_choose_openrouter_model.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
+        self.pushButton_choose_openrouter_model.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.pushButton_choose_openrouter_model.setObjectName("pushButton_choose_openrouter_model")
+        self.pushButton_choose_openrouter_model.setToolTip(
+            self.translations.get("choose_openrouter_model_tooltip", "Apply the model currently highlighted in the list")
+        )
+
         openrouter_layout.addWidget(self.lineEdit_search_openrouter_models, 1)
         openrouter_layout.addWidget(self.comboBox_openrouter_models, 2)
+        openrouter_layout.addWidget(self.pushButton_choose_openrouter_model)
         
         form_api.addRow(self.openrouter_models_options_label, self.openrouter_layout_widget)
 
@@ -2325,20 +2414,7 @@ class Ui_MainWindow(object):
             slider_obj.setFocusPolicy(Qt.FocusPolicy.NoFocus)
             if tooltip:
                 slider_obj.setToolTip(tooltip)
-            slider_obj.setStyleSheet("""
-                QToolTip { 
-                    background-color: rgba(25, 25, 30, 0.95); 
-                    color: #E0E0E0; 
-                    border: 1px solid rgba(255, 255, 255, 0.15); 
-                    border-radius: 6px; 
-                    padding: 6px 10px; font-size: 12px; 
-                    font-weight: 500; 
-                }
-                QSlider::groove:horizontal { background: rgba(0,0,0,0.5); height: 6px; border-radius: 3px; }
-                QSlider::sub-page:horizontal { background: rgba(255, 255, 255, 0.6); border-radius: 3px; }
-                QSlider::handle:horizontal { background: white; width: 16px; height: 16px; margin: -5px 0; border-radius: 8px; border: 1px solid rgba(0,0,0,0.2); }
-                QSlider::handle:horizontal:hover { background: #ffffff; }
-            """)
+            slider_obj.setStyleSheet(SLIDER_STYLE_DARK)
             
             line_edit_obj.setFont(font_input)
             line_edit_obj.setFixedSize(85, 35)
@@ -2350,9 +2426,277 @@ class Ui_MainWindow(object):
             row.addWidget(slider_obj)
             row.addWidget(line_edit_obj)
             return row
-        
+
+        preset_bar = QtWidgets.QFrame()
+        preset_bar.setObjectName("LLMPresetBar")
+        preset_bar.setStyleSheet(
+            f"QFrame#LLMPresetBar {{"
+            f"  background-color: rgba(59, 130, 246, 0.06);"
+            f"  border: 1px solid rgba(59, 130, 246, 0.22);"
+            f"  border-radius: 12px;"
+            f"}}"
+            f"QFrame#LLMPresetBar QLabel {{ border: none; background: transparent; }}"
+        )
+        preset_bar_layout = QtWidgets.QHBoxLayout(preset_bar)
+        preset_bar_layout.setContentsMargins(16, 12, 16, 12)
+        preset_bar_layout.setSpacing(10)
+
+        preset_label = QtWidgets.QLabel(self.translations.get("llm_preset_label", "PRESET"))
+        preset_label.setFont(font_label)
+        preset_label.setStyleSheet("color: #93C5FD; letter-spacing: 1px; font-weight: bold;")
+        preset_bar_layout.addWidget(preset_label)
+
+        self.comboBox_llm_presets = NoScrollComboBox()
+        self.comboBox_llm_presets.setObjectName("comboBox_llm_presets")
+        self.comboBox_llm_presets.setFont(font_input)
+        self.comboBox_llm_presets.setFixedHeight(38)
+        self.comboBox_llm_presets.setMinimumWidth(220)
+        self.comboBox_llm_presets.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.comboBox_llm_presets.setStyleSheet("""
+            QComboBox {
+                background-color: rgba(22, 22, 28, 0.95);
+                color: #e0e0e0;
+                border: 1px solid rgba(255, 255, 255, 0.15);
+                border-radius: 8px;
+                padding: 6px 12px;
+            }
+            QComboBox:hover {
+                border: 1px solid rgba(59, 130, 246, 0.4);
+                background-color: rgba(30, 30, 38, 0.95);
+            }
+            QComboBox:focus {
+                border: 1px solid rgba(59, 130, 246, 0.6);
+            }
+            QComboBox::drop-down {
+                border: none;
+                width: 24px;
+            }
+            QComboBox::down-arrow {
+                width: 0; height: 0;
+                border-left: 4px solid transparent;
+                border-right: 4px solid transparent;
+                border-top: 5px solid rgba(255, 255, 255, 0.6);
+            }
+            QComboBox QAbstractItemView {
+                background-color: rgb(24, 24, 30);
+                color: #e0e0e0;
+                border: 1px solid rgba(255, 255, 255, 0.15);
+                border-radius: 8px;
+                selection-background-color: rgba(59, 130, 246, 0.25);
+                selection-color: #ffffff;
+                padding: 4px;
+                outline: none;
+            }
+            QComboBox QAbstractItemView::item {
+                padding: 8px 12px;
+                border-radius: 6px;
+            }
+        """)
+        self.comboBox_llm_presets.setToolTip(self.translations.get(
+            "llm_preset_tooltip",
+            "Save and switch between full snapshots of your generation & sampling settings."
+        ))
+        preset_bar_layout.addWidget(self.comboBox_llm_presets, 1)
+
+        def _mk_preset_btn(text, tooltip, accent=False):
+            b = QtWidgets.QPushButton(text)
+            b.setFont(font_input)
+            b.setFixedHeight(38)
+            b.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
+            b.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+            b.setToolTip(tooltip)
+            if accent:
+                b.setStyleSheet(
+                    "QPushButton { background-color: rgba(59, 130, 246, 0.18); color: #BFDBFE;"
+                    " border: 1px solid rgba(59, 130, 246, 0.4); border-radius: 8px; padding: 0 16px; font-weight: bold; }"
+                    "QPushButton:hover { background-color: rgba(59, 130, 246, 0.32); border-color: rgba(59, 130, 246, 0.6); color: #FFFFFF; }"
+                )
+            else:
+                b.setStyleSheet(
+                    "QPushButton { background-color: rgba(255, 255, 255, 0.04); color: #C9C6BF;"
+                    " border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 0 14px; font-weight: bold; }"
+                    "QPushButton:hover { background-color: rgba(255, 255, 255, 0.08); color: #FFFFFF; border-color: rgba(255, 255, 255, 0.18); }"
+                )
+            return b
+
+        self.pushButton_llm_preset_save = _mk_preset_btn(
+            self.translations.get("llm_preset_save", "Save"),
+            self.translations.get("llm_preset_save_tooltip", "Overwrite the selected preset with current settings"))
+        self.pushButton_llm_preset_save_as = _mk_preset_btn(
+            self.translations.get("llm_preset_save_as", "New Preset"),
+            self.translations.get("llm_preset_save_as_tooltip", "Save current settings as a new preset"),
+            accent=True)
+        self.pushButton_llm_preset_rename = _mk_preset_btn(
+            self.translations.get("llm_preset_rename", "Rename"),
+            self.translations.get("llm_preset_rename_tooltip", "Rename the selected preset"))
+        self.pushButton_llm_preset_delete = _mk_preset_btn(
+            self.translations.get("llm_preset_delete", "Delete"),
+            self.translations.get("llm_preset_delete_tooltip", "Delete the selected preset"))
+
+        preset_bar_layout.addWidget(self.pushButton_llm_preset_save)
+        preset_bar_layout.addWidget(self.pushButton_llm_preset_save_as)
+        preset_bar_layout.addWidget(self.pushButton_llm_preset_rename)
+        preset_bar_layout.addWidget(self.pushButton_llm_preset_delete)
+
+        llm_layout.addWidget(preset_bar)
+        llm_layout.addSpacing(4)
+
+        # ===================================================================
+        # SEGMENTED TOGGLE — General / Advanced
+        # ===================================================================
+        segmented_frame = QtWidgets.QFrame()
+        segmented_frame.setObjectName("LLMSegmented")
+        segmented_frame.setFixedHeight(48)
+        segmented_frame.setStyleSheet(
+            f"QFrame#LLMSegmented {{"
+            f"  background-color: rgba(255, 255, 255, 0.03);"
+            f"  border: 1px solid rgba(255, 255, 255, 0.06);"
+            f"  border-radius: 11px;"
+            f"}}"
+        )
+        segmented_layout = QtWidgets.QHBoxLayout(segmented_frame)
+        segmented_layout.setContentsMargins(4, 4, 4, 4)
+        segmented_layout.setSpacing(4)
+
+        def _mk_segment_btn(text, subtitle):
+            b = QtWidgets.QPushButton()
+            b.setCheckable(True)
+            b.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
+            b.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+            b.setFixedHeight(40)
+            lay = QtWidgets.QHBoxLayout(b)
+            lay.setContentsMargins(14, 0, 14, 0)
+            lay.setSpacing(8)
+            title_lbl = QtWidgets.QLabel(text)
+            _seg_title_font = QtGui.QFont("Inter Tight SemiBold", 10, QtGui.QFont.Weight.DemiBold)
+            _seg_title_font.setHintingPreference(QtGui.QFont.HintingPreference.PreferNoHinting)
+            title_lbl.setFont(_seg_title_font)
+            title_lbl.setStyleSheet("border: none; background: transparent; color: #EDEBE7;")
+            sub_lbl = QtWidgets.QLabel(subtitle)
+            _seg_sub_font = QtGui.QFont("Inter Tight Medium", 8)
+            _seg_sub_font.setHintingPreference(QtGui.QFont.HintingPreference.PreferNoHinting)
+            sub_lbl.setFont(_seg_sub_font)
+            sub_lbl.setStyleSheet("border: none; background: transparent; font-size: 11px; color: rgba(255,255,255,0.35);")
+            lay.addWidget(title_lbl)
+            lay.addWidget(sub_lbl)
+            lay.addStretch()
+            b.setStyleSheet(
+                "QPushButton { background: transparent; border: none; border-radius: 8px; text-align: left; }"
+                "QPushButton:hover { background-color: rgba(255, 255, 255, 0.04); }"
+                "QPushButton:checked { background-color: rgba(59, 130, 246, 0.16); }"
+            )
+            return b, title_lbl, sub_lbl
+
+        self.pushButton_llm_tab_general, _gen_title_lbl, _gen_sub_lbl = _mk_segment_btn(
+            self.translations.get("llm_tab_general", "General"),
+            self.translations.get("llm_tab_general_sub", "works for every provider"))
+        self.pushButton_llm_tab_advanced, _adv_title_lbl, _adv_sub_lbl = _mk_segment_btn(
+            self.translations.get("llm_tab_advanced", "Advanced"),
+            self.translations.get("llm_tab_advanced_sub", "local models / power users"))
+
+        self.llm_settings_toggle_group = QtWidgets.QButtonGroup(self.llm_tab)
+        self.llm_settings_toggle_group.setExclusive(True)
+        self.llm_settings_toggle_group.addButton(self.pushButton_llm_tab_general, 0)
+        self.llm_settings_toggle_group.addButton(self.pushButton_llm_tab_advanced, 1)
+        self.pushButton_llm_tab_general.setChecked(True)
+
+        segmented_layout.addWidget(self.pushButton_llm_tab_general, 1)
+        segmented_layout.addWidget(self.pushButton_llm_tab_advanced, 1)
+
+        llm_layout.addWidget(segmented_frame)
+        llm_layout.addSpacing(6)
+
+        self.llm_settings_stack = QtWidgets.QStackedWidget()
+        self.llm_settings_stack.setObjectName("llm_settings_stack")
+        self.llm_settings_stack.setStyleSheet("background: transparent; border: none;")
+
+        self.llm_general_page = QtWidgets.QWidget()
+        llm_general_layout = QtWidgets.QVBoxLayout(self.llm_general_page)
+        llm_general_layout.setContentsMargins(0, 0, 0, 0)
+        llm_general_layout.setSpacing(20)
+
+        self.llm_advanced_page = QtWidgets.QWidget()
+        llm_advanced_layout = QtWidgets.QVBoxLayout(self.llm_advanced_page)
+        llm_advanced_layout.setContentsMargins(0, 0, 0, 0)
+        llm_advanced_layout.setSpacing(20)
+
+        advanced_hint_frame = QtWidgets.QFrame()
+        advanced_hint_frame.setStyleSheet(
+            "QFrame { background-color: rgba(251, 191, 36, 0.08);"
+            " border: 1px solid rgba(251, 191, 36, 0.25); border-radius: 8px; }"
+        )
+        advanced_hint_layout = QtWidgets.QHBoxLayout(advanced_hint_frame)
+        advanced_hint_layout.setContentsMargins(14, 10, 14, 10)
+        advanced_hint_layout.setSpacing(10)
+
+        advanced_hint_icon = QtWidgets.QLabel()
+        advanced_hint_icon.setPixmap(QtGui.QIcon("app/gui/icons/information.png").pixmap(16, 16))
+        advanced_hint_icon.setStyleSheet("background: transparent; border: none;")
+        advanced_hint_icon.setAlignment(Qt.AlignmentFlag.AlignTop)
+        advanced_hint_layout.addWidget(advanced_hint_icon)
+
+        advanced_hint = QtWidgets.QLabel(self.translations.get(
+            "llm_advanced_hint",
+            "These settings primarily control local models running through llama.cpp (hardware "
+            "offloading, prompt formatting, low-level samplers). Cloud providers such as OpenAI, "
+            "Claude or Gemini simply ignore the fields they don't support."
+        ))
+        advanced_hint.setWordWrap(True)
+        _advanced_hint_font = QtGui.QFont("Inter Tight Medium", 9)
+        _advanced_hint_font.setHintingPreference(QtGui.QFont.HintingPreference.PreferNoHinting)
+        advanced_hint.setFont(_advanced_hint_font)
+        advanced_hint.setStyleSheet("color: #FBBF24; background: transparent; border: none;")
+        advanced_hint_layout.addWidget(advanced_hint, 1)
+
+        llm_advanced_layout.addWidget(advanced_hint_frame)
+
+        self.llm_settings_stack.addWidget(self.llm_general_page)
+        self.llm_settings_stack.addWidget(self.llm_advanced_page)
+
+        def switch_llm_subtab(idx):
+            self.llm_settings_stack.setCurrentIndex(idx)
+            for i in range(self.llm_settings_stack.count()):
+                page = self.llm_settings_stack.widget(i)
+                if i == idx:
+                    page.setSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Preferred)
+                else:
+                    page.setSizePolicy(QtWidgets.QSizePolicy.Policy.Ignored, QtWidgets.QSizePolicy.Policy.Ignored)
+            self.llm_settings_stack.adjustSize()
+
+        self.llm_settings_toggle_group.idClicked.connect(switch_llm_subtab)
+        switch_llm_subtab(0)
+
+        llm_layout.addWidget(self.llm_settings_stack)
+
         # -----------------------------------------------------------------
-        # CARD 1: General Generation
+        # CARD 1 (General page): Context Window
+        # -----------------------------------------------------------------
+        card_llm_context, l_llm_context = create_glass_card(self.translations.get("llm_context_title", "Context Window"))
+
+        self.CONTEXT_VALUES = [
+            512, 1024, 2048, 4096, 8192, 16384, 32768, 49152, 65536, 98304, 131072,
+            262144, 524288, 1048576, 2097152, -1
+        ]
+
+        self.context_size_horizontalSlider = QtWidgets.QSlider()
+        self.context_size_horizontalSlider.setObjectName("context_size_horizontalSlider")
+
+        self.context_size_horizontalSlider.setMinimum(0)
+        self.context_size_horizontalSlider.setMaximum(len(self.CONTEXT_VALUES) - 1)
+        self.context_size_horizontalSlider.setSingleStep(1)
+
+        self.lineEdit_contextSize = QtWidgets.QLineEdit()
+        self.lineEdit_contextSize.setObjectName("lineEdit_contextSize")
+
+        l_llm_context.addLayout(create_slider_row(
+            self.translations.get("context_size_text", "Context Size"),
+            self.context_size_horizontalSlider, self.lineEdit_contextSize, 0, len(self.CONTEXT_VALUES) - 1, 1,
+            self.translations.get("context_size_tooltip", "Maximum context length of the model in tokens. Higher values allow longer conversations/history but use more VRAM. Select the highest value for unlimited context. Applies to local and cloud models alike.")))
+
+        llm_general_layout.addWidget(card_llm_context)
+
+        # -----------------------------------------------------------------
+        # CARD 2 (General page): General Generation
         # -----------------------------------------------------------------
         card_llm_gen, l_llm_gen = create_glass_card(self.translations.get("llm_gen_title", "General Generation Parameters"))
         
@@ -2439,10 +2783,10 @@ class Ui_MainWindow(object):
             self.pres_penalty_horizontalSlider, self.lineEdit_presPenalty, 0, 20, 1, 
             self.translations.get("pres_penalty_tooltip", "0.0 to 2.0. Penalizes words if they appeared at all. Encourages switching topics.")))
 
-        llm_layout.addWidget(card_llm_gen)
+        llm_general_layout.addWidget(card_llm_gen)
 
         # -----------------------------------------------------------------
-        # CARD 2: Server & Hardware
+        # CARD 3 (Advanced page): Server & Hardware
         # -----------------------------------------------------------------
         card_llm_hw, l_llm_hw = create_glass_card(self.translations.get("llm_hw_title", "Hardware & Backend"))
         form_llm_hw = QtWidgets.QFormLayout()
@@ -2576,26 +2920,6 @@ class Ui_MainWindow(object):
             self.cpu_moe_layers_horizontalSlider, self.lineEdit_cpuMoeLayers, 0, 100, 1, 
             self.translations.get("cpu_moe_layers_tooltip", "0 = Disabled. How many Mixture of Experts (MoE) layers to keep in CPU RAM. Essential for huge MoE models.")))
 
-        self.CONTEXT_VALUES = [
-            512, 1024, 2048, 4096, 8192, 16384, 32768, 49152, 65536, 98304, 131072,
-            262144, 524288, 1048576, 2097152, -1
-        ]
-
-        self.context_size_horizontalSlider = QtWidgets.QSlider()
-        self.context_size_horizontalSlider.setObjectName("context_size_horizontalSlider")
-
-        self.context_size_horizontalSlider.setMinimum(0)
-        self.context_size_horizontalSlider.setMaximum(len(self.CONTEXT_VALUES) - 1)
-        self.context_size_horizontalSlider.setSingleStep(1)
-        
-        self.lineEdit_contextSize = QtWidgets.QLineEdit()
-        self.lineEdit_contextSize.setObjectName("lineEdit_contextSize")
-        
-        l_llm_hw.addLayout(create_slider_row(
-            self.translations.get("context_size_text", "Context Size"), 
-            self.context_size_horizontalSlider, self.lineEdit_contextSize, 0, len(self.CONTEXT_VALUES) - 1, 1, 
-            self.translations.get("context_size_tooltip", "Maximum context length of the model in tokens. Higher values allow longer conversations/history but use more VRAM. Select the highest value for unlimited context.")))
-
         self.batch_size_horizontalSlider = QtWidgets.QSlider()
         self.batch_size_horizontalSlider.setObjectName("batch_size_horizontalSlider")
         self.lineEdit_batchSize = QtWidgets.QLineEdit()
@@ -2648,10 +2972,10 @@ class Ui_MainWindow(object):
         
         l_llm_hw.addLayout(custom_args_layout)
 
-        llm_layout.addWidget(card_llm_hw)
+        llm_advanced_layout.addWidget(card_llm_hw)
 
         # -----------------------------------------------------------------
-        # CARD 3: Prompting & Formatting
+        # CARD 4 (Advanced page): Prompting & Formatting
         # -----------------------------------------------------------------
         card_llm_format, l_llm_format = create_glass_card(self.translations.get("llm_format_title", "Prompting & Formatting"))
         form_llm_format = QtWidgets.QFormLayout()
@@ -2682,10 +3006,10 @@ class Ui_MainWindow(object):
         form_llm_format.addRow(self.stop_strings_label, self.lineEdit_stop_strings)
 
         l_llm_format.addLayout(form_llm_format)
-        llm_layout.addWidget(card_llm_format)
+        llm_advanced_layout.addWidget(card_llm_format)
 
         # -----------------------------------------------------------------
-        # CARD 4: Advanced Local LLM Sampling
+        # CARD 5 (Advanced page): Advanced Local LLM Sampling
         # -----------------------------------------------------------------
         card_llm_adv, l_llm_adv = create_glass_card(self.translations.get("llm_adv_title", "Advanced Local LLM Sampling"))
         
@@ -2798,7 +3122,8 @@ class Ui_MainWindow(object):
         
         self.adv_samplers_widget.setEnabled(False)
 
-        llm_layout.addWidget(card_llm_adv)
+        llm_advanced_layout.addWidget(card_llm_adv)
+        llm_advanced_layout.addStretch()
 
         llm_layout.addStretch()
         self.tabWidget_options.addWidget(self.llm_tab)
@@ -3157,16 +3482,6 @@ class Ui_MainWindow(object):
         form_vis.setVerticalSpacing(20)
         form_vis.setHorizontalSpacing(30)
 
-        self.label_live2d_mode = QtWidgets.QLabel("Render Mode")
-        self.label_live2d_mode.setFont(font_label)
-        self.comboBox_live2d_mode = QtWidgets.QComboBox()
-        self.comboBox_live2d_mode.setFont(font_input)
-        self.comboBox_live2d_mode.setFixedHeight(40)
-        self.comboBox_live2d_mode.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-        self.comboBox_live2d_mode.addItems(["Soul of Waifu System", "Soul Companion"])
-        self.comboBox_live2d_mode.setObjectName("comboBox_live2d_mode")
-        form_vis.addRow(self.label_live2d_mode, self.comboBox_live2d_mode)
-
         self.label_model_fps = QtWidgets.QLabel("Target FPS")
         self.label_model_fps.setFont(font_label)
         self.comboBox_model_fps = QtWidgets.QComboBox()
@@ -3356,41 +3671,86 @@ class Ui_MainWindow(object):
         # === AMBIENT AUDIO ===
         l_modules.addLayout(create_section_header(self.translations.get("section_ambient_audio", "AMBIENT AUDIO")))
         
-        amb_layout = QtWidgets.QHBoxLayout()
-        amb_layout.setSpacing(15)
-        
-        self.checkBox_enable_ambient = QtWidgets.QCheckBox("Enable Ambient Audio")
-        self.checkBox_enable_ambient.setStyleSheet("""
-            QToolTip { 
-                background-color: rgba(25, 25, 30, 0.95); 
-                color: #E0E0E0; 
-                border: 1px solid rgba(255, 255, 255, 0.15); 
-                border-radius: 6px; 
-                padding: 6px 10px; font-size: 12px; 
-                font-weight: 500; 
-            }
-        """)
+        self.checkBox_enable_ambient = QtWidgets.QCheckBox(self.translations.get("enable_ambient_checkbox", "Enable Ambient Audio by default"))
         self.checkBox_enable_ambient.setFont(font_input)
         self.checkBox_enable_ambient.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.checkBox_enable_ambient.setObjectName("checkBox_enable_ambient")
+        l_modules.addWidget(self.checkBox_enable_ambient)
         
+        l_modules.addSpacing(8)
+
+        amb_track_row = QtWidgets.QHBoxLayout()
+        amb_track_row.setSpacing(12)
+
+        self.label_ambient_track = QtWidgets.QLabel(self.translations.get("ambient_default_track_label", "Default Track:"))
+        self.label_ambient_track.setFont(font_input)
+        self.label_ambient_track.setFixedWidth(140)
+
         self.comboBox_ambient_mode = QtWidgets.QComboBox()
         self.comboBox_ambient_mode.setFont(font_input)
-        self.comboBox_ambient_mode.setFixedHeight(40)
+        self.comboBox_ambient_mode.setFixedHeight(38)
         self.comboBox_ambient_mode.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.comboBox_ambient_mode.setObjectName("comboBox_ambient_mode")
-        
+
         self.pushButton_reload_ambient = QtWidgets.QPushButton()
-        self.pushButton_reload_ambient.setFixedSize(40, 40)
+        self.pushButton_reload_ambient.setFixedSize(38, 38)
+        self.pushButton_reload_ambient.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
         self.pushButton_reload_ambient.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.pushButton_reload_ambient.setIcon(QtGui.QIcon("app/gui/icons/reload.png"))
+        self.pushButton_reload_ambient.setIconSize(QtCore.QSize(16, 16))
+        self.pushButton_reload_ambient.setToolTip(self.translations.get("reload_ambient_tooltip", "Refresh audio tracks list"))
         self.pushButton_reload_ambient.setObjectName("pushButton_reload_ambient")
-        
-        amb_layout.addWidget(self.checkBox_enable_ambient)
-        amb_layout.addWidget(self.comboBox_ambient_mode, 1)
-        amb_layout.addWidget(self.pushButton_reload_ambient)
-        
-        l_modules.addLayout(amb_layout)
+
+        amb_track_row.addWidget(self.label_ambient_track)
+        amb_track_row.addWidget(self.comboBox_ambient_mode, 1)
+        amb_track_row.addWidget(self.pushButton_reload_ambient)
+        l_modules.addLayout(amb_track_row)
+
+        amb_vol_row = QtWidgets.QHBoxLayout()
+        amb_vol_row.setSpacing(12)
+
+        self.label_ambient_vol = QtWidgets.QLabel(self.translations.get("ambient_default_volume_label", "Default Volume:"))
+        self.label_ambient_vol.setFont(font_input)
+        self.label_ambient_vol.setFixedWidth(140)
+
+        self.slider_ambient_settings_vol = QtWidgets.QSlider(QtCore.Qt.Orientation.Horizontal)
+        self.slider_ambient_settings_vol.setRange(0, 100)
+        self.slider_ambient_settings_vol.setValue(50)
+        self.slider_ambient_settings_vol.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
+
+        self.label_ambient_vol_val = QtWidgets.QLabel("50%")
+        self.label_ambient_vol_val.setFont(font_input)
+        self.label_ambient_vol_val.setStyleSheet("color: #82CDFF; font-weight: bold; min-width: 38px;")
+
+        amb_vol_row.addWidget(self.label_ambient_vol)
+        amb_vol_row.addWidget(self.slider_ambient_settings_vol, 1)
+        amb_vol_row.addWidget(self.label_ambient_vol_val)
+        l_modules.addLayout(amb_vol_row)
+
+        l_modules.addSpacing(6)
+
+        self.pushButton_open_ambient_folder = QtWidgets.QPushButton(
+            self.translations.get("open_ambient_folder_btn", "Open Ambient Folder (Add your own audio)")
+        )
+        self.pushButton_open_ambient_folder.setFont(font_input)
+        self.pushButton_open_ambient_folder.setFixedHeight(38)
+        self.pushButton_open_ambient_folder.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
+        self.pushButton_open_ambient_folder.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.pushButton_open_ambient_folder.setStyleSheet("""
+            QPushButton {
+                background: rgba(255, 255, 255, 0.04);
+                border: 1px dashed rgba(255, 255, 255, 0.2);
+                border-radius: 8px;
+                color: #C9C6BF;
+                font-family: 'Inter Tight SemiBold';
+            }
+            QPushButton:hover {
+                background: rgba(75, 184, 255, 0.1);
+                border: 1px solid #4BB8FF;
+                color: #FFFFFF;
+            }
+        """)
+        l_modules.addWidget(self.pushButton_open_ambient_folder)
         l_modules.addSpacing(10)
         
         # === COGNITIVE ARCHITECTURE ===
@@ -3647,10 +4007,13 @@ class Ui_MainWindow(object):
         # =================================================================
         self.appearance_settings_tab = AppearanceSettingsTab(self.translations)
         self.tabWidget_options.addWidget(self.appearance_settings_tab)
-        
-        item = QtWidgets.QListWidgetItem(self.translations.get("appearance_tab_name", "Appearance"))
-        item.setIcon(QtGui.QIcon("app/gui/icons/color-palette.png"))
-        self.options_menu.addItem(item)
+
+        font_label = QtGui.QFont(font_label)
+        font_label.setHintingPreference(QtGui.QFont.HintingPreference.PreferDefaultHinting)
+        font_input = QtGui.QFont(font_input)
+        font_input.setHintingPreference(QtGui.QFont.HintingPreference.PreferDefaultHinting)
+        font_title = QtGui.QFont(font_title)
+        font_title.setHintingPreference(QtGui.QFont.HintingPreference.PreferDefaultHinting)
 
         self.options_menu.setCurrentRow(0)
         self.gridLayout.addWidget(self.options_container, 0, 0, 1, 1)
@@ -3730,8 +4093,16 @@ class Ui_MainWindow(object):
         self.character_description_chat.setObjectName("character_description_chat")
         self.verticalLayout_4.addWidget(self.character_description_chat)
         self.horizontalLayout_2.addWidget(self.user_information_frame)
+        
+        self.token_budget_bar = TokenBudgetBarWidget(parent=self.top)
+        self.horizontalLayout_2.addWidget(self.token_budget_bar)
+
         spacerItem24 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)
         self.horizontalLayout_2.addItem(spacerItem24)
+
+        self.chat_audio_hud = ChatAudioHudButton(parent=self.top)
+        self.chat_audio_hud.setObjectName("chat_audio_hud")
+        self.horizontalLayout_2.addWidget(self.chat_audio_hud)
         
         self.pushButton_change_chat_background = PushButton("app/gui/icons/background_icon.png")
         self.pushButton_change_chat_background.setMinimumSize(QtCore.QSize(40, 40))
@@ -3758,6 +4129,7 @@ class Ui_MainWindow(object):
         self.pushButton_change_chat_background.setIcon(icon_chat_background)
         self.pushButton_change_chat_background.setIconSize(QtCore.QSize(18, 18))
         self.pushButton_change_chat_background.setObjectName("pushButton_change_chat_background")
+        self.pushButton_change_chat_background.setToolTip(self.translations.get("change_chat_background_tooltip", "Change chat background"))
         self.horizontalLayout_2.addWidget(self.pushButton_change_chat_background)
         self.pushButton_author_notes = PushButton("app/gui/icons/author_notes.png")
         self.pushButton_author_notes.setMinimumSize(QtCore.QSize(40, 40))
@@ -3784,6 +4156,7 @@ class Ui_MainWindow(object):
         self.pushButton_author_notes.setIcon(icon_author_notes)
         self.pushButton_author_notes.setIconSize(QtCore.QSize(18, 18))
         self.pushButton_author_notes.setObjectName("pushButton_author_notes")
+        self.pushButton_author_notes.setToolTip(self.translations.get("author_notes_tooltip", "Author's notes"))
         self.pushButton_author_notes.hide()
         self.horizontalLayout_2.addWidget(self.pushButton_author_notes)
         self.pushButton_summary = PushButton("app/gui/icons/summary.png")
@@ -3811,6 +4184,7 @@ class Ui_MainWindow(object):
         self.pushButton_summary.setIcon(icon_summary)
         self.pushButton_summary.setIconSize(QtCore.QSize(20, 20))
         self.pushButton_summary.setObjectName("pushButton_summary")
+        self.pushButton_summary.setToolTip(self.translations.get("summary_tooltip", "Edit conversation summary"))
         self.pushButton_summary.hide()
         self.horizontalLayout_2.addWidget(self.pushButton_summary)
         self.pushButton_soul_memory = PushButton("app/gui/icons/soulMemory.png")
@@ -3844,6 +4218,7 @@ class Ui_MainWindow(object):
         icon9.addPixmap(QtGui.QPixmap("app/gui/icons/more.png"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
         self.pushButton_more.setIcon(icon9)
         self.pushButton_more.setObjectName("pushButton_more")
+        self.pushButton_more.setToolTip(self.translations.get("more_options_tooltip", "More options"))
         self.horizontalLayout_2.addWidget(self.pushButton_more)
         self.verticalLayout_6.addWidget(self.top)
 
@@ -3904,6 +4279,40 @@ class Ui_MainWindow(object):
         self.scrollAreaWidgetContents_messages.setObjectName("scrollAreaWidgetContents_messages")
         self.scrollArea_chat.setWidget(self.scrollAreaWidgetContents_messages)
         self.verticalLayout_6.addWidget(self.scrollArea_chat)
+
+        self.pushButton_jump_to_bottom = QtWidgets.QPushButton("\u2193", parent=self.scrollArea_chat.viewport())
+        self.pushButton_jump_to_bottom.setObjectName("pushButton_jump_to_bottom")
+        self.pushButton_jump_to_bottom.setFixedSize(40, 40)
+        self.pushButton_jump_to_bottom.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
+        self.pushButton_jump_to_bottom.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.pushButton_jump_to_bottom.setToolTip(self.translations.get("jump_to_bottom_tooltip", "Jump to latest message"))
+        self.pushButton_jump_to_bottom.setStyleSheet("""
+            QPushButton {
+                background-color: rgba(30, 30, 36, 0.85);
+                color: rgba(255, 255, 255, 0.85);
+                border: 1px solid rgba(255, 255, 255, 0.12);
+                border-radius: 20px;
+                font-size: 16px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: rgba(45, 45, 52, 0.95);
+                border: 1px solid rgba(255, 255, 255, 0.25);
+                color: white;
+            }
+            QPushButton:pressed {
+                background-color: rgba(20, 20, 24, 0.95);
+            }
+        """)
+        shadow_jump_to_bottom = QtWidgets.QGraphicsDropShadowEffect()
+        shadow_jump_to_bottom.setBlurRadius(18)
+        shadow_jump_to_bottom.setOffset(0, 2)
+        shadow_jump_to_bottom.setColor(QtGui.QColor(0, 0, 0, 140))
+        self.pushButton_jump_to_bottom.setGraphicsEffect(shadow_jump_to_bottom)
+        self.pushButton_jump_to_bottom.hide()
+
+        self._chat_viewport_resize_relay = _ResizeRelay(self.scrollArea_chat)
+        self.scrollArea_chat.viewport().installEventFilter(self._chat_viewport_resize_relay)
         
         self.frame_send_message_full = QtWidgets.QFrame(parent=self.chat_page)
         self.frame_send_message_full.setMinimumSize(QtCore.QSize(0, 40))
@@ -3912,12 +4321,56 @@ class Ui_MainWindow(object):
         self.frame_send_message_full.setFrameShadow(QtWidgets.QFrame.Shadow.Raised)
         self.frame_send_message_full.setStyleSheet("background-color: transparent; border: none;")
         self.frame_send_message_full.setObjectName("frame_send_message_full")
+        
         self.horizontalLayout_5 = QtWidgets.QHBoxLayout(self.frame_send_message_full)
         self.horizontalLayout_5.setContentsMargins(0, 0, 0, 5)
-        self.horizontalLayout_5.setSpacing(0)
+        self.horizontalLayout_5.setSpacing(8)
         self.horizontalLayout_5.setObjectName("horizontalLayout_5")
-        spacerItem27 = QtWidgets.QSpacerItem(200, 20, QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Minimum)
+
+        spacerItem27 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)
         self.horizontalLayout_5.addItem(spacerItem27)
+
+        self.pushButton_switch_persona = PersonaQuickButton(parent=self.frame_send_message_full)
+        self.pushButton_switch_persona.setFixedSize(36, 36)
+        self.pushButton_switch_persona.setToolTip(self.translations.get("switch_persona_tooltip", "Switch User Persona"))
+        self.pushButton_switch_persona.setObjectName("pushButton_switch_persona")
+        self.horizontalLayout_5.addWidget(self.pushButton_switch_persona, 0, QtCore.Qt.AlignmentFlag.AlignBottom)
+
+        self.pushButton_force_memory = QtWidgets.QPushButton(parent=self.frame_send_message_full)
+        self.pushButton_force_memory.setFixedSize(36, 36)
+        self.pushButton_force_memory.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
+        self.pushButton_force_memory.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.pushButton_force_memory.setText("")
+        icon_memory = QtGui.QIcon("app/gui/icons/soulMemory_book.png")
+        self.pushButton_force_memory.setIcon(icon_memory)
+        self.pushButton_force_memory.setIconSize(QtCore.QSize(18, 18))
+        self.pushButton_force_memory.setObjectName("pushButton_force_memory")
+        self.pushButton_force_memory.setToolTip(self.translations.get("force_memory_tooltip", "Force Soul Memory update now"))
+        self.pushButton_force_memory.setStyleSheet("""
+            QPushButton {
+                background-color: rgba(255, 255, 255, 0.03);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 18px;
+                outline: none;
+            }
+            QPushButton:hover {
+                background-color: rgba(168, 85, 247, 0.15);
+                border: 1px solid rgba(168, 85, 247, 0.5);
+            }
+            QPushButton:pressed {
+                background-color: rgba(168, 85, 247, 0.25);
+            }
+            QToolTip { 
+                background-color: rgba(25, 25, 30, 0.95); 
+                color: #E0E0E0; 
+                border: 1px solid rgba(255, 255, 255, 0.15); 
+                border-radius: 6px; 
+                padding: 6px 10px; font-size: 12px; 
+                font-weight: 500; 
+            }
+        """)
+        self.horizontalLayout_5.addWidget(self.pushButton_force_memory, 0, QtCore.Qt.AlignmentFlag.AlignBottom)
+
         self.frame_send_message = QtWidgets.QFrame(parent=self.frame_send_message_full)
         self.frame_send_message.setEnabled(True)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Preferred)
@@ -3925,8 +4378,9 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.frame_send_message.sizePolicy().hasHeightForWidth())
         self.frame_send_message.setSizePolicy(sizePolicy)
-        self.frame_send_message.setMinimumSize(QtCore.QSize(0, 40))
-        self.frame_send_message.setMaximumSize(QtCore.QSize(681, 40))
+        self.frame_send_message.setFixedWidth(680)
+        self.frame_send_message.setMinimumHeight(40)
+        self.frame_send_message.setMaximumHeight(40)
         self.frame_send_message.setBaseSize(QtCore.QSize(0, 0))
         
         self.frame_send_message.setStyleSheet("""
@@ -3950,8 +4404,8 @@ class Ui_MainWindow(object):
         self.frame_send_message.setObjectName("frame_send_message")
         
         self.horizontalLayout_3 = QtWidgets.QHBoxLayout(self.frame_send_message)
-        self.horizontalLayout_3.setContentsMargins(5, 0, 5, 5)
-        self.horizontalLayout_3.setSpacing(5)
+        self.horizontalLayout_3.setContentsMargins(6, 0, 6, 5)
+        self.horizontalLayout_3.setSpacing(6)
         self.horizontalLayout_3.setObjectName("horizontalLayout_3")
 
         self.pushButton_attach_file = PushButton_2(parent=self.frame_send_message)
@@ -3960,12 +4414,8 @@ class Ui_MainWindow(object):
         self.pushButton_attach_file.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
         self.pushButton_attach_file.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.pushButton_attach_file.setText("")
-        icon_attach_file = QtGui.QIcon()
-        icon_attach_file.addPixmap(QtGui.QPixmap("app/gui/icons/attached.png"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
+        icon_attach_file = QtGui.QIcon("app/gui/icons/attached.png")
         self.pushButton_attach_file.setIcon(icon_attach_file)
-        attach_font = QtGui.QFont()
-        attach_font.setPointSize(11)
-        self.pushButton_attach_file.setFont(attach_font)
         self.pushButton_attach_file.setStyleSheet("""
             QToolTip { 
                 background-color: rgba(25, 25, 30, 0.95); 
@@ -3988,95 +4438,13 @@ class Ui_MainWindow(object):
         self.pushButton_attach_file.setObjectName("pushButton_attach_file")
         self.pushButton_attach_file.setToolTip(self.translations.get("attach_file_tooltip", "Attach an image or a document to your message"))
         self.horizontalLayout_3.addWidget(self.pushButton_attach_file, 0, QtCore.Qt.AlignmentFlag.AlignBottom)
-
-        self.pushButton_toggle_tools = PushButton_2(parent=self.frame_send_message)
-        self.pushButton_toggle_tools.setMinimumSize(QtCore.QSize(30, 30))
-        self.pushButton_toggle_tools.setMaximumSize(QtCore.QSize(30, 30))
-        self.pushButton_toggle_tools.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
-        self.pushButton_toggle_tools.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-        self.pushButton_toggle_tools.setCheckable(True)
-        self.pushButton_toggle_tools.setText("")
-        icon_toggle_tools = QtGui.QIcon()
-        icon_toggle_tools.addPixmap(QtGui.QPixmap("app/gui/icons/tools_toggle.png"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
-        self.pushButton_toggle_tools.setIcon(icon_toggle_tools)
-        tools_font = QtGui.QFont()
-        tools_font.setPointSize(11)
-        self.pushButton_toggle_tools.setFont(tools_font)
-        self.pushButton_toggle_tools.setStyleSheet("""
-            QToolTip { 
-                background-color: rgba(25, 25, 30, 0.95); 
-                color: #E0E0E0; 
-                border: 1px solid rgba(255, 255, 255, 0.15); 
-                border-radius: 6px; 
-                padding: 6px 10px; font-size: 12px; 
-                font-weight: 500; 
-            }
-            QPushButton {
-                background-color: transparent;
-                border: none;
-                border-radius: 6px;
-                color: rgba(255, 255, 255, 0.4);
-            }
-            QPushButton:hover {
-                background-color: rgba(255, 255, 255, 0.08);
-            }
-            QPushButton:checked {
-                background-color: rgba(120, 170, 255, 0.18);
-                color: #78AAFF;
-            }
-        """)
-        self.pushButton_toggle_tools.setObjectName("pushButton_toggle_tools")
-        self.pushButton_toggle_tools.setToolTip(self.translations.get(
-            "toggle_tools_tooltip",
-            "Let the character use tools (calculator, date/time, web search) while replying"
-        ))
-        self.horizontalLayout_3.addWidget(self.pushButton_toggle_tools, 0, QtCore.Qt.AlignmentFlag.AlignBottom)
-
-        self.pushButton_force_memory = PushButton_2(parent=self.frame_send_message)
-        self.pushButton_force_memory.setMinimumSize(QtCore.QSize(30, 30))
-        self.pushButton_force_memory.setMaximumSize(QtCore.QSize(30, 30))
-        self.pushButton_force_memory.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
-        self.pushButton_force_memory.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-        self.pushButton_force_memory.setText("")
-        icon_memory = QtGui.QIcon()
-        icon_memory.addPixmap(QtGui.QPixmap("app/gui/icons/soulMemory_book.png"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
-        self.pushButton_force_memory.setIcon(icon_memory)
-        self.pushButton_force_memory.setIconSize(QtCore.QSize(16, 16))
-        self.pushButton_force_memory.setObjectName("pushButton_force_memory")
-        self.pushButton_force_memory.setToolTip(self.translations.get("force_memory_tooltip", "Force Soul Memory update now"))
-        self.pushButton_force_memory.setStyleSheet("""
-            QToolTip { 
-                background-color: rgba(25, 25, 30, 0.95); 
-                color: #E0E0E0; 
-                border: 1px solid rgba(255, 255, 255, 0.15); 
-                border-radius: 6px; 
-                padding: 6px 10px; font-size: 12px; 
-                font-weight: 500; 
-            }
-            QPushButton {
-                background-color: transparent;
-                border: none;
-                border-radius: 6px;
-                color: rgba(255, 255, 255, 0.4);
-            }
-            QPushButton:hover {
-                background-color: rgba(255, 255, 255, 0.08);
-            }
-            QPushButton:checked {
-                background-color: rgba(120, 170, 255, 0.18);
-                color: #78AAFF;
-            }
-        """)
-        self.horizontalLayout_3.addWidget(self.pushButton_force_memory, 0, QtCore.Qt.AlignmentFlag.AlignBottom)
         
         self.textEdit_write_user_message = QtWidgets.QTextEdit(parent=self.frame_send_message)
         self.textEdit_write_user_message.setMinimumSize(QtCore.QSize(0, 40))
         self.textEdit_write_user_message.setMaximumSize(QtCore.QSize(0, 16777215))
-        font = QtGui.QFont()
-        font.setFamily("Inter Tight Medium")
-        font.setPointSize(9)
-        font.setHintingPreference(QFont.HintingPreference.PreferNoHinting)
-        self.textEdit_write_user_message.setFont(font)
+        font_input_field = QtGui.QFont("Inter Tight Medium", 9)
+        font_input_field.setHintingPreference(QFont.HintingPreference.PreferNoHinting)
+        self.textEdit_write_user_message.setFont(font_input_field)
         self.textEdit_write_user_message.setLayoutDirection(QtCore.Qt.LayoutDirection.LeftToRight)
         self.textEdit_write_user_message.setInputMethodHints(QtCore.Qt.InputMethodHint.ImhMultiLine)
         self.textEdit_write_user_message.setFrameShape(QtWidgets.QFrame.Shape.StyledPanel)
@@ -4092,8 +4460,7 @@ class Ui_MainWindow(object):
         self.pushButton_send_message.setMaximumSize(QtCore.QSize(30, 30))
         self.pushButton_send_message.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
         self.pushButton_send_message.setText("")
-        icon11 = QtGui.QIcon()
-        icon11.addPixmap(QtGui.QPixmap("app/gui/icons/send.png"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
+        icon11 = QtGui.QIcon("app/gui/icons/send.png")
         self.pushButton_send_message.setIcon(icon11)
         self.pushButton_send_message.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.pushButton_send_message.setObjectName("pushButton_send_message")
@@ -4104,17 +4471,203 @@ class Ui_MainWindow(object):
         self.pushButton_stop_generation.setMaximumSize(QtCore.QSize(30, 30))
         self.pushButton_stop_generation.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
         self.pushButton_stop_generation.setText("")
-        icon_stop = QtGui.QIcon()
-        icon_stop.addPixmap(QtGui.QPixmap("app/gui/icons/stop.png"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
+        icon_stop = QtGui.QIcon("app/gui/icons/stop.png")
         self.pushButton_stop_generation.setIcon(icon_stop)
         self.pushButton_stop_generation.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.pushButton_stop_generation.setObjectName("pushButton_stop_generation")
+        self.pushButton_stop_generation.setToolTip(self.translations.get("stop_generation_tooltip", "Stop generating"))
         self.pushButton_stop_generation.hide()
         self.horizontalLayout_3.addWidget(self.pushButton_stop_generation, 0, QtCore.Qt.AlignmentFlag.AlignBottom)
 
         self.horizontalLayout_5.addWidget(self.frame_send_message)
-        spacerItem28 = QtWidgets.QSpacerItem(200, 20, QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Minimum)
+
+        self.pushButton_director_note = QtWidgets.QPushButton(parent=self.frame_send_message_full)
+        self.pushButton_director_note.setFixedSize(36, 36)
+        self.pushButton_director_note.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
+        self.pushButton_director_note.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.pushButton_director_note.setCheckable(True)
+        self.pushButton_director_note.setText("")
+        icon_director_note = QtGui.QIcon("app/gui/icons/clapperboard.png")
+        self.pushButton_director_note.setIcon(icon_director_note)
+        self.pushButton_director_note.setIconSize(QtCore.QSize(18, 18))
+        self.pushButton_director_note.setStyleSheet("""
+            QPushButton {
+                background-color: rgba(255, 255, 255, 0.03);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 18px;
+                color: rgba(255, 255, 255, 0.7);
+                font-size: 15px;
+                outline: none;
+            }
+            QPushButton:hover {
+                background-color: rgba(245, 158, 11, 0.15);
+                border: 1px solid rgba(245, 158, 11, 0.5);
+                color: #FCD34D;
+            }
+            QPushButton:checked {
+                background-color: rgba(245, 158, 11, 0.25);
+                border: 1px solid rgba(245, 158, 11, 0.8);
+                color: #FDE68A;
+            }
+            QToolTip { 
+                background-color: rgba(25, 25, 30, 0.95); 
+                color: #E0E0E0; 
+                border: 1px solid rgba(255, 255, 255, 0.15); 
+                border-radius: 6px; 
+                padding: 6px 10px; font-size: 12px; 
+                font-weight: 500; 
+            }
+        """)
+        self.pushButton_director_note.setToolTip(self.translations.get("director_note_btn_tooltip", "Narrative Directive"))
+        self.pushButton_director_note.setObjectName("pushButton_director_note")
+        self.horizontalLayout_5.addWidget(self.pushButton_director_note, 0, QtCore.Qt.AlignmentFlag.AlignBottom)
+
+        self.pushButton_impersonate = QtWidgets.QPushButton(parent=self.frame_send_message_full)
+        self.pushButton_impersonate.setFixedSize(36, 36)
+        self.pushButton_impersonate.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
+        self.pushButton_impersonate.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.pushButton_impersonate.setText("")
+        icon_impersonate = QtGui.QIcon("app/gui/icons/user.png")
+        self.pushButton_impersonate.setIcon(icon_impersonate)
+        self.pushButton_impersonate.setIconSize(QtCore.QSize(18, 18))
+        self.pushButton_impersonate.setStyleSheet("""
+            QPushButton {
+                background-color: rgba(255, 255, 255, 0.03);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 18px;
+                color: rgba(255, 255, 255, 0.7);
+                font-size: 15px;
+                outline: none;
+            }
+            QPushButton:hover {
+                background-color: rgba(52, 211, 153, 0.15);
+                border: 1px solid rgba(52, 211, 153, 0.5);
+                color: #6EE7B7;
+            }
+            QPushButton:disabled {
+                color: rgba(255, 255, 255, 0.25);
+                background-color: rgba(255, 255, 255, 0.02);
+            }
+            QToolTip {
+                background-color: rgba(25, 25, 30, 0.95);
+                color: #E0E0E0;
+                border: 1px solid rgba(255, 255, 255, 0.15);
+                border-radius: 6px;
+                padding: 6px 10px; font-size: 12px;
+                font-weight: 500;
+            }
+        """)
+        self.pushButton_impersonate.setToolTip(self.translations.get(
+            "impersonate_btn_tooltip",
+            "Impersonate — let the AI draft your next message into the input field"
+        ))
+        self.pushButton_impersonate.setObjectName("pushButton_impersonate")
+        self.horizontalLayout_5.addWidget(self.pushButton_impersonate, 0, QtCore.Qt.AlignmentFlag.AlignBottom)
+
+        self.pushButton_toggle_tools = QtWidgets.QPushButton(parent=self.frame_send_message_full)
+        self.pushButton_toggle_tools.setFixedSize(36, 36)
+        self.pushButton_toggle_tools.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
+        self.pushButton_toggle_tools.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.pushButton_toggle_tools.setCheckable(True)
+        self.pushButton_toggle_tools.setText("")
+        icon_toggle_tools = QtGui.QIcon("app/gui/icons/tools_toggle.png")
+        self.pushButton_toggle_tools.setIcon(icon_toggle_tools)
+        self.pushButton_toggle_tools.setIconSize(QtCore.QSize(18, 18))
+        self.pushButton_toggle_tools.setObjectName("pushButton_toggle_tools")
+        self.pushButton_toggle_tools.setToolTip(self.translations.get(
+            "toggle_tools_tooltip",
+            "Let the character use tools (calculator, date/time, web search) while replying"
+        ))
+        self.pushButton_toggle_tools.setStyleSheet("""
+            QPushButton {
+                background-color: rgba(255, 255, 255, 0.03);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 18px;
+                outline: none;
+            }
+            QPushButton:hover {
+                background-color: rgba(96, 165, 250, 0.15);
+                border: 1px solid rgba(96, 165, 250, 0.5);
+            }
+            QPushButton:checked {
+                background-color: rgba(96, 165, 250, 0.25);
+                border: 1px solid rgba(96, 165, 250, 0.8);
+            }
+            QToolTip { 
+                background-color: rgba(25, 25, 30, 0.95); 
+                color: #E0E0E0; 
+                border: 1px solid rgba(255, 255, 255, 0.15); 
+                border-radius: 6px; 
+                padding: 6px 10px; font-size: 12px; 
+                font-weight: 500; 
+            }
+        """)
+        self.horizontalLayout_5.addWidget(self.pushButton_toggle_tools, 0, QtCore.Qt.AlignmentFlag.AlignBottom)
+
+        spacerItem28 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)
         self.horizontalLayout_5.addItem(spacerItem28)
+
+        self.frame_director_note = QtWidgets.QFrame(parent=self.chat_page)
+        self.frame_director_note.setObjectName("frame_director_note")
+        self.frame_director_note.setMinimumWidth(750)
+        self.frame_director_note.setMaximumWidth(860)
+        self.frame_director_note.setFixedHeight(42)
+        self.frame_director_note.setStyleSheet("""
+            QFrame#frame_director_note {
+                background-color: rgba(245, 158, 11, 0.10);
+                border: 1px solid rgba(245, 158, 11, 0.35);
+                border-radius: 14px;
+                margin-bottom: 12px;
+            }
+            QLineEdit {
+                background: transparent;
+                border: none;
+                color: #FDE68A;
+                font-family: 'Inter Tight Medium';
+                font-size: 13px;
+                padding: 0 10px;
+            }
+            QLineEdit::placeholder {
+                color: rgba(253, 230, 138, 0.45);
+            }
+        """)
+        
+        self.layout_dir_note = QtWidgets.QHBoxLayout(self.frame_director_note)
+        self.layout_dir_note.setContentsMargins(16, 0, 12, 0)
+        self.layout_dir_note.setSpacing(10)
+        
+        self.lineEdit_director_note = QtWidgets.QLineEdit()
+        font = QtGui.QFont()
+        font.setHintingPreference(QtGui.QFont.HintingPreference.PreferNoHinting)
+        self.lineEdit_director_note.setFont(font)
+        
+        self.lineEdit_director_note.setPlaceholderText(
+            self.translations.get("director_note_placeholder", "Plot note (a one-time instruction for the AI regarding the next move)...")
+        )
+
+        self.btn_clear_director_note = QtWidgets.QPushButton("✕")
+        font = QtGui.QFont()
+        font.setHintingPreference(QtGui.QFont.HintingPreference.PreferNoHinting)
+        self.btn_clear_director_note.setFont(font)
+        self.btn_clear_director_note.setFixedSize(24, 24)
+        self.btn_clear_director_note.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
+        self.btn_clear_director_note.setStyleSheet("""
+            QPushButton { 
+                background: transparent; 
+                border: none; 
+                color: rgba(255,255,255,0.4); 
+                font-size: 12px; 
+                font-weight: bold; 
+            }
+            QPushButton:hover { 
+                color: #F87171; 
+            }
+        """)
+
+        self.layout_dir_note.addWidget(self.lineEdit_director_note, 1)
+        self.layout_dir_note.addWidget(self.btn_clear_director_note)
+
+        self.frame_director_note.hide()
 
         self.attachment_preview_bar = QtWidgets.QFrame(parent=self.chat_page)
         self.attachment_preview_bar.setObjectName("attachment_preview_bar")
@@ -4134,8 +4687,9 @@ class Ui_MainWindow(object):
         self.attachment_preview_layout.setSpacing(8)
         self.attachment_preview_layout.addStretch()
         self.attachment_preview_bar.hide()
-        self.verticalLayout_6.addWidget(self.attachment_preview_bar)
 
+        self.verticalLayout_6.addWidget(self.attachment_preview_bar)
+        self.verticalLayout_6.addWidget(self.frame_director_note, 0, QtCore.Qt.AlignmentFlag.AlignHCenter)
         self.verticalLayout_6.addWidget(self.frame_send_message_full)
 
         self.top.raise_()
@@ -4270,6 +4824,7 @@ class Ui_MainWindow(object):
         icon_reload_models.addPixmap(QtGui.QPixmap("app/gui/icons/reload.png"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
         self.pushButton_reload_models.setIcon(icon_reload_models)
         self.pushButton_reload_models.setObjectName("pushButton_reload_models")
+        self.pushButton_reload_models.setToolTip(self.translations.get("reload_models_tooltip", "Refresh models list"))
         self.horizontalLayout_8.addWidget(self.pushButton_reload_models)
         spacerItem31 = QtWidgets.QSpacerItem(612, 20, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)
         self.horizontalLayout_8.addItem(spacerItem31)
@@ -4413,12 +4968,6 @@ class Ui_MainWindow(object):
             icon_path="app/gui/icons/create_character.png"
         )
 
-        self.btn_open_soul_stage = RPGlassCard(
-            title=self.translations.get("rp_card_soul_stage_title", "Soul Stage"),
-            description=self.translations.get("rp_card_soul_stage_desc", "Step into interactive storytelling with multiple characters and an AI Director."),
-            icon_path="app/gui/icons/soul_stage.png"
-        )
-
         self.btn_open_lorebook = RPGlassCard(
             title=self.translations.get("rp_card_lorebook_title", "Lorebooks"),
             description=self.translations.get("rp_card_lorebook_desc", "Create rules, places, and world events for your scenarios."),
@@ -4454,7 +5003,6 @@ class Ui_MainWindow(object):
             self.btn_open_personas,
             self.btn_open_prompts,
             self.btn_open_lorebook,
-            self.btn_open_soul_stage,
             self.btn_open_image_gen,
             self.btn_open_discord_bot
         ]
@@ -4753,6 +5301,7 @@ class Ui_MainWindow(object):
         self.pushButton_characters_gateway.setCheckable(True)
         self.pushButton_characters_gateway.setChecked(False)
         self.pushButton_characters_gateway.setAutoExclusive(True)
+        self.pushButton_characters_gateway.setToolTip(self.translations.get("soul_hub_tooltip", "Soul Hub"))
         self.pushButton_characters_gateway.setObjectName("pushButton_characters_gateway")
         self.verticalLayout.addWidget(self.pushButton_characters_gateway)
 
@@ -6017,6 +6566,18 @@ class PushButton_2(QtWidgets.QPushButton):
             
             self.icon().paint(painter, x, y, icon_size, icon_size)
 
+class _ResizeRelay(QtCore.QObject):
+    resized = QtCore.pyqtSignal()
+
+    def eventFilter(self, watched_object, event):
+        if event.type() == QtCore.QEvent.Type.Resize:
+            self.resized.emit()
+        return False
+
+class NoScrollComboBox(QtWidgets.QComboBox):
+    def wheelEvent(self, event):
+        event.ignore()
+
 class AnimatedToggle(QtWidgets.QCheckBox):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -6727,12 +7288,7 @@ class AppearanceSettingsTab(QtWidgets.QWidget):
             sl.setRange(lo, hi)
             sl.setValue(target_dict.get(key, lo))
             sl.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
-            sl.setStyleSheet("""
-                QSlider::groove:horizontal { height: 4px; background: #333; border-radius: 2px; }
-                QSlider::handle:horizontal { background: #E0E0E0; width: 14px; height: 14px; margin: -5px 0; border-radius: 7px; }
-                QSlider::handle:horizontal:hover { background: #FFFFFF; }
-                QSlider::sub-page:horizontal { background: #666; border-radius: 2px; }
-            """)
+            sl.setStyleSheet(SLIDER_STYLE_DARK)
             
             def on_ch(v, k=key, vl=val_lbl, sf=suffix):
                 target_dict[k] = v

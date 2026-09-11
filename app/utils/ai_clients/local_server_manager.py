@@ -464,4 +464,4 @@ class LocalServerManager:
     
     def on_start_server_button_clicked(self):
         task = asyncio.create_task(self.ensure_server_running())
-        task.add_done_callback(self._log_task_exception)
+        task.add_done_callback(self._log_task_exception)

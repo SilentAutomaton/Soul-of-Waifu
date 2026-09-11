@@ -16,7 +16,7 @@ logger = logging.getLogger("AI Factory")
 
 class AIFactory:
     @staticmethod
-    def get_provider(conversation_method: str):
+    def get_provider(conversation_method: str, session_id: str = None):
         """
         Factory method to instantiate the appropriate AI provider.
         """
@@ -41,7 +41,7 @@ class AIFactory:
             model = config_settings.get_main_setting("openrouter_model")
             base_url = "https://openrouter.ai/api/v1"
 
-            return OpenRouterProvider(api_key=api_key, model=model, base_url=base_url)
+            return OpenRouterProvider(api_key=api_key, model=model, base_url=base_url, session_id=session_id)
 
         elif conversation_method == "Mistral AI":
             api_key = config_api.get_token("MISTRAL_AI_API_TOKEN")

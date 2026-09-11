@@ -24,6 +24,59 @@ from huggingface_hub import HfApi, hf_hub_download
 
 logger = logging.getLogger("Models Hub Client")
 
+
+class DownloadCoordinator(QtCore.QObject):
+    _instance = None
+
+    updated = pyqtSignal()
+
+    @classmethod
+    def instance(cls):
+        if cls._instance is None:
+            cls._instance = cls()
+        return cls._instance
+
+    def __init__(self):
+        super().__init__()
+        self._active = {}
+
+    def register(self, thread, filename):
+        self._active[filename] = {"name": filename, "percent": 0, "thread": thread}
+        self.updated.emit()
+
+    def update_progress(self, filename, percent):
+        entry = self._active.get(filename)
+        if entry is not None:
+            entry["percent"] = percent
+            self.updated.emit()
+
+    def finish(self, filename):
+        if self._active.pop(filename, None) is not None:
+            self.updated.emit()
+
+    def cancel_by_name(self, filename):
+        entry = self._active.get(filename)
+        if entry is not None:
+            thread = entry.get("thread")
+            if thread is not None:
+                try:
+                    thread.cancel()
+                except RuntimeError:
+                    pass
+
+    def has_active(self):
+        return bool(self._active)
+
+    def summary(self):
+        if not self._active:
+            return None, 0
+        first = next(iter(self._active.values()))
+        percent = int(sum(e["percent"] for e in self._active.values()) / len(self._active))
+        return first["name"], percent
+
+    def active_names(self):
+        return list(self._active.keys())
+
 class ModelSearch(QThread):
     """
     A thread-based class for searching GGUF models on Hugging Face Hub.
@@ -933,13 +986,6 @@ class FileSelectorDialog(QDialog):
         return f"{size_bytes:.2f} TB"
 
     def closeEvent(self, event):
-        for i in range(self.file_list.count()):
-            item = self.file_list.item(i)
-            widget = self.file_list.itemWidget(item)
-            if isinstance(widget, FileSelectorItemWidget):
-                if hasattr(widget, 'downloader_thread') and widget.downloader_thread and widget.downloader_thread.isRunning():
-                    widget.downloader_thread.cancel()
-                    widget.downloader_thread.wait(2000)
         super().closeEvent(event)
 
 
@@ -1143,6 +1189,17 @@ class FileSelectorItemWidget(QtWidgets.QFrame):
         self.downloader_thread.finished.connect(self.on_download_finished)
         self.downloader_thread.error.connect(self.on_download_error)
         self.downloader_thread.cancelled.connect(self.on_download_cancelled)
+
+        _coord = DownloadCoordinator.instance()
+        _fn = self.filename
+        _coord.register(self.downloader_thread, _fn)
+        self.downloader_thread.progress.connect(
+            lambda percent, _status, fn=_fn: _coord.update_progress(fn, percent)
+        )
+        self.downloader_thread.finished.connect(lambda _path, fn=_fn: _coord.finish(fn))
+        self.downloader_thread.error.connect(lambda _msg, fn=_fn: _coord.finish(fn))
+        self.downloader_thread.cancelled.connect(lambda fn=_fn: _coord.finish(fn))
+
         self.downloader_thread.start()
 
     def cancel_download(self):
@@ -1153,6 +1210,7 @@ class FileSelectorItemWidget(QtWidgets.QFrame):
             self.downloader_thread.cancel()
 
     def on_download_cancelled(self):
+        DownloadCoordinator.instance().finish(self.filename)
         self.btn_download.setEnabled(True)
         self.btn_download.setText(self.translations.get("btn_download_model", " Download"))
         self.btn_download.setIcon(self.icon_download)
@@ -1167,8 +1225,10 @@ class FileSelectorItemWidget(QtWidgets.QFrame):
     def on_download_progress(self, percent, text_status):
         self.progress_bar.setValue(percent)
         self.status_label.setText(text_status)
+        DownloadCoordinator.instance().update_progress(self.filename, percent)
 
     def on_download_finished(self, path):
+        DownloadCoordinator.instance().finish(self.filename)
         self.btn_download.setEnabled(False)
         self.btn_download.setText(self.translations.get("btn_downloaded", " Downloaded ✓"))
         self.btn_download.setStyleSheet(self.btn_style_success)
@@ -1181,6 +1241,7 @@ class FileSelectorItemWidget(QtWidgets.QFrame):
         self.status_label.setStyleSheet("color: #4ADE80; font-size: 12px; font-weight: bold;")
 
     def on_download_error(self, error_msg):
+        DownloadCoordinator.instance().finish(self.filename)
         self.btn_download.setEnabled(True)
         self.btn_download.setText(self.translations.get("btn_try_again", " Try Again"))
         self.btn_download.setIcon(self.icon_download)
