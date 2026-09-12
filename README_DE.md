@@ -40,6 +40,8 @@
 
 > [!NOTE]
 > **🐧 Linux:** Dieser Fork enthält eine inoffizielle Linux-Portierung im Branch `linux`. Die Installation (`./installer.sh`, `./start.sh`) ist in **[README-LINUX.md](README-LINUX.md)** beschrieben.
+>
+> **🇩🇪 Deutsch:** Die App gibt es in diesem Fork auch auf Deutsch (Optionen -> App-Sprache). Über die Einstellung **Antwortsprache** legst du fest, in welcher Sprache die KI antwortet - Erzähltext eingeschlossen -, und der Chat-Übersetzer kann jetzt auch ins Deutsche übersetzen.
 
 ---
 

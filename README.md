@@ -40,6 +40,8 @@
 
 > [!NOTE]
 > **🐧 Linux:** this fork contains an unofficial Linux port on the `linux` branch. See **[README-LINUX.md](README-LINUX.md)** for installation (`./installer.sh`, `./start.sh`).
+>
+> **🇩🇪 German:** the app is also available in German (Options -> App Language). A **Reply Language** setting tells the AI which language to answer in - narration included - and German was added to the chat translator.
 
 ---
 

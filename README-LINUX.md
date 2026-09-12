@@ -14,7 +14,21 @@ The Linux-specific code is kept small so upstream updates can still be merged:
 |---|---|
 | `installer.sh` / `start.sh` | Linux replacements for `installer.bat` / `start.bat` |
 | `app/utils/platform_compat.py` | Linux versions of the Windows-only calls (`os.startfile`, `winreg`, `ctypes.windll`, …) |
-| Small patches in the app code | forward-slash paths, llama.cpp Linux builds, companion tools |
+| `tools/patch_venv.py` | compatibility patches in the venv (fairseq on Python 3.11, pyworld, qwen_tts) |
+| `tools/fetch_llama_backend.py` | downloads the llama.cpp Linux build for a backend |
+| Small patches in the app code | forward-slash paths, llama.cpp Linux builds, audio devices, companion tools |
+
+## Beyond the Linux port
+
+This branch also adds features that are not Linux-specific:
+
+- **German translation** of the whole app (`app/translations/de.yaml`, Options -> App Language).
+- **Reply Language** (Options -> App Interface): tells the AI which language to answer in - narration,
+  descriptions and inner thoughts included, not just dialogue. Default follows the app language;
+  "Let the model decide" restores the upstream behaviour.
+- **German as a chat translation target**, next to Russian.
+- Upstream fixes: the Appearance tab is translated at last, and RP editor cards no longer clip
+  longer translations.
 
 ## Requirements
 
@@ -105,7 +119,9 @@ To use CUDA, pick one of these:
 |---|---|
 | Chat, cloud providers, character cards, Soul Memory, Soul Stage | ✅ same code as Windows |
 | TTS (Edge, ElevenLabs, XTTSv2, Qwen3, Kokoro, Silero) / STT (Faster-Whisper) | ✅ |
-| RVC voice conversion | ⚠️ needs `fairseq`/`rvc-python` to build. The app still starts without them. |
+| RVC voice conversion | ✅ `tools/patch_venv.py` makes fairseq 0.12.2 importable on Python 3.11; the app also starts without it |
+| Local LLMs (llama.cpp) | ✅ the installer fetches the Vulkan build (CPU/ROCm/SYCL available); no official CUDA build for Linux |
+| Audio output | ✅ the device list offers the sound-server PCMs (`default`, `pipewire`, `pulse`) |
 | Live2D / VRM avatars | ✅ |
 | Open files, folders, apps (`.desktop` launchers, localized XDG folders) | ✅ |
 | Media keys, clipboard, window title/focus | ✅ with the optional tools above |
@@ -113,8 +129,18 @@ To use CUDA, pick one of these:
 | Screenshots / mouse and keyboard automation (`mss`, `pyautogui`) | ⚠️ X11 only. On Wayland they reach XWayland windows only. |
 | Code execution tool | ✅ Python and **Bash** (PowerShell on Windows) |
 | Program language | ✅ English, Russian and **German** (`app/translations/de.yaml`, added in this fork) |
+| Reply language of the AI | ✅ Options -> App Interface -> Reply Language (follows the app language by default) |
 
 ## Staying up to date with upstream
+
+New versions usually appear in the **release archive** before they reach GitHub, so that is the main path:
+the `release` branch holds the unmodified source of each release archive, and `linux` merges it.
+
+1. Extract the new `Soul-of-Waifu-vX.Y.Z.rar`, switch to `release`, and copy its source files over the tracked
+   files (skip `app/data/`, binaries and models). Commit.
+2. Switch to `linux`, run `git merge release`, resolve any conflicts, and bump `SOW_VERSION` in `installer.sh`.
+
+For commits that only exist on upstream's GitHub branch:
 
 ```bash
 git remote add upstream https://github.com/jofizcd/Soul-of-Waifu.git   # once
@@ -122,13 +148,6 @@ git fetch upstream
 git switch linux
 git merge upstream/main
 ```
-
-New versions usually appear in the release archive before they reach GitHub. The `release` branch holds the
-unmodified source of each release archive, and `linux` merges it. To update:
-
-1. Extract the new `Soul-of-Waifu-vX.Y.Z.rar`, switch to `release`, and copy its source files over the tracked
-   files (skip `app/data/`, binaries and models). Commit.
-2. Switch to `linux`, run `git merge release`, resolve any conflicts, and bump `SOW_VERSION` in `installer.sh`.
 
 If upstream adds new Windows-only code, look for `os.startfile`, `winreg`, `ctypes.windll` and hard-coded
 backslash paths (`"assets\\..."`), and route them through `app/utils/platform_compat.py`.
