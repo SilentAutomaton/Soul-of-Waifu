@@ -36,6 +36,9 @@
   <a href="https://github.com/jofizcd/Soul-of-Waifu/releases/latest">
     <img src="https://img.shields.io/badge/ENTER A NEW REALITY-2EA043?style=for-the-badge&logo=windows&logoColor=white" alt="Скачать последнюю версию">
   </a>
+  <a href="README-LINUX.md">
+    <img src="https://img.shields.io/badge/ПОРТ ДЛЯ LINUX-1793D1?style=for-the-badge&logo=linux&logoColor=white" alt="Порт для Linux">
+  </a>
 </p>
 
 > [!NOTE]
