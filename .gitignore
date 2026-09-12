@@ -22,3 +22,5 @@ assets/rvc_models/*
 .soul_stage/
 # tiktoken cl100k_base cache downloaded at runtime
 app/utils/ai_clients/9b5ad71b2ce5302211f9c61530b329a4922fc6a4
+app/configuration/characters/
+app/voices/*_audio/
