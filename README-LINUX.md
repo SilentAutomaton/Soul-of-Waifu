@@ -74,8 +74,16 @@ have the archive:
 ./installer.sh --release-archive ~/Downloads/Soul-of-Waifu-v2.5.1.rar
 ```
 
-Other options: `--torch cuda|rocm|cpu`, `--skip-assets`, `--desktop-entry`, `-y` (non-interactive).
+Other options: `--torch cuda|rocm|cpu`, `--skip-assets`, `--no-shortcuts`, `-y` (non-interactive).
 Run `./installer.sh --help` for details.
+
+The installer creates an application menu entry **and a desktop shortcut** pointing at `start.sh`, and installs
+the app logo as `~/.local/share/icons/hicolor/256x256/apps/soul-of-waifu.png`. The desktop file is made
+executable (KDE) and marked as trusted (GNOME). To create them without running the whole installer again:
+
+```bash
+./installer.sh --shortcuts-only
+```
 
 ## Starting
 

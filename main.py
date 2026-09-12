@@ -938,6 +938,9 @@ if __name__ == "__main__":
         ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(app_id)
 
     app = QApplication(sys.argv)
+    app.setApplicationName("Soul of Waifu")
+    # Links the window to soul-of-waifu.desktop, so Linux task bars show the app icon.
+    app.setDesktopFileName("soul-of-waifu")
 
     loop = QEventLoop(app)
     asyncio.set_event_loop(loop)

@@ -5,7 +5,8 @@
 #   --torch cuda|rocm|cpu     PyTorch build (default: auto-detect and ask)
 #   --release-archive FILE    Use an already downloaded Soul-of-Waifu-vX.Y.Z.rar
 #   --skip-assets             Do not fetch icons/assets from the release archive
-#   --desktop-entry           Create an application menu entry
+#   --no-shortcuts            Do not create the menu entry and desktop shortcut
+#   --shortcuts-only          Only create the menu entry and desktop shortcut, then exit
 #   -y, --yes                 Non-interactive, accept all defaults
 
 set -euo pipefail
@@ -31,13 +32,15 @@ warn() { echo "${YELLOW}WARNING:${RESET} $*"; }
 fail() { echo "${RED}ERROR:${RESET} $*" >&2; exit 1; }
 have() { command -v "$1" >/dev/null 2>&1; }
 
-TORCH_VARIANT=""; RELEASE_ARCHIVE=""; SKIP_ASSETS=0; DESKTOP_ENTRY=0; ASSUME_YES=0
+TORCH_VARIANT=""; RELEASE_ARCHIVE=""; SKIP_ASSETS=0; SHORTCUTS=1; SHORTCUTS_ONLY=0; ASSUME_YES=0
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --torch) TORCH_VARIANT="${2:-}"; shift 2 ;;
         --release-archive) RELEASE_ARCHIVE="$(readlink -f "${2:-}")"; shift 2 ;;
         --skip-assets) SKIP_ASSETS=1; shift ;;
-        --desktop-entry) DESKTOP_ENTRY=1; shift ;;
+        --desktop-entry) SHORTCUTS=1; shift ;;
+        --no-shortcuts) SHORTCUTS=0; shift ;;
+        --shortcuts-only) SHORTCUTS_ONLY=1; shift ;;
         -y|--yes) ASSUME_YES=1; shift ;;
         -h|--help) sed -n '2,10p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
         *) fail "Unknown option: $1 (see --help)" ;;
@@ -56,6 +59,77 @@ ask() {  # ask "question" y|n  -> returns 0 for yes
 
 echo "${GREEN}${BOLD}Soul of Waifu v${SOW_VERSION} - Linux installer${RESET}"
 echo
+
+install_shortcuts() {
+    local data_home="${XDG_DATA_HOME:-$HOME/.local/share}"
+    local apps_dir="$data_home/applications"
+    local icon_dir="$data_home/icons/hicolor/256x256/apps"
+    local icon_ref="soul-of-waifu"
+    mkdir -p "$apps_dir" "$icon_dir"
+
+    # Pillow lives in the app venv; fall back to the system python.
+    local py="${PY:-}"
+    [[ -n $py ]] || { [[ -x $VENV_DIR/bin/python ]] && py="$VENV_DIR/bin/python"; } || true
+    [[ -n $py ]] || py=python3
+
+    # Put a 256x256 PNG into the icon theme; fall back to the original file.
+    if [[ -f app/gui/icons/logotype.png ]]; then
+        if ! "$py" - "$PWD/app/gui/icons/logotype.png" "$icon_dir/soul-of-waifu.png" 2>/dev/null <<'PYICON'
+import sys
+from PIL import Image
+src = Image.open(sys.argv[1]).convert("RGBA")
+src.thumbnail((256, 256), Image.LANCZOS)
+canvas = Image.new("RGBA", (256, 256), (0, 0, 0, 0))
+canvas.paste(src, ((256 - src.width) // 2, (256 - src.height) // 2))
+canvas.save(sys.argv[2])
+PYICON
+        then
+            cp -f app/gui/icons/logotype.png "$icon_dir/soul-of-waifu.png" 2>/dev/null || icon_ref="$PWD/app/gui/icons/logotype.png"
+        fi
+    else
+        icon_ref="$PWD/app/gui/icons/logotype.ico"
+    fi
+
+    local entry
+    entry="$(mktemp)"
+    cat > "$entry" <<EOF
+[Desktop Entry]
+Type=Application
+Name=Soul of Waifu
+Comment=AI roleplay companion with Live2D/VRM avatars
+Exec="$PWD/start.sh"
+Path=$PWD
+Icon=$icon_ref
+Terminal=false
+Categories=Game;RolePlaying;
+StartupWMClass=main.py
+EOF
+
+    install -m 644 "$entry" "$apps_dir/soul-of-waifu.desktop"
+    echo "   Menu entry:       $apps_dir/soul-of-waifu.desktop"
+
+    local desktop_dir
+    desktop_dir="$(xdg-user-dir DESKTOP 2>/dev/null || true)"
+    [[ -d ${desktop_dir:-} ]] || desktop_dir="$HOME/Desktop"
+    if [[ -d $desktop_dir ]]; then
+        # KDE only launches .desktop files that are executable, GNOME wants them "trusted".
+        install -m 755 "$entry" "$desktop_dir/soul-of-waifu.desktop"
+        gio set "$desktop_dir/soul-of-waifu.desktop" metadata::trusted true >/dev/null 2>&1 || true
+        echo "   Desktop shortcut: $desktop_dir/soul-of-waifu.desktop"
+    else
+        warn "No desktop folder found - only the menu entry was created."
+    fi
+    rm -f "$entry"
+
+    command -v update-desktop-database >/dev/null 2>&1 && update-desktop-database "$apps_dir" >/dev/null 2>&1 || true
+    command -v gtk-update-icon-cache >/dev/null 2>&1 && gtk-update-icon-cache -q -t "$data_home/icons/hicolor" >/dev/null 2>&1 || true
+}
+
+if [[ $SHORTCUTS_ONLY -eq 1 ]]; then
+    info "Creating shortcuts..."
+    install_shortcuts
+    exit 0
+fi
 
 # --------------------------------------------------------------------------- 1
 info "[1/6] Checking system dependencies..."
@@ -253,23 +327,8 @@ if [[ ${#failed[@]} -gt 0 ]]; then
     warn "Could not install: ${failed[*]} - the related features will be disabled."
 fi
 
-if [[ $DESKTOP_ENTRY -eq 1 ]] || { [[ $ASSUME_YES -eq 0 ]] && ask "Create an application menu entry?" n; }; then
-    apps_dir="${XDG_DATA_HOME:-$HOME/.local/share}/applications"
-    mkdir -p "$apps_dir"
-    icon="$PWD/app/gui/icons/logotype.png"
-    [[ -f $icon ]] || icon="$PWD/app/gui/icons/logotype.ico"
-    cat > "$apps_dir/soul-of-waifu.desktop" <<EOF
-[Desktop Entry]
-Type=Application
-Name=Soul of Waifu
-Comment=AI roleplay companion with Live2D/VRM avatars
-Exec="$PWD/start.sh"
-Path=$PWD
-Icon=$icon
-Terminal=false
-Categories=Game;Chat;
-EOF
-    echo "   Created $apps_dir/soul-of-waifu.desktop"
+if [[ $SHORTCUTS -eq 1 ]]; then
+    install_shortcuts
 fi
 
 echo
