@@ -2045,6 +2045,8 @@ time_of_day: Время суток
 time_s: с
 title: Название  *
 title_placeholder: напр. Обсидиановая Цитадель
+toast_local_server_failed_body: 'Не удалось запустить локальный сервер:'
+toast_local_server_failed_title: Локальная модель
 toast_ai_assistant_applied: 'Успешно заполнено полей: {applied_count}!'
 toast_ai_assistant_title: ИИ-Помощник
 toast_attach_limit: Вы можете прикрепить до {limit} файлов к одному сообщению.

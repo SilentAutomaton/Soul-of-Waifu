@@ -3029,6 +3029,34 @@ class InterfaceSignals():
         QApplication.processEvents()
         self.show_my_models()
 
+    async def autostart_local_llm(self):
+        """
+        Starts the local llama.cpp server on app start when "Local LLM" is selected and
+        both the model and a backend binary exist. Stays quiet otherwise.
+        """
+        if self.configuration_settings.get_main_setting("conversation_method") != "Local LLM":
+            return
+
+        model_path = self.configuration_settings.get_main_setting("local_llm")
+        if not model_path or not os.path.exists(model_path):
+            logger.info("[Autostart] No local model configured - skipping local LLM autostart.")
+            return
+
+        server_path = self.local_server_manager.resolve_server_executable(
+            self.configuration_settings.get_main_setting("llm_device"),
+            self.configuration_settings.get_main_setting("llm_backend"),
+        )
+        if not server_path or not os.path.exists(server_path):
+            logger.info("[Autostart] No llama.cpp backend found - skipping local LLM autostart.")
+            return
+
+        logger.info("[Autostart] Starting the local LLM server...")
+        try:
+            await self.local_server_manager.ensure_server_running()
+            logger.info("[Autostart] Local LLM server is ready.")
+        except Exception as e:
+            logger.error(f"[Autostart] Local LLM server failed to start: {e}")
+
     def on_pushButton_launch_server_clicked(self):
         asyncio.create_task(self.local_server_manager.ensure_server_running())
 
@@ -18296,6 +18324,23 @@ class InterfaceSignals():
         current_sow_system_mode = character_info.get("current_sow_system_mode", "Nothing")
         current_text_to_speech = character_info.get("current_text_to_speech", "Nothing")
         character_avatar = character_info.get("character_avatar")
+
+        # Local LLM: start llama-server and wait for the model instead of failing with
+        # "Could not reach the local server" (Soul Stage already does this).
+        if conversation_method == "Local LLM" and getattr(self, "local_server_manager", None):
+            try:
+                await self.local_server_manager.ensure_server_running()
+            except Exception as e:
+                logger.error(f"Local LLM server could not be started: {e}")
+                self._is_generating = False
+                sow_toast(
+                    parent=self.main_window,
+                    title=self.translations.get("toast_local_server_failed_title", "Local model"),
+                    text=self.translations.get("toast_local_server_failed_body", "The local server could not be started:") + f" {e}",
+                    msg_type="error",
+                    duration=8000
+                )
+                return
 
         try:
             if discord_context or discord_user_name:

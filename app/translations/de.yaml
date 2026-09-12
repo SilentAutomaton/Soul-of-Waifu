@@ -2020,6 +2020,8 @@ time_of_day: Tageszeit
 time_s: Sek
 title: Titel  *
 title_placeholder: z. B. Die Obsidian-Zitadelle
+toast_local_server_failed_body: 'Der lokale Server konnte nicht gestartet werden:'
+toast_local_server_failed_title: Lokales Modell
 toast_ai_assistant_applied: '{applied_count} Felder erfolgreich übernommen!'
 toast_ai_assistant_title: KI-Assistent
 toast_attach_limit: Du kannst bis zu {limit} Dateien pro Nachricht anhängen.

@@ -2039,6 +2039,8 @@ time_of_day: Time of Day
 time_s: s
 title: Title  *
 title_placeholder: e.g. The Obsidian Citadel
+toast_local_server_failed_body: 'The local server could not be started:'
+toast_local_server_failed_title: Local model
 toast_ai_assistant_applied: Successfully applied {applied_count} fields!
 toast_ai_assistant_title: AI Assistant
 toast_attach_limit: You can attach up to {limit} files per message.

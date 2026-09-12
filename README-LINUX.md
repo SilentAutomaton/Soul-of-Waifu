@@ -27,6 +27,9 @@ This branch also adds features that are not Linux-specific:
   descriptions and inner thoughts included, not just dialogue. Default follows the app language;
   "Let the model decide" restores the upstream behaviour.
 - **German as a chat translation target**, next to Russian.
+- **The local LLM starts itself**: when "Local LLM" is selected and both the model and a llama.cpp backend
+  exist, the server is started in the background at app start, and a chat message waits for it instead of
+  failing with "Could not reach the local server". Nothing happens when no local model is configured.
 - Upstream fixes: the Appearance tab is translated at last, and RP editor cards no longer clip
   longer translations.
 
