@@ -269,6 +269,8 @@ Erzeuge Illustrationen direkt in Chatnachrichten über das Kontextmenü.
 
 ## 📥 Installation
 
+### Windows
+
 Keine Python-Kenntnisse, kein Node.js und keine Erfahrung mit der Kommandozeile nötig.
 
 ```
@@ -281,14 +283,25 @@ Keine Python-Kenntnisse, kein Node.js und keine Erfahrung mit der Kommandozeile 
 > [!WARNING]
 > **Führe `installer.bat` nicht als Administrator aus!** Windows setzt das Arbeitsverzeichnis von Administrator-Prozessen auf `C:\Windows\System32`, was zu Fehlern bei den Installationspfaden führt. Starte die Datei mit einem normalen Doppelklick.
 
-> [!TIP]
-> **🐧 Unter Linux:** Klone den Branch `linux` dieses Forks und starte `./installer.sh` – der Installer richtet Python 3.11, PyTorch (CUDA/ROCm/CPU) und alle Abhängigkeiten ein und holt die Programmdateien aus dem offiziellen Release-Archiv. Alle Details stehen in [README-LINUX.md](README-LINUX.md).
+### 🐧 Linux
+
+Dieser Fork enthält eine Linux-Portierung im Branch `linux`. Der Installer richtet Python 3.11, PyTorch
+(CUDA/ROCm/CPU), llama.cpp und alle Abhängigkeiten ein und holt die Programmdateien aus dem offiziellen
+Release-Archiv:
+
+```bash
+git clone -b linux https://github.com/SnowwhiteOakheart/Soul-of-Waifu.git
+cd Soul-of-Waifu
+./installer.sh     # danach starten mit ./start.sh
+```
+
+Systempakete, GPU-Backends und den Stand der einzelnen Funktionen findest du in **[README-LINUX.md](README-LINUX.md)**.
 
 ### Systemanforderungen
 
 | | Minimum | Empfohlen |
 |---|---|---|
-| **Betriebssystem** | Windows 10/11 (64 Bit) | Windows 10/11 (64 Bit) |
+| **Betriebssystem** | Windows 10/11 (64 Bit) oder Linux (x86_64) | Windows 10/11 (64 Bit) oder Linux (x86_64) |
 | **RAM** | 8 GB | 16 GB+ |
 | **GPU** | Beliebig (für Cloud-APIs) | NVIDIA / AMD mit 6+ GB VRAM (für lokale Modelle) |
 | **Speicher** | 10 GB freier Speicherplatz | Schnelle NVMe-SSD |

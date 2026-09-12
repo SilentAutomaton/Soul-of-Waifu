@@ -269,10 +269,12 @@ Generate illustrations directly within chat messages via context menu actions.
 
 ## 📥 Installation
 
+### Windows
+
 No Python knowledge, Node.js, or command-line experience required.
 
 ```
-1. Download the latest release archive (currently Soul-of-Waifu-v2.4.7.rar) from Releases.
+1. Download the latest release archive (currently Soul-of-Waifu-v2.5.1.rar) from Releases.
 2. Extract it with 7-Zip or WinRAR to a path without spaces or Cyrillic characters (e.g. C:\AI\Soul-Of-Waifu\).
 3. Run installer.bat (Do NOT run as Administrator).
 4. Launch via start.bat.
@@ -281,11 +283,25 @@ No Python knowledge, Node.js, or command-line experience required.
 > [!WARNING]
 > **Do not run `installer.bat` as Administrator!** Windows changes the working directory for Administrator processes to `C:\Windows\System32`, causing installation path errors. Use a standard double-click.
 
+### 🐧 Linux
+
+This fork ships a Linux port on the `linux` branch. The installer sets up Python 3.11, PyTorch
+(CUDA/ROCm/CPU), llama.cpp and every dependency, and copies the program files out of the official
+release archive:
+
+```bash
+git clone -b linux https://github.com/SnowwhiteOakheart/Soul-of-Waifu.git
+cd Soul-of-Waifu
+./installer.sh     # then start with ./start.sh
+```
+
+See **[README-LINUX.md](README-LINUX.md)** for system packages, GPU backends and feature status.
+
 ### System Requirements
 
 | | Minimum | Recommended |
 |---|---|---|
-| **OS** | Windows 10/11 (64-bit) | Windows 10/11 (64-bit) |
+| **OS** | Windows 10/11 (64-bit) or Linux (x86_64) | Windows 10/11 (64-bit) or Linux (x86_64) |
 | **RAM** | 8 GB | 16 GB+ |
 | **GPU** | Any (for Cloud APIs) | NVIDIA / AMD with 6+ GB VRAM (for local models) |
 | **Storage** | 10 GB free space | Fast NVMe SSD |
