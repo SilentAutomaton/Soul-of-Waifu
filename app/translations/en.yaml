@@ -1580,6 +1580,9 @@ retry_button: Retry
 rollback_btn: Rollback
 rollback_btn_tooltip: Restore previous version
 romance: Romance
+response_language_item_auto: Follow app language
+response_language_item_model: Let the model decide
+response_language_label: Reply Language
 rp_card_character_editor_desc: Start creating your unique characters with personalities, backstories, and dialogue templates.
 rp_card_character_editor_title: Character Creator
 rp_card_discord_bot_desc: Connect your characters to Discord and chat with them anywhere.

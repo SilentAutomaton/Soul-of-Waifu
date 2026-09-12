@@ -568,6 +568,48 @@ class PromptEngine:
         except Exception as e:
             logger.debug(f"[Soul Memory] last_prompt dump skipped: {e}")
 
+    # Reply language: 0 - follow the app language, 1 - English, 2 - Russian,
+    # 3 - German, 4 - let the model decide.
+    _RESPONSE_LANGUAGE_NAMES = {1: "English", 2: "Russian", 3: "German"}
+    _PROGRAM_LANGUAGE_NAMES = {0: "English", 1: "Russian", 2: "German"}
+
+    def _build_language_directive(self) -> str:
+        """
+        The default system prompt is written in English, so models tend to narrate in
+        English even when the user writes in another language. State the reply language
+        explicitly - narration included.
+        """
+        setting = self.configuration_settings.get_main_setting("response_language") or 0
+        try:
+            setting = int(setting)
+        except (TypeError, ValueError):
+            setting = 0
+
+        if setting == 4:
+            return ""
+        if setting == 0:
+            program_language = self.configuration_settings.get_main_setting("program_language") or 0
+            try:
+                program_language = int(program_language)
+            except (TypeError, ValueError):
+                program_language = 0
+            if program_language == 0:
+                return ""  # English UI: keep the upstream behaviour
+            language = self._PROGRAM_LANGUAGE_NAMES.get(program_language)
+        else:
+            language = self._RESPONSE_LANGUAGE_NAMES.get(setting)
+
+        if not language:
+            return ""
+
+        return (
+            "[SYSTEM DIRECTIVE - LANGUAGE]\n"
+            f"Write every part of your reply in {language}: narration, scene descriptions, "
+            "inner thoughts, sound effects and dialogue alike. This also applies when the "
+            "character profile, the lorebook or earlier messages are written in another language. "
+            "Keep proper names, quotes and code as they are."
+        )
+
     def build_system_prompt_blocks(self, character_name, user_name, user_description, chat_messages, user_message, activated_lorebook=None, image_attachments=None, provider_style="openai"):
         """
         Builds a robust system prompt list with structured blocks, memory, and lore integration.
@@ -722,6 +764,11 @@ class PromptEngine:
                 
                 system_blocks.append({"role": "system", "content": content})
                 current_token_count += self.count_tokens(content)
+
+        language_directive = self._build_language_directive()
+        if language_directive:
+            system_blocks.append({"role": "system", "content": language_directive})
+            current_token_count += self.count_tokens(language_directive)
 
         if state_prompt_block:
             for key, value in replacements.items():

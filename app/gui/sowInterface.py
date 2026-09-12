@@ -2064,6 +2064,18 @@ class Ui_MainWindow(object):
         self.comboBox_program_language.setObjectName("comboBox_program_language")
         form_app_lang.addRow(self.program_language_label, self.comboBox_program_language)
 
+        self.response_language_label = QtWidgets.QLabel("Reply Language")
+        self.response_language_label.setFont(font_label)
+        self.comboBox_response_language = QtWidgets.QComboBox()
+        self.comboBox_response_language.setFont(font_input)
+        self.comboBox_response_language.setFixedHeight(40)
+        self.comboBox_response_language.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.comboBox_response_language.addItems(
+            ["Follow app language", "English", "Russian", "German", "Let the model decide"]
+        )
+        self.comboBox_response_language.setObjectName("comboBox_response_language")
+        form_app_lang.addRow(self.response_language_label, self.comboBox_response_language)
+
         l_lang.addLayout(form_app_lang)
         l_lang.addSpacing(10)
 

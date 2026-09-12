@@ -9614,6 +9614,7 @@ class InterfaceSignals():
         """
         self.ui.comboBox_conversation_method.setCurrentText(self.configuration_settings.get_main_setting("conversation_method"))
         self.ui.comboBox_program_language.setCurrentIndex(self.configuration_settings.get_main_setting("program_language"))
+        self.ui.comboBox_response_language.setCurrentIndex(self.configuration_settings.get_main_setting("response_language") or 0)
         self.ui.comboBox_input_devices.setCurrentIndex(self.configuration_settings.get_main_setting("input_device"))
         self.ui.comboBox_output_devices.setCurrentIndex(self.configuration_settings.get_main_setting("output_device_combo_index"))
         self.ui.comboBox_translator.setCurrentIndex(self.configuration_settings.get_main_setting("translator"))

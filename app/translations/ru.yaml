@@ -1584,6 +1584,9 @@ retry_button: Повторить
 rollback_btn: Откатиться
 rollback_btn_tooltip: Вернуть предыдущую версию, которая была ДО обновления.
 romance: Романтика
+response_language_item_auto: Как язык приложения
+response_language_item_model: На усмотрение модели
+response_language_label: Язык ответов
 rp_card_character_editor_desc: Начните создавать своих уникальных персонажей с личностями, предысторией и шаблонами диалогов.
 rp_card_character_editor_title: Редактор Персонажа
 rp_card_discord_bot_desc: Подключите своих персонажей к клиенту Discord и общайтесь с ними вне программы.

@@ -325,6 +325,12 @@ class MainWindow(QMainWindow):
         self.ui.comboBox_program_language.setItemText(0, self.translations.get("program_language_item_en", "English"))
         self.ui.comboBox_program_language.setItemText(1, self.translations.get("program_language_item_ru", "Russian"))
         self.ui.comboBox_program_language.setItemText(2, self.translations.get("program_language_item_de", "German"))
+        self.ui.response_language_label.setText(self.translations.get("response_language_label", "Reply Language"))
+        self.ui.comboBox_response_language.setItemText(0, self.translations.get("response_language_item_auto", "Follow app language"))
+        self.ui.comboBox_response_language.setItemText(1, self.translations.get("program_language_item_en", "English"))
+        self.ui.comboBox_response_language.setItemText(2, self.translations.get("program_language_item_ru", "Russian"))
+        self.ui.comboBox_response_language.setItemText(3, self.translations.get("program_language_item_de", "German"))
+        self.ui.comboBox_response_language.setItemText(4, self.translations.get("response_language_item_model", "Let the model decide"))
         self.ui.input_device_label.setText(self.translations.get("input_device_label", "Input device"))
         self.ui.output_device_label.setText(self.translations.get("output_device_label", "Output device"))
         self.ui.program_language_label.setText(self.translations.get("program_language_label", "App Language"))
@@ -382,6 +388,9 @@ class MainWindow(QMainWindow):
         self.ui.checkBox_enable_sow_system.setToolTip(self.translations.get("sow_system_tooltip", "Enable Soul of Waifu System Module"))
         self.ui.chat_template_label.setToolTip(self.translations.get("chat_template_tooltip", ""))
         self.ui.lineEdit_stop_strings.setToolTip(self.translations.get("stop_strings_tooltip", ""))
+
+    def on_comboBox_response_language_changed(self, index):
+        self.configuration.update_main_setting("response_language", index)
 
     def on_comboBox_program_language_changed(self, index):
         self.configuration.update_main_setting("program_language", index)
@@ -462,6 +471,7 @@ class MainWindow(QMainWindow):
         # ComboBoxes
         self.ui.comboBox_conversation_method.currentTextChanged.connect(self.interface_signals.on_comboBox_conversation_method_changed)
         self.ui.comboBox_program_language.currentIndexChanged.connect(self.on_comboBox_program_language_changed)
+        self.ui.comboBox_response_language.currentIndexChanged.connect(self.on_comboBox_response_language_changed)
         self.ui.comboBox_input_devices.currentIndexChanged.connect(self.interface_signals.on_comboBox_input_devices_changed)
         self.ui.comboBox_output_devices.currentIndexChanged.connect(self.interface_signals.on_comboBox_output_devices_changed)
         self.ui.comboBox_translator.currentIndexChanged.connect(self.interface_signals.on_comboBox_translator_changed)
