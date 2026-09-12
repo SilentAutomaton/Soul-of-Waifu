@@ -184,8 +184,6 @@ class MainWindow(QMainWindow):
 
     async def startup_sequence(self):
         await self.interface_signals.set_main_tab()
-        # Load a configured local model in the background, so the first message does not fail.
-        asyncio.create_task(self.interface_signals.autostart_local_llm())
 
     def dragEnterEvent(self, event):
         if event.mimeData().hasUrls():

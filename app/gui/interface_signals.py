@@ -3029,12 +3029,14 @@ class InterfaceSignals():
         QApplication.processEvents()
         self.show_my_models()
 
-    async def autostart_local_llm(self):
+    async def autostart_local_llm(self, conversation_method=None):
         """
-        Starts the local llama.cpp server on app start when "Local LLM" is selected and
-        both the model and a backend binary exist. Stays quiet otherwise.
+        Starts the local llama.cpp server when a chat using "Local LLM" is opened and both
+        the model and a backend binary exist. Stays quiet otherwise.
         """
-        if self.configuration_settings.get_main_setting("conversation_method") != "Local LLM":
+        if conversation_method is None:
+            conversation_method = self.configuration_settings.get_main_setting("conversation_method")
+        if conversation_method != "Local LLM":
             return
 
         model_path = self.configuration_settings.get_main_setting("local_llm")
@@ -16740,6 +16742,11 @@ class InterfaceSignals():
         DiscordRPCManager().set_chat_presence()
 
         self._touch_last_opened(character_name)
+
+        # Load a local model while the user reads/types, so the first message does not wait
+        # on a cold server (and does not fail when it was never started).
+        chat_provider = self.configuration_characters.get_character_data(character_name, "conversation_method")
+        asyncio.create_task(self.autostart_local_llm(chat_provider))
 
         self.chat_container = QVBoxLayout()
         self.chat_container.setAlignment(Qt.AlignmentFlag.AlignTop)
