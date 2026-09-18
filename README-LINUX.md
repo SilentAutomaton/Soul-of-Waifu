@@ -16,6 +16,8 @@ The Linux-specific code is kept small so upstream updates can still be merged:
 | `app/utils/platform_compat.py` | Linux versions of the Windows-only calls (`os.startfile`, `winreg`, `ctypes.windll`, …) |
 | `tools/patch_venv.py` | compatibility patches in the venv (fairseq on Python 3.11, pyworld, qwen_tts) |
 | `tools/fetch_llama_backend.py` | downloads the llama.cpp Linux build for a backend |
+| `tools/fork_report.sh` | lists the changes against the release source and checks that none got lost |
+| `FORK-CHANGES.md` | every change with its purpose, plus the upstream update procedure |
 | Small patches in the app code | forward-slash paths, llama.cpp Linux builds, audio devices, companion tools |
 
 ## Beyond the Linux port
@@ -147,6 +149,8 @@ To use CUDA, pick one of these:
 
 New versions usually appear in the **release archive** before they reach GitHub, so that is the main path:
 the `release` branch holds the unmodified source of each release archive, and `linux` merges it.
+**[FORK-CHANGES.md](FORK-CHANGES.md) documents every change in this fork** and the full update procedure;
+`./tools/fork_report.sh` verifies afterwards that no change was lost in the merge.
 
 1. Extract the new `Soul-of-Waifu-vX.Y.Z.rar`, switch to `release`, and copy its source files over the tracked
    files (skip `app/data/`, binaries and models). Commit.
