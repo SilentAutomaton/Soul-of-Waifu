@@ -388,6 +388,10 @@ backup_refresh_sizes: ↻ Neu berechnen
 backup_replace_confirm: Ersetzen
 backup_restart_now: Jetzt neu starten
 backup_restore_button: Alles wiederherstellen
+backup_restore_confirm_button: "Ja, meine Daten ersetzen"
+backup_restore_confirm_newer_extra: "⚠ Das Paket stammt aus einer neueren Programmversion."
+backup_restore_confirm_text: "Deine aktuellen Charaktere, Personas, Lorebooks, Szenen und Erinnerungen\nwerden durch den Inhalt des Pakets ERSETZT.\n\nVor dem Überschreiben wird automatisch eine Sicherung deiner aktuellen Daten\nunter .soul_stage/backups/ angelegt.\n\nDanach wird ein Neustart angeboten. Fortfahren?"
+backup_restore_confirm_title: "Aus Sicherung wiederherstellen?"
 backup_restore_subtitle: 'Ersetzt aktuelle Charaktere, Personas, Lorebooks, Szenen und Erinnerungen durch den
 
   Inhalt des ausgewählten Pakets. Bevor irgendetwas überschrieben wird, wird automatisch
@@ -651,6 +655,7 @@ delete_model: LLM löschen
 delete_scene_confirm: Diese Szene und ihren gesamten Verlauf dauerhaft löschen?
 delete_scene_detail: '"{title}" · {count} gespeicherte Nachrichten gehen verloren'
 delete_scene_title: Szene löschen
+delete_scene_tooltip: "Szene löschen"
 desc_placeholder: Kurze Zusammenfassung für die Liste
 devices_title: Geräte
 dice_rolls: Würfelwürfe
@@ -668,6 +673,8 @@ discord_gateway_subtitle: BOT-INTEGRATION
 discord_gateway_title: Discord-Gateway
 discord_info: Gib deinen Discord-Bot-Token ein, um deinen aktuell aktiven Charakter mit Discord zu verbinden. Der Bot antwortet auf Nachrichten in Servern, auf die er Zugriff hat.
 discord_start_btn: Bot starten
+discord_status_connecting: "VERBINDET"
+discord_status_error: "FEHLER"
 discord_status_running: LÄUFT
 discord_status_stopped: GESTOPPT
 discord_stop_btn: Bot stoppen
@@ -730,6 +737,7 @@ edit: Bearbeiten
 edit_personas: Personas verwalten...
 edit_save_error: Bearbeitete Nachricht konnte nicht gespeichert werden!
 edit_scene: Szene bearbeiten
+edit_scene_tooltip: "Szene bearbeiten"
 editor_back_button: ←  Zurück
 editor_back_tooltip: Zurück zur vorherigen Seite
 enable_adv_sampling_text: Erweitertes Sampling aktivieren
@@ -751,7 +759,9 @@ error_download_failed: 'Herunterladen von {filename} fehlgeschlagen:
 error_generation_failed: Bild konnte nicht generiert werden.
 error_generation_header: ⚠ GENERIERUNGSFEHLER
 error_header: ⚠ FEHLER
+error_server_start_failed: "Der lokale Serverprozess hat sich direkt nach dem Start beendet. Details stehen im Log."
 error_title: Download-Fehler
+error_unsupported_backend: "Ungültige Kombination aus Gerät und Backend für das lokale Modell."
 evening: Abend
 event_discovery: ENTDECKUNG
 event_encounter: BEGEGNUNG
@@ -774,12 +784,14 @@ export_card_button: Charakter exportieren
 export_card_dialog_title: Charakterkarte exportieren
 export_character_card_button: Charakterkarte exportieren
 export_chat_button: ''
+export_chat_title: "Chat exportieren"
 export_md_dialog_title: Szene als Markdown exportieren
 export_md_failed: Export konnte nicht erstellt werden.
 export_md_no_scene: Keine aktive Szene zum Exportieren.
 export_md_success: Szene als Markdown exportiert.
 export_md_write_failed: Datei konnte nicht geschrieben werden — überprüfe Pfad und Berechtigungen.
 export_scene: Export
+export_scene_tooltip: "Szene exportieren"
 export_success: Szene erfolgreich exportiert!
 export_title: Szene exportieren
 expressions_btn_text: Ausdruckseinstellungen
@@ -880,6 +892,7 @@ gateway_error_text: 'Daten konnten nicht geladen werden.
 gateway_loading: Wird geladen...
 generated_image_title: Generiertes Bild
 generation_params_title: Generierungsparameter
+generation_stopped_badge: "Generierung gestoppt"
 generation_stopped_partial_text: Die Antwort wurde unterbrochen — die teilweise Antwort wurde beibehalten.
 generation_stopped_toast_text: Die Antwort wurde gestoppt, bevor sie begonnen hat.
 generation_stopped_toast_title: Generierung gestoppt
@@ -962,6 +975,15 @@ hub_sort_label: 'Sortieren:'
 hub_sort_messages: Meiste Nachrichten
 hub_sort_name_asc: Name  A → Z
 hub_sort_name_desc: Name  Z → A
+import_source_confirm: "Weiter"
+import_source_file_desc: "Wähle eine PNG- oder JSON-Karte von deiner Festplatte"
+import_source_file_title: "Aus Datei"
+import_source_subtitle: "Aus einer lokalen PNG-/JSON-Datei oder direkt über einen Link\n(chub.ai, RisuAI Realm oder eine direkte .png-Adresse)."
+import_source_title: "Charakterkarte importieren"
+import_source_url_desc: "Füge einen chub.ai-Charakterlink ein"
+import_source_url_placeholder: "https://chub.ai/characters/autor/charakter  (oder direkter .png-Link)"
+import_source_url_title: "Aus Link"
+lorebook_entry_drag_tooltip: "Zum Umsortieren ziehen"
 main_hub_sort_recent: Zuletzt geöffnet
 hub_tags_hint: Kommagetrennt. Tags erscheinen als Filter im Haupt-Hub und sind durchsuchbar.
 hub_tags_label: Tags
@@ -1475,6 +1497,7 @@ placeholder_scenario: Konversationsszenario
 placeholder_user_description: Deine Persönlichkeit
 placeholder_user_name: Dein Name
 play: Abspielen
+play_scene_tooltip: "Szene starten"
 plot_wish_continue_btn: Handlung fortsetzen
 plot_wish_dialog_title: Handlung fortsetzen
 plot_wish_label: Was soll als Nächstes passieren? (Optionale Hinweise für die KI)
@@ -1648,6 +1671,8 @@ scenario: Szenario
 scene_has_entries: 'Diese Szene hat {} gespeicherte Einträge.
 
   Fortsetzen oder neue Sitzung starten?'
+scenes_file_corrupt_text: "Die Szenendatei war beschädigt. Falls vorhanden, wurde eine Sicherung wiederhergestellt, andernfalls wird mit einer leeren Liste gestartet."
+scenes_file_corrupt_title: "Szenendatei beschädigt"
 sci_fi: Sci-Fi
 search_in_chat_placeholder: Im Chat suchen...
 search_in_chat_tooltip: Im Chat suchen (Strg+F)
@@ -1914,6 +1939,7 @@ starting_ambient_hint: Hintergrundaudio für diese Szene. Der Planer kann es dyn
 starting_background: Starthintergrund
 starting_background_hint: Der Planer kann dies während der Szene dynamisch ändern.
 starting_location: Startort
+status_busy: "Aktualisierung läuft, bitte warten …"
 status_cancelling: Download wird abgebrochen und aufgeräumt...
 status_download_complete: Download abgeschlossen!
 status_init_download: Download wird initialisiert...

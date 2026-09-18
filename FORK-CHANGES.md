@@ -57,7 +57,7 @@ Conflicts can only appear in the files under "Changed upstream files" below. Rul
 | `tools/patch_venv.py` | venv fixes: fairseq on Python 3.11, pyworld's `pkg_resources` warning, qwen_tts' flash-attn banner |
 | `tools/fetch_llama_backend.py` | downloads the llama.cpp Linux build for a backend |
 | `tools/fork_report.sh` | diff against `release` + check that every patch below is present |
-| `app/translations/de.yaml` | German translation of the app |
+| `app/translations/de.yaml` | German translation of the app. Besides every `en.yaml` key it also fills 26 gaps upstream left: keys the code asks for that exist in no language file, so all languages fall back to the English string in the code (import dialog, backup restore, scene tooltips, local server errors, …). Four keys stay untranslated on purpose - their defaults are f-strings carrying a path, chat name or error, and a YAML value would drop that detail. |
 | `README-LINUX.md`, `README_DE.md`, `FORK-CHANGES.md` | documentation |
 
 ## Changed upstream files
