@@ -96,6 +96,7 @@ Conflicts can only appear in the files under "Changed upstream files" below. Rul
 | `app/gui/interface_signals.py`, `main.py` | local LLM starts when a chat is opened, and a message waits for the server | `autostart_local_llm` |
 | `app/gui/sowInterface.py` | RP editor cards grow with longer translations instead of clipping them | `heightForWidth(card_width)` |
 | `app/gui/interface_signals.py` | `update_lip_sync` tolerates a configuration without `character_list` | `character_list = config.get("character_list", {})` |
+| `app/gui/interface_signals.py` | start page greeting picks from all variants the language file has (upstream drew 1-5 although every language ships 7) | `available = [i for i in range(1, 8)` |
 | `app/translations/en.yaml`, `ru.yaml` | keys for the additions above | `response_language_label` |
 
 ## Checking

@@ -44,6 +44,7 @@ CHECKS=(
     "Local LLM starts with the chat|app/gui/interface_signals.py|autostart_local_llm"
     "RP cards grow with the text|app/gui/sowInterface.py|heightForWidth(card_width)"
     "Lip sync tolerates missing character_list|app/gui/interface_signals.py|character_list = config.get(\"character_list\", {})"
+    "All greeting variants are used|app/gui/interface_signals.py|available = [i for i in range(1, 8)"
 )
 
 echo "${BOLD}Soul of Waifu - fork report${RESET}"

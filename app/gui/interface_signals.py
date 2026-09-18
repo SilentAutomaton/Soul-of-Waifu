@@ -6109,7 +6109,11 @@ class InterfaceSignals():
             ]
         }
         
-        idx = random.randint(1, 5)
+        # The language files ship 7 greetings per time of day, but only 5 exist as
+        # defaults below - pick from whatever the current translation actually has.
+        available = [i for i in range(1, 8)
+                     if self.translations.get(f"greeting_{time_period}_{i}")]
+        idx = random.choice(available) if available else random.randint(1, 5)
         trans_key = f"greeting_{time_period}_{idx}"
         
         translated_template = self.translations.get(trans_key, None)
