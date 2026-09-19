@@ -45,11 +45,57 @@
 </p>
 
 > [!NOTE]
-> **🐧 Linux:** this fork contains an unofficial Linux port on the `linux` branch. See **[README-LINUX.md](README-LINUX.md)** for installation (`./installer.sh`, `./start.sh`).
->
-> **🇩🇪 German:** the app is also available in German (Options -> App Language). A **Reply Language** setting tells the AI which language to answer in - narration included - and German was added to the chat translator.
->
-> **🪟 Windows:** the German interface and the fixes of this fork run on Windows too - **[v2.5.1-win.1](https://github.com/SnowwhiteOakheart/Soul-of-Waifu/releases/tag/v2.5.1-win.1)** is a 687 KB patch to unpack over an official v2.5.1 installation.
+> This is a **fork**. On top of upstream it adds an unofficial **Linux port**, a complete **German
+> translation** and a handful of fixes - see **[what this fork adds](#-what-this-fork-adds)** below.
+
+---
+
+## 🍴 What this fork adds
+
+Everything here sits on top of the unmodified source of the official **v2.5.1** release.
+**[FORK-CHANGES.md](FORK-CHANGES.md)** documents every single change and how to merge a new upstream
+release; `./tools/fork_report.sh` verifies afterwards that none of them got lost.
+
+### 🐧 The Linux port (`linux` branch, the default branch here)
+
+- `installer.sh` and `start.sh` replace the `.bat` scripts: Python 3.11 through [`uv`](https://docs.astral.sh/uv/),
+  PyTorch (CUDA/ROCm/CPU), every dependency, the llama.cpp Linux build, and the icons, backgrounds and
+  avatar models out of upstream's release archive. It also creates a menu entry and a **desktop shortcut
+  with a proper icon**.
+- `app/utils/platform_compat.py` holds the Linux equivalents of the Windows-only calls: opening files and
+  folders, launching apps through `.desktop` entries, localized XDG folders, clipboard, media keys, active
+  window title and focus, idle time and hardware info.
+- **Local LLMs:** the official llama.cpp Ubuntu builds (CPU/Vulkan/ROCm/SYCL) are downloaded and unpacked,
+  and a system `llama-server` is used when no bundled build exists.
+- **Audio:** the device list offers the sound-server PCMs, so TTS stops failing with "Invalid sample rate".
+  **RVC:** fairseq 0.12.2 is made importable on Python 3.11, and the app also starts without it.
+- Installation, the optional desktop tools and the full feature matrix: **[README-LINUX.md](README-LINUX.md)**.
+
+### 🇩🇪 Not Linux-specific - this part runs on Windows too
+
+- A complete **German translation** of the app (Options -> App Language).
+- **Reply Language** (Options -> App Interface): tells the AI which language to answer in - narration,
+  descriptions and inner thoughts included, not only dialogue. Follows the app language by default;
+  "Let the model decide" restores the upstream behaviour.
+- **German as a chat translation target**, next to Russian.
+- **The local LLM starts itself:** opening a chat that uses "Local LLM" starts llama-server in the
+  background, and sending a message waits for the server instead of failing with "Could not reach the
+  local server". Nothing happens for cloud providers or without a configured local model.
+- **26 strings translated that upstream never put in a language file** - the code asks for them, no
+  language file has them, so *every* language silently fell back to English (import dialog, backup
+  restore, scene tooltips, local server errors, …).
+- **Upstream bugs fixed:** the Appearance tab was never translated in any language; RP editor cards
+  clipped longer translations; the start page greeting drew from 5 of the 7 variants each language file
+  ships; `update_lip_sync` crashed on a configuration without `character_list`.
+- Windows users get all of it as a drop-in patch: **[v2.5.1-win.1](https://github.com/SnowwhiteOakheart/Soul-of-Waifu/releases/tag/v2.5.1-win.1)** (687 KB, unpack over an
+  official v2.5.1 installation).
+
+### 🧰 Extras
+
+- **[`tools/import_character_cards.py`](tools/import_character_cards.py)** imports `chara_card_v2` cards,
+  their avatars and user personas in bulk, instead of clicking every character in by hand.
+- **[`presets/sakura-succubus-3/`](presets/sakura-succubus-3/)** - seven German character cards with
+  AI-generated avatars, as an example of that.
 
 ---
 

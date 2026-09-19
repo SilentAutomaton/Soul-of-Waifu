@@ -45,11 +45,62 @@
 </p>
 
 > [!NOTE]
-> **🐧 Linux:** Dieser Fork enthält eine inoffizielle Linux-Portierung im Branch `linux`. Die Installation (`./installer.sh`, `./start.sh`) ist in **[README-LINUX.md](README-LINUX.md)** beschrieben.
->
-> **🇩🇪 Deutsch:** Die App gibt es in diesem Fork auch auf Deutsch (Optionen -> App-Sprache). Über die Einstellung **Antwortsprache** legst du fest, in welcher Sprache die KI antwortet - Erzähltext eingeschlossen -, und der Chat-Übersetzer kann jetzt auch ins Deutsche übersetzen.
->
-> **🪟 Windows:** Die deutsche Oberfläche und die Fehlerbehebungen dieses Forks laufen auch unter Windows - **[v2.5.1-win.1](https://github.com/SnowwhiteOakheart/Soul-of-Waifu/releases/tag/v2.5.1-win.1)** ist ein 687 KB großer Patch, den du über eine offizielle v2.5.1-Installation entpackst.
+> Dies ist ein **Fork**. Er ergänzt das Original um eine inoffizielle **Linux-Portierung**, eine
+> vollständige **deutsche Übersetzung** und einige Fehlerbehebungen - siehe
+> **[was dieser Fork mitbringt](#-was-dieser-fork-mitbringt)**.
+
+---
+
+## 🍴 Was dieser Fork mitbringt
+
+Alles hier setzt auf dem unveränderten Quellcode der offiziellen **v2.5.1** auf.
+**[FORK-CHANGES.md](FORK-CHANGES.md)** dokumentiert jede einzelne Änderung und beschreibt, wie sich eine
+neue Version des Originals einpflegen lässt; `./tools/fork_report.sh` prüft anschließend, dass dabei
+keine verloren gegangen ist.
+
+### 🐧 Die Linux-Portierung (Branch `linux`, hier der Standard-Branch)
+
+- `installer.sh` und `start.sh` ersetzen die `.bat`-Skripte: Python 3.11 über [`uv`](https://docs.astral.sh/uv/),
+  PyTorch (CUDA/ROCm/CPU), sämtliche Abhängigkeiten, den llama.cpp-Build für Linux sowie Icons,
+  Hintergründe und Avatar-Modelle aus dem offiziellen Release-Archiv. Dazu legt der Installer einen
+  Menüeintrag und eine **Desktop-Verknüpfung mit passendem Icon** an.
+- `app/utils/platform_compat.py` enthält die Linux-Entsprechungen der Windows-Aufrufe: Dateien und Ordner
+  öffnen, Programme über `.desktop`-Einträge starten, lokalisierte XDG-Ordner (`~/Schreibtisch`,
+  `~/Bilder`), Zwischenablage, Medientasten, Titel und Fokus des aktiven Fensters, Leerlaufzeit und
+  Hardware-Infos.
+- **Lokale LLMs:** Die offiziellen llama.cpp-Builds für Ubuntu (CPU/Vulkan/ROCm/SYCL) werden geladen und
+  entpackt; ist kein mitgelieferter Build vorhanden, nutzt die App einen `llama-server` aus dem `PATH`.
+- **Audio:** Die Geräteliste bietet die Geräte des Soundservers an, damit die Sprachausgabe nicht mehr an
+  "Invalid sample rate" scheitert. **RVC:** fairseq 0.12.2 ist unter Python 3.11 importierbar gemacht, und
+  die App startet auch ohne.
+- Installation, die optionalen Desktop-Werkzeuge und die vollständige Funktionsübersicht:
+  **[README-LINUX.md](README-LINUX.md)**.
+
+### 🇩🇪 Nicht Linux-spezifisch - das läuft auch unter Windows
+
+- Eine vollständige **deutsche Übersetzung** der App (Optionen -> App-Sprache).
+- **Antwortsprache** (Optionen -> Benutzeroberfläche): legt fest, in welcher Sprache die KI antwortet -
+  Erzähltext, Beschreibungen und Gedanken eingeschlossen, nicht nur der Dialog. Folgt standardmäßig der
+  Sprache der Oberfläche; „Modell entscheiden lassen“ stellt das ursprüngliche Verhalten wieder her.
+- **Deutsch als Ziel der Chat-Übersetzung**, zusätzlich zu Russisch.
+- **Das lokale LLM startet von selbst:** Wird ein Chat mit „Lokales LLM“ geöffnet, startet llama-server im
+  Hintergrund, und das Absenden einer Nachricht wartet auf den Server, statt mit „Could not reach the
+  local server“ abzubrechen. Bei Cloud-Anbietern oder ohne konfiguriertes lokales Modell passiert nichts.
+- **26 Texte übersetzt, die im Original in keiner Sprachdatei stehen** - der Code fragt sie ab, keine
+  Sprachdatei kennt sie, also fiel *jede* Sprache stillschweigend auf Englisch zurück (Import-Dialog,
+  Backup-Wiederherstellung, Szenen-Tooltips, Fehler des lokalen Servers, …).
+- **Fehler des Originals behoben:** Der Reiter „Appearance“ wurde in keiner Sprache übersetzt; Karten im
+  RP-Editor schnitten längere Übersetzungen ab; die Begrüßung auf der Startseite nutzte 5 der 7 Varianten,
+  die jede Sprachdatei mitbringt; `update_lip_sync` stürzte ohne `character_list` ab.
+- Für Windows gibt es das alles als Patch zum Drüberkopieren: **[v2.5.1-win.1](https://github.com/SnowwhiteOakheart/Soul-of-Waifu/releases/tag/v2.5.1-win.1)** (687 KB, wird über
+  eine offizielle v2.5.1-Installation entpackt).
+
+### 🧰 Extras
+
+- **[`tools/import_character_cards.py`](tools/import_character_cards.py)** importiert `chara_card_v2`-Karten,
+  ihre Avatare und Benutzer-Personas im Bündel, statt jede Figur einzeln anzuklicken.
+- **[`presets/sakura-succubus-3/`](presets/sakura-succubus-3/)** - sieben deutsche Charakterkarten mit
+  KI-generierten Avataren als Beispiel dafür.
 
 ---
 
