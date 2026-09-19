@@ -11751,8 +11751,9 @@ class ContextInspectorCard(QtWidgets.QWidget):
 
 
 class TokenBudgetBarWidget(QtWidgets.QFrame):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, translations=None):
         super().__init__(parent)
+        self.translations = translations or {}
         self.setFixedHeight(28)
         self.setObjectName("TokenBudgetBar")
         self.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WhatsThisCursor))
@@ -11820,15 +11821,17 @@ class TokenBudgetBarWidget(QtWidgets.QFrame):
 
         pct = min(100, int((total / self.max_tokens) * 100)) if self.max_tokens > 0 else 0
 
+        _t = self.translations.get
+
         if pct < 60:
             accent = "#4ADE80"
-            status_text = "Optimal"
+            status_text = _t("context_inspector_status_optimal", "Optimal")
         elif pct < 85:
             accent = "#FBBF24"
-            status_text = "Moderate"
+            status_text = _t("context_inspector_status_moderate", "Moderate")
         else:
             accent = "#F87171"
-            status_text = "Critical"
+            status_text = _t("context_inspector_status_critical", "Critical")
 
         max_str = "∞" if max_tok <= 0 else f"{self.max_tokens:,}"
 
@@ -11839,23 +11842,33 @@ class TokenBudgetBarWidget(QtWidgets.QFrame):
         mem_tok = breakdown.get("memory", 0)
         lore_tok = breakdown.get("lore", 0)
         hist_tok = breakdown.get("history", 0)
-        free_tok = max(0, self.max_tokens - total) if max_tok > 0 else "Unlimited"
+        free_tok = max(0, self.max_tokens - total) if max_tok > 0 else _t("context_inspector_unlimited", "Unlimited")
 
         def _get_pct(val):
             return f"{(val / self.max_tokens * 100):.1f}%" if self.max_tokens > 0 else "0%"
 
         if pct >= 85:
-            tip_html = "<span style='color: #F87171;'>⚠️ Context near limit — Run Summarization or prune history.</span>"
+            tip = _t("context_inspector_tip_critical", "Context near limit - run a summarization or shorten the history.")
+            tip_html = f"<span style='color: #F87171;'>⚠️ {tip}</span>"
         elif hist_tok > (self.max_tokens * 0.45):
-            tip_html = "<span style='color: #FBBF24;'>💡 Chat history is large — Consider summarizing soon.</span>"
+            tip = _t("context_inspector_tip_large", "The chat history is getting large - summarize it soon.")
+            tip_html = f"<span style='color: #FBBF24;'>💡 {tip}</span>"
         else:
-            tip_html = "<span style='color: rgba(255,255,255,0.35);'>✨ Memory load is balanced and healthy.</span>"
+            tip = _t("context_inspector_tip_balanced", "Memory load is balanced and healthy.")
+            tip_html = f"<span style='color: rgba(255,255,255,0.35);'>✨ {tip}</span>"
+
+        ci_title = _t("context_inspector_title", "CONTEXT INSPECTOR")
+        ci_system = _t("context_inspector_system", "System & Card")
+        ci_memory = _t("context_inspector_memory", "Soul Memory")
+        ci_lore = _t("context_inspector_lore", "Active Lorebooks")
+        ci_history = _t("context_inspector_history", "Chat History")
+        ci_free = _t("context_inspector_free", "Available Budget")
 
         self._tooltip_html = f"""
         <div style='font-family: Inter, Segoe UI, sans-serif; font-size: 12px; line-height: 1.45; min-width: 270px;'>
             <table width='100%' style='margin-bottom: 6px;'>
                 <tr>
-                    <td align='left'><b style='color: #FFFFFF; font-size: 12px; letter-spacing: 0.5px;'>CONTEXT INSPECTOR</b></td>
+                    <td align='left'><b style='color: #FFFFFF; font-size: 12px; letter-spacing: 0.5px;'>{ci_title}</b></td>
                     <td align='right'><span style='color: {accent}; font-weight: bold; font-size: 11px;'>{status_text.upper()} ({pct}%)</span></td>
                 </tr>
             </table>
@@ -11864,23 +11877,23 @@ class TokenBudgetBarWidget(QtWidgets.QFrame):
 
             <table width='100%' style='border-spacing: 0px 4px;'>
                 <tr>
-                    <td style='color: #27f2ef;'>● <span style='color: rgba(255,255,255,0.85);'>System & Card</span></td>
+                    <td style='color: #27f2ef;'>● <span style='color: rgba(255,255,255,0.85);'>{ci_system}</span></td>
                     <td align='right' style='color: #FFFFFF; font-family: Consolas, monospace;'>{sys_tok:,} <span style='color: rgba(255,255,255,0.35); font-size: 10px;'>({_get_pct(sys_tok)})</span></td>
                 </tr>
                 <tr>
-                    <td style='color: #A78BFA;'>● <span style='color: rgba(255,255,255,0.85);'>Soul Memory</span></td>
+                    <td style='color: #A78BFA;'>● <span style='color: rgba(255,255,255,0.85);'>{ci_memory}</span></td>
                     <td align='right' style='color: #FFFFFF; font-family: Consolas, monospace;'>{mem_tok:,} <span style='color: rgba(255,255,255,0.35); font-size: 10px;'>({_get_pct(mem_tok)})</span></td>
                 </tr>
                 <tr>
-                    <td style='color: #67bd0b;'>● <span style='color: rgba(255,255,255,0.85);'>Active Lorebooks</span></td>
+                    <td style='color: #67bd0b;'>● <span style='color: rgba(255,255,255,0.85);'>{ci_lore}</span></td>
                     <td align='right' style='color: #FFFFFF; font-family: Consolas, monospace;'>{lore_tok:,} <span style='color: rgba(255,255,255,0.35); font-size: 10px;'>({_get_pct(lore_tok)})</span></td>
                 </tr>
                 <tr>
-                    <td style='color: #FBBF24;'>● <span style='color: rgba(255,255,255,0.85);'>Chat History</span></td>
+                    <td style='color: #FBBF24;'>● <span style='color: rgba(255,255,255,0.85);'>{ci_history}</span></td>
                     <td align='right' style='color: #FFFFFF; font-family: Consolas, monospace;'>{hist_tok:,} <span style='color: rgba(255,255,255,0.35); font-size: 10px;'>({_get_pct(hist_tok)})</span></td>
                 </tr>
                 <tr>
-                    <td style='color: #64748B;'>○ <span style='color: rgba(255,255,255,0.5);'>Available Budget</span></td>
+                    <td style='color: #64748B;'>○ <span style='color: rgba(255,255,255,0.5);'>{ci_free}</span></td>
                     <td align='right' style='color: rgba(255,255,255,0.6); font-family: Consolas, monospace;'>{free_tok if isinstance(free_tok, str) else f'{free_tok:,}'} <span style='color: rgba(255,255,255,0.35); font-size: 10px;'>({_get_pct(free_tok) if isinstance(free_tok, int) else '-'})</span></td>
                 </tr>
             </table>

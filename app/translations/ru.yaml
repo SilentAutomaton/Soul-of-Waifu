@@ -598,6 +598,19 @@ configuration_tab: Конфигурация
 confirm: Подтвердить
 conflict_title: Конфликт
 conn_failed: Ошибка соединения.
+context_inspector_free: Свободный бюджет
+context_inspector_history: История чата
+context_inspector_lore: Активные лорбуки
+context_inspector_memory: Soul Memory
+context_inspector_status_critical: Критично
+context_inspector_status_moderate: Умеренно
+context_inspector_status_optimal: Оптимально
+context_inspector_system: Система и карточка
+context_inspector_tip_balanced: Нагрузка на память сбалансирована.
+context_inspector_tip_critical: Контекст почти заполнен - сделайте суммаризацию или обрежьте историю.
+context_inspector_tip_large: История чата растёт - скоро стоит её суммировать.
+context_inspector_title: ИНСПЕКТОР КОНТЕКСТА
+context_inspector_unlimited: Без ограничений
 context_size_text: Размер контекста
 context_size_tooltip: '<b>Контекстное окно</b><br><br>
 

@@ -4108,7 +4108,7 @@ class Ui_MainWindow(object):
         self.verticalLayout_4.addWidget(self.character_description_chat)
         self.horizontalLayout_2.addWidget(self.user_information_frame)
         
-        self.token_budget_bar = TokenBudgetBarWidget(parent=self.top)
+        self.token_budget_bar = TokenBudgetBarWidget(parent=self.top, translations=self.translations)
         self.horizontalLayout_2.addWidget(self.token_budget_bar)
 
         spacerItem24 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)

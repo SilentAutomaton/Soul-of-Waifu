@@ -600,6 +600,19 @@ configuration_tab: Configuration
 confirm: Confirm
 conflict_title: Conflict
 conn_failed: Connection failed.
+context_inspector_free: Available Budget
+context_inspector_history: Chat History
+context_inspector_lore: Active Lorebooks
+context_inspector_memory: Soul Memory
+context_inspector_status_critical: Critical
+context_inspector_status_moderate: Moderate
+context_inspector_status_optimal: Optimal
+context_inspector_system: System & Card
+context_inspector_tip_balanced: Memory load is balanced and healthy.
+context_inspector_tip_critical: Context near limit - run a summarization or shorten the history.
+context_inspector_tip_large: The chat history is getting large - summarize it soon.
+context_inspector_title: CONTEXT INSPECTOR
+context_inspector_unlimited: Unlimited
 context_size_text: Context Size
 context_size_tooltip: '<b>Context Window</b><br><br>
 
