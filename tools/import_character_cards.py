@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Imports character cards (chara_card_v2 JSON) into the app's configuration, without
-clicking through the UI - useful for a whole set of characters at once.
+Imports character cards (chara_card_v2 JSON), lorebooks and Soul Stage scenes into the
+app's configuration, without clicking through the UI - useful for a whole set at once.
 
     app/data/envs/sow/bin/python tools/import_character_cards.py CARDS/ --persona CARDS/persona_hiroki.json
 
@@ -20,10 +20,12 @@ Cards are read the same way the app reads them: {"data": {...}} or a flat object
 """
 
 import argparse
+import datetime
 import json
 import re
 import shutil
 import sys
+import uuid
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -31,7 +33,9 @@ sys.path.insert(0, str(ROOT))
 
 from app.configuration.configuration import ConfigurationCharacters, ConfigurationSettings  # noqa: E402
 
-CONFIG_FILES = ("app/configuration/characters.json", "app/configuration/settings.json")
+CONFIG_FILES = ("app/configuration/characters.json", "app/configuration/settings.json",
+                ".soul_stage/scenes.json")
+SCENES_FILE = ROOT / ".soul_stage" / "scenes.json"
 
 
 def read_card(path: Path) -> dict:
@@ -105,9 +109,83 @@ def import_personas(path: Path, settings: ConfigurationSettings) -> list:
     return added
 
 
+def json_files(paths) -> list:
+    out = []
+    for raw in paths:
+        path = Path(raw).expanduser()
+        out += sorted(path.glob("*.json")) if path.is_dir() else [path]
+    return out
+
+
+def import_lorebooks(paths, settings, replace: bool) -> int:
+    """A lorebook file is the lorebook itself: {name, description, n_depth, entries[]}."""
+    books = settings.get_user_data("lorebooks") or {}
+    added = 0
+    for path in json_files(paths):
+        book = json.loads(path.read_text(encoding="utf-8"))
+        name = str(book.get("name") or path.stem).strip()
+        if name in books and not replace:
+            print(f"  lorebook already there, kept: {name}")
+            continue
+        raw_entries = book.get("entries", [])
+        book["entries"] = list(raw_entries.values()) if isinstance(raw_entries, dict) else list(raw_entries)
+        book["name"] = name
+        settings.update_lorebook(name, book)
+        print(f"  lorebook: {name}  ({len(book['entries'])} entries)")
+        added += 1
+    return added
+
+
+def import_scenes(paths, replace: bool, known_characters, known_lorebooks) -> int:
+    """Soul Stage stores its scenes in .soul_stage/scenes.json, keyed by a uuid."""
+    data = {"scenes": {}, "scene_groups": {}}
+    if SCENES_FILE.exists():
+        data = json.loads(SCENES_FILE.read_text(encoding="utf-8")) or data
+    data.setdefault("scenes", {})
+    data.setdefault("scene_groups", {})
+
+    by_title = {v.get("title"): k for k, v in data["scenes"].items()}
+    now = datetime.datetime.now().isoformat()
+    added = 0
+
+    for path in json_files(paths):
+        scene = json.loads(path.read_text(encoding="utf-8"))
+        title = str(scene.get("title") or "").strip()
+        if not title:
+            print(f"  skipped {path.name}: the scene has no title")
+            continue
+        if title in by_title and not replace:
+            print(f"  scene already there, kept: {title}")
+            continue
+
+        for member in scene.get("party", []):
+            if member not in known_characters:
+                print(f"  ! {title}: no character named '{member}' - import its card first")
+        for book in scene.get("lorebook", []):
+            if book not in known_lorebooks:
+                print(f"  ! {title}: no lorebook named '{book}'")
+
+        scene.setdefault("created_at", now)
+        scene.setdefault("last_played", "")
+        scene.setdefault("chat_log", [])
+        sid = by_title.get(title) or str(uuid.uuid4())
+        data["scenes"][sid] = scene
+        print(f"  scene: {title}  ({scene.get('gm_tone', '?')}, party: {', '.join(scene.get('party', [])) or 'solo'})")
+        added += 1
+
+    if added:
+        SCENES_FILE.parent.mkdir(parents=True, exist_ok=True)
+        SCENES_FILE.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+    return added
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Import character cards into Soul of Waifu.")
-    parser.add_argument("paths", nargs="+", help="card files, or folders holding them")
+    parser.add_argument("paths", nargs="*", help="card files, or folders holding them")
+    parser.add_argument("--lorebooks", nargs="+", metavar="PATH", default=[],
+                        help="lorebook files, or folders holding them")
+    parser.add_argument("--scenes", nargs="+", metavar="PATH", default=[],
+                        help="Soul Stage scene files, or folders holding them")
     parser.add_argument("--persona", metavar="FILE", help="persona file to import as well")
     parser.add_argument("--persona-name", metavar="NAME",
                         help="preselect this persona for every imported character")
@@ -161,6 +239,9 @@ def main() -> int:
     if not args.dry_run:
         backup_configs()
 
+    if args.lorebooks:
+        import_lorebooks(args.lorebooks, settings, args.replace)
+
     if args.persona:
         for name, is_default in import_personas(persona_file, settings):
             print(f"  persona: {name}" + ("  (default)" if is_default else ""))
@@ -209,7 +290,17 @@ def main() -> int:
         note = "avatar updated" if (args.update_avatars and card["avatar"]) else "kept unchanged"
         print(f"  already there, {note}: {card['name']}")
 
+    scenes_added = 0
+    if args.scenes:
+        scenes_added = import_scenes(
+            args.scenes, args.replace,
+            set(characters.load_configuration().get("character_list", {})),
+            set(settings.get_user_data("lorebooks") or {}),
+        )
+
     summary = f"{len(cards)} character(s) imported"
+    if scenes_added:
+        summary += f", {scenes_added} scene(s) imported"
     if updated:
         summary += f", {updated} avatar(s) updated"
     print(f"\n{summary}. Start the app to see them in the character list.")

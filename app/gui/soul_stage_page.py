@@ -1989,7 +1989,7 @@ class SceneEditorView(QWidget):
         self.f_opening.setPlainText(scene_data.get("opening_narration", ""))
         self.f_first_msg.setPlainText(scene_data.get("first_message", ""))
         self.f_time.setCurrentIndex({"morning": 0, "day": 1, "evening": 2, "night": 3}.get(scene_data.get("time_of_day", "day"), 1))
-        self.f_tone.setCurrentText(scene_data.get("gm_tone", "Epic Fantasy"))
+        self.f_tone.setCurrentText(self._tone_text(scene_data.get("gm_tone", "Epic Fantasy")))
         self.f_method.setCurrentIndex({
             "Local LLM": 0, "Open AI": 1, "Anthropic": 2, "Google Gemini": 3,
             "DeepSeek": 4, "Grok": 5, "Qwen": 6, "Z.AI": 7, "Mistral AI": 8, "OpenRouter": 9,
@@ -2056,6 +2056,25 @@ class SceneEditorView(QWidget):
         for p in personas_dict.keys():
             self.f_persona.addItem(p)
 
+    _GM_TONES = [("epic_fantasy", "Epic Fantasy"), ("slice_of_life", "Slice of Life"),
+                 ("mystery_noir", "Mystery & Noir"), ("romance", "Romance"),
+                 ("horror", "Horror"), ("comedy", "Comedy"), ("sci_fi", "Sci-Fi")]
+
+    def _tone_text(self, value) -> str:
+        """
+        A scene stores the GM tone as the text shown in the combo box, so a scene written in
+        another language - or a file shared between users - matches nothing and silently falls
+        back to the first entry. Map the key or the English name onto the current language.
+        """
+        value = str(value or "").strip()
+        items = [self.f_tone.itemText(i) for i in range(self.f_tone.count())]
+        if not items or value in items:
+            return value or (items[0] if items else "")
+        for idx, (key, english) in enumerate(self._GM_TONES):
+            if value.lower() in (key.lower(), english.lower()) and idx < len(items):
+                return items[idx]
+        return value
+
     def load_from_import(self, import_data: dict):
         self.clear_form()
         self._editing_id = None
@@ -2067,7 +2086,7 @@ class SceneEditorView(QWidget):
         self.f_opening.setPlainText(import_data.get("opening_narration", ""))
         self.f_first_msg.setPlainText(import_data.get("first_message", ""))
         self.f_time.setCurrentIndex({"morning": 0, "day": 1, "evening": 2, "night": 3}.get(import_data.get("time_of_day", "day"), 1))
-        self.f_tone.setCurrentText(import_data.get("gm_tone", "Epic Fantasy"))
+        self.f_tone.setCurrentText(self._tone_text(import_data.get("gm_tone", "Epic Fantasy")))
         self.f_method.setCurrentIndex({
             "Local LLM": 0, "Open AI": 1, "Anthropic": 2, "Google Gemini": 3,
             "DeepSeek": 4, "Grok": 5, "Qwen": 6, "Z.AI": 7, "Mistral AI": 8, "OpenRouter": 9,

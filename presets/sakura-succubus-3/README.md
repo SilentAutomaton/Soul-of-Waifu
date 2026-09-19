@@ -1,7 +1,8 @@
-# Sakura Succubus 3 - character cards (German)
+# Sakura Succubus 3 - characters, scenes and lorebooks (German)
 
-Seven ready-made cards for the visual novel *Sakura Succubus 3*: six characters and one user
-persona. The texts are **German**, because they were written for the German UI of this fork.
+A ready-made set for the visual novel *Sakura Succubus 3*: seven character cards (six characters and
+one user persona), six Soul Stage scenes and three lorebooks. The texts are **German**, because they
+were written for the German UI of this fork.
 
 | File | Who |
 |---|---|
@@ -21,19 +22,51 @@ The files are plain **chara_card_v2** JSON and work in SillyTavern, Chub and any
 reads that format. Every card points at its `<name>.png` next to it through
 `extensions.sow_avatar`, relative to the card, so the folder can be copied anywhere.
 
+## Scenes and lorebooks
+
+`scenes/` holds six **Soul Stage** scenes, `lorebooks/` three lorebooks for the same universe - German
+as well, and written from the game's own story rather than from a summary of it.
+
+| Scene | Tone | Party |
+|---|---|---|
+| Redaktionsschluss | Slice of Life | Cosmos, Ayu |
+| Der Wohltätigkeitsball | Mystery & Noir | Marina, Ayu |
+| Wohnungskrieg | Comedy | all six |
+| Audienz im Thronsaal | Epic Fantasy | Yue, Marina, Hazel |
+| Ein Tee zu zweit | Romance | Hifumi |
+| Matchball | Slice of Life | Hazel, Cosmos |
+
+Every scene brings its own world context, starting location, opening narration and narrator style, uses
+Hiroki as the persona and pulls in all three lorebooks:
+
+| Lorebook | Entries | Contents |
+|---|---|---|
+| Sakura Succubus 3 – Welt | 10 | succubi, the realm and the portal, Hiroki's scent, the shared flat, the newspaper, secrecy, the rules of the harem |
+| Sakura Succubus 3 – Figuren | 10 | all six women, Hiroki, and the side characters around them |
+| Sakura Succubus 3 – Orte | 9 | flat, newsroom, cosplay cafe, board floor, stage, tennis court, tea room, throne hall, receptions |
+
+The world entry is `always_on`, everything else is triggered by keywords, so the lorebooks cost almost
+nothing until they are needed.
+
 ## Importing
 
-All of them at once, including the persona:
+Everything at once - characters, persona, lorebooks and scenes:
 
 ```bash
 app/data/envs/sow/bin/python tools/import_character_cards.py presets/sakura-succubus-3 \
-    --persona presets/sakura-succubus-3/persona_hiroki.json
+    --persona presets/sakura-succubus-3/persona_hiroki.json \
+    --lorebooks presets/sakura-succubus-3/lorebooks \
+    --scenes presets/sakura-succubus-3/scenes
 ```
+
+Import the characters before the scenes: a scene names its party by character name, and the tool warns
+about every name it cannot find.
 
 Characters that already exist are left alone. `--update-avatars` then refreshes only their picture
 and keeps chats and settings; `--replace` overwrites the whole character and deletes its chats.
-`--dry-run` shows what would happen. Single cards can also be imported in the app itself, under
-**Create character -> Import character card**.
+`--dry-run` shows what would happen. Everything can also be imported in the app itself: cards under
+**Create character -> Import character card**, lorebooks in the lorebook editor, scenes in the Soul Stage
+lobby.
 
 ## About the pictures
 

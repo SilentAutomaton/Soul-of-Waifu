@@ -57,9 +57,9 @@ Conflicts can only appear in the files under "Changed upstream files" below. Rul
 | `tools/patch_venv.py` | venv fixes: fairseq on Python 3.11, pyworld's `pkg_resources` warning, qwen_tts' flash-attn banner |
 | `tools/fetch_llama_backend.py` | downloads the llama.cpp Linux build for a backend |
 | `tools/fork_report.sh` | diff against `release` + check that every patch below is present |
-| `tools/import_character_cards.py` | imports `chara_card_v2` cards, their avatars and user personas into the configuration in bulk, through the app's own `ConfigurationCharacters` - no UI clicking |
+| `tools/import_character_cards.py` | imports `chara_card_v2` cards with their avatars, user personas, lorebooks and Soul Stage scenes into the configuration in bulk - no UI clicking |
 | `app/translations/de.yaml` | German translation of the app. Besides every `en.yaml` key it also fills 26 gaps upstream left: keys the code asks for that exist in no language file, so all languages fall back to the English string in the code (import dialog, backup restore, scene tooltips, local server errors, …). Four keys stay untranslated on purpose - their defaults are f-strings carrying a path, chat name or error, and a YAML value would drop that detail. |
-| `presets/sakura-succubus-3/` | seven German character cards (`chara_card_v2`) with AI-generated avatars, plus the prompts they were made from - import them with the tool above |
+| `presets/sakura-succubus-3/` | a German preset set: seven character cards (`chara_card_v2`) with AI-generated avatars and the prompts they were made from, six Soul Stage scenes and three lorebooks - import them with the tool above |
 | `README-LINUX.md`, `README_DE.md`, `FORK-CHANGES.md` | documentation |
 
 ## Changed upstream files
@@ -100,6 +100,7 @@ Conflicts can only appear in the files under "Changed upstream files" below. Rul
 | `app/gui/interface_signals.py` | `update_lip_sync` tolerates a configuration without `character_list` | `character_list = config.get("character_list", {})` |
 | `app/gui/interface_signals.py` | start page greeting picks from all variants the language file has (upstream drew 1-5 although every language ships 7) | `available = [i for i in range(1, 8)` |
 | `app/gui/custom_widgets.py`, `app/gui/sowInterface.py` | the Context Inspector tooltip was hard-coded English in every language - now translated (13 keys), the widget takes the translations | `context_inspector_title` |
+| `app/gui/soul_stage_page.py` | a scene stores its GM tone as the displayed text, so an imported scene (or a language switch) fell back to the first entry - the key and the English name are now mapped onto the current language | `def _tone_text` |
 | `app/translations/en.yaml`, `ru.yaml` | keys for the additions above | `response_language_label` |
 
 ## Releases

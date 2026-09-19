@@ -46,6 +46,7 @@ CHECKS=(
     "Lip sync tolerates missing character_list|app/gui/interface_signals.py|character_list = config.get(\"character_list\", {})"
     "All greeting variants are used|app/gui/interface_signals.py|available = [i for i in range(1, 8)"
     "Context Inspector translated|app/gui/custom_widgets.py|context_inspector_title"
+    "GM tone survives the language|app/gui/soul_stage_page.py|def _tone_text"
 )
 
 echo "${BOLD}Soul of Waifu - fork report${RESET}"
