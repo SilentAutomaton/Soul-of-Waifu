@@ -84,6 +84,80 @@ class LocalServerManager:
             return True
         return False
 
+    def _running_llama_server(self):
+        """The llama-server process behind our port - from the lock file, else from the process list."""
+        pids = []
+        if self.lock_file.exists():
+            try:
+                with open(self.lock_file, "r") as f:
+                    pids.append(json.load(f).get("pid"))
+            except Exception:
+                pass
+        for proc in psutil.process_iter(["pid", "cmdline"]):
+            cmdline = proc.info.get("cmdline") or []
+            if any("llama-server" in str(part) for part in cmdline) and str(self.SERVER_PORT) in cmdline:
+                pids.append(proc.info["pid"])
+        for pid in pids:
+            try:
+                if pid and psutil.pid_exists(pid):
+                    return psutil.Process(pid)
+            except Exception:
+                continue
+        return None
+
+    def _server_started_by_us(self, proc) -> bool:
+        """A server we launched runs the binary from our backend folder - a system one does not."""
+        try:
+            return "ai_clients" in os.path.abspath((proc.cmdline() or [""])[0]).replace("\\", "/")
+        except Exception:
+            return False
+
+    def _server_configuration_mismatch(self, proc) -> str:
+        """
+        Says what a running server was started with that no longer matches the settings. Switching
+        the model or the context size in the UI otherwise keeps talking to the old process, which
+        answers with "exceeds the available context size" or quietly keeps the previous model.
+        """
+        try:
+            args = proc.cmdline() or []
+        except Exception:
+            return ""
+
+        def value_of(flag):
+            return args[args.index(flag) + 1] if flag in args and args.index(flag) + 1 < len(args) else None
+
+        differences = []
+        running_model = value_of("-m")
+        wanted_model = self.configuration_settings.get_main_setting("local_llm")
+        if running_model and wanted_model and \
+                os.path.basename(str(running_model)) != os.path.basename(str(wanted_model)):
+            differences.append(
+                f"model {os.path.basename(str(running_model))} -> {os.path.basename(str(wanted_model))}"
+            )
+
+        running_ctx = value_of("-c")
+        wanted_ctx = self.configuration_settings.get_main_setting("context_size")
+        if running_ctx and wanted_ctx and str(running_ctx) != str(wanted_ctx):
+            differences.append(f"context {running_ctx} -> {wanted_ctx}")
+
+        return ", ".join(differences)
+
+    async def _terminate_running_server(self, proc):
+        """Stops a llama-server that this app instance did not start itself (an orphan of a previous run)."""
+        def _stop():
+            try:
+                proc.terminate()
+                proc.wait(timeout=15)
+            except psutil.TimeoutExpired:
+                proc.kill()
+            except Exception as e:
+                logger.error(f"Could not stop the running local server: {e}")
+
+        await asyncio.to_thread(_stop)
+        self.server_process = None
+        self.model_loaded = False
+        self.cleanup_lock_file()
+
     def create_lock_file(self):
         try:
             loop_time = asyncio.get_running_loop().time()
@@ -420,9 +494,23 @@ class LocalServerManager:
     async def ensure_server_running(self):
         async with self.restart_lock:
             if self.is_server_already_running():
-                self.model_loaded = True
-                self.update_ui_for_server_state(True)
-                return
+                proc = self._running_llama_server()
+                mismatch = self._server_configuration_mismatch(proc) if proc else ""
+                if mismatch and self._server_started_by_us(proc):
+                    logger.info(f"Local server runs with a different configuration ({mismatch}) - restarting it.")
+                    if self.server_process is not None:
+                        await self.stop_server()
+                    else:
+                        await self._terminate_running_server(proc)
+                else:
+                    if mismatch:
+                        logger.warning(
+                            f"A llama-server we did not start occupies port {self.SERVER_PORT} "
+                            f"({mismatch}) - using it as it is."
+                        )
+                    self.model_loaded = True
+                    self.update_ui_for_server_state(True)
+                    return
             
             if self.server_process is None:
                 self.model_loaded = False

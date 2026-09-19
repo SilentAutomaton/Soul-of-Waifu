@@ -48,6 +48,7 @@ CHECKS=(
     "Context Inspector translated|app/gui/custom_widgets.py|context_inspector_title"
     "GM tone survives the language|app/gui/soul_stage_page.py|def _tone_text"
     "Show a model in the file manager|app/utils/platform_compat.py|def reveal_path"
+    "Local server follows model and context|app/utils/ai_clients/local_server_manager.py|_server_configuration_mismatch"
 )
 
 echo "${BOLD}Soul of Waifu - fork report${RESET}"
