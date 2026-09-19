@@ -39,12 +39,17 @@
   <a href="README-LINUX.md">
     <img src="https://img.shields.io/badge/ПОРТ ДЛЯ LINUX-1793D1?style=for-the-badge&logo=linux&logoColor=white" alt="Порт для Linux">
   </a>
+  <a href="https://github.com/SnowwhiteOakheart/Soul-of-Waifu/releases/tag/v2.5.1-win.1">
+    <img src="https://img.shields.io/badge/ПАТЧ ДЛЯ WINDOWS-6e40c9?style=for-the-badge&logo=windows&logoColor=white" alt="Патч для Windows">
+  </a>
 </p>
 
 > [!NOTE]
 > **🐧 Linux:** в этом форке есть неофициальный порт для Linux в ветке `linux` - установка описана в **[README-LINUX.md](README-LINUX.md)** (`./installer.sh`, `./start.sh`).
 >
 > **🇩🇪 Немецкий:** добавлен немецкий язык интерфейса (Параметры -> Язык приложения) и перевод чата на немецкий. Новая настройка **Язык ответов** говорит ИИ, на каком языке отвечать, включая повествование.
+>
+> **🪟 Windows:** настройки и исправления этого форка работают и в Windows - **[v2.5.1-win.1](https://github.com/SnowwhiteOakheart/Soul-of-Waifu/releases/tag/v2.5.1-win.1)** это патч на 687 КБ, который распаковывается поверх официальной установки v2.5.1. Среди прочего он переводит 26 строк, которых нет ни в одном языковом файле оригинала - в том числе на русский.
 
 ---
 

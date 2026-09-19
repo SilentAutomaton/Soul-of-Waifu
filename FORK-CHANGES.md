@@ -99,6 +99,26 @@ Conflicts can only appear in the files under "Changed upstream files" below. Rul
 | `app/gui/interface_signals.py` | start page greeting picks from all variants the language file has (upstream drew 1-5 although every language ships 7) | `available = [i for i in range(1, 8)` |
 | `app/translations/en.yaml`, `ru.yaml` | keys for the additions above | `response_language_label` |
 
+## Releases
+
+| Tag | Contents |
+|---|---|
+| `vX.Y.Z-linux.N` | the `linux` branch itself - installed with `git clone -b linux` |
+| `vX.Y.Z-win.N` | the changes that are **not** Linux-specific, as a ZIP to unpack over an official Windows installation |
+
+The Windows patch is exactly `git diff --name-only release..linux` minus the Linux-only files
+(`installer.sh`, `start.sh`, `tools/`, the READMEs, `.gitignore`, `requirements.txt`), plus a
+`PATCH-README.md`. `app/utils/platform_compat.py` must stay in it - the patched modules import it:
+
+```bash
+git archive linux $(git diff --name-only release..linux \
+    | grep -vE '^(installer\.sh|start\.sh|tools/|README|FORK-CHANGES|\.gitignore|requirements\.txt)') \
+    | tar -x -C /tmp/winpatch
+```
+
+Check afterwards that the patch really reproduces the branch: unpack the ZIP over a checkout of
+`release` and diff it against `linux` - only the Linux-only files above may differ.
+
 ## Checking
 
 ```bash

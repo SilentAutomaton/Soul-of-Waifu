@@ -39,12 +39,17 @@
   <a href="README-LINUX.md">
     <img src="https://img.shields.io/badge/LINUX PORT-1793D1?style=for-the-badge&logo=linux&logoColor=white" alt="Linux port">
   </a>
+  <a href="https://github.com/SnowwhiteOakheart/Soul-of-Waifu/releases/tag/v2.5.1-win.1">
+    <img src="https://img.shields.io/badge/GERMAN PATCH-6e40c9?style=for-the-badge&logo=windows&logoColor=white" alt="German patch for Windows">
+  </a>
 </p>
 
 > [!NOTE]
 > **🐧 Linux:** this fork contains an unofficial Linux port on the `linux` branch. See **[README-LINUX.md](README-LINUX.md)** for installation (`./installer.sh`, `./start.sh`).
 >
 > **🇩🇪 German:** the app is also available in German (Options -> App Language). A **Reply Language** setting tells the AI which language to answer in - narration included - and German was added to the chat translator.
+>
+> **🪟 Windows:** the German interface and the fixes of this fork run on Windows too - **[v2.5.1-win.1](https://github.com/SnowwhiteOakheart/Soul-of-Waifu/releases/tag/v2.5.1-win.1)** is a 687 KB patch to unpack over an official v2.5.1 installation.
 
 ---
 

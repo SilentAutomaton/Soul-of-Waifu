@@ -39,12 +39,17 @@
   <a href="README-LINUX.md">
     <img src="https://img.shields.io/badge/LINUX--VERSION-1793D1?style=for-the-badge&logo=linux&logoColor=white" alt="Linux-Portierung">
   </a>
+  <a href="https://github.com/SnowwhiteOakheart/Soul-of-Waifu/releases/tag/v2.5.1-win.1">
+    <img src="https://img.shields.io/badge/DEUTSCH--PATCH-6e40c9?style=for-the-badge&logo=windows&logoColor=white" alt="Deutsch-Patch für Windows">
+  </a>
 </p>
 
 > [!NOTE]
 > **🐧 Linux:** Dieser Fork enthält eine inoffizielle Linux-Portierung im Branch `linux`. Die Installation (`./installer.sh`, `./start.sh`) ist in **[README-LINUX.md](README-LINUX.md)** beschrieben.
 >
 > **🇩🇪 Deutsch:** Die App gibt es in diesem Fork auch auf Deutsch (Optionen -> App-Sprache). Über die Einstellung **Antwortsprache** legst du fest, in welcher Sprache die KI antwortet - Erzähltext eingeschlossen -, und der Chat-Übersetzer kann jetzt auch ins Deutsche übersetzen.
+>
+> **🪟 Windows:** Die deutsche Oberfläche und die Fehlerbehebungen dieses Forks laufen auch unter Windows - **[v2.5.1-win.1](https://github.com/SnowwhiteOakheart/Soul-of-Waifu/releases/tag/v2.5.1-win.1)** ist ein 687 KB großer Patch, den du über eine offizielle v2.5.1-Installation entpackst.
 
 ---
 
