@@ -775,6 +775,7 @@ error_download_failed: 'Не удалось скачать файл {filename}:
 error_generation_failed: Не удалось сгенерировать изображение.
 error_generation_header: ⚠ ОШИБКА ГЕНЕРАЦИИ
 error_header: ⚠ ОШИБКА
+error_no_linux_cuda_build: 'llama.cpp не выпускает сборку с CUDA для Linux. Выберите Vulkan - на картах NVIDIA он тоже быстрый, - установите системный llama-server с поддержкой CUDA или положите свою сборку в app/utils/ai_clients/backend/cuda/.'
 error_server_crashed: 'Локальный сервер завершился во время загрузки модели - не хватает видеопамяти? Уменьшите «Слои GPU» в настройках LLM, тогда часть модели уйдёт в оперативную память.'
 error_server_start_failed: 'Процесс локального сервера завершился сразу после запуска. Подробности в журнале.'
 error_title: Ошибка загрузки

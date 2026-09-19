@@ -82,6 +82,7 @@ Conflicts can only appear in the files under "Changed upstream files" below. Rul
 | `app/utils/soul_companion/plugins/agentic_tools.py` | Bash instead of PowerShell, typing via wtype/ydotool/xdotool, Linux system folders protected, localized XDG folders | `_SHELL_LANGUAGE` |
 | `app/utils/backend_updater.py` | llama.cpp: Ubuntu builds and `.tar.gz` extraction on Linux | `_match_linux_assets` |
 | `app/utils/ai_clients/local_server_manager.py` | falls back to a system `llama-server`; `LD_LIBRARY_PATH` for the bundled build | `system llama-server` |
+| `app/utils/ai_clients/local_server_manager.py` | picking the CUDA backend on Linux only said "executable not found" - llama.cpp ships no Linux CUDA build, so the message now names the three ways out | `error_no_linux_cuda_build` |
 | `app/utils/ai_clients/local_server_manager.py` | a llama-server left over from an earlier run kept serving the old model and context size ("request exceeds the available context size") - a server of ours whose `-m` or `-c` no longer matches the settings is restarted, a system one is only reported | `_server_configuration_mismatch` |
 | `app/utils/ai_clients/local_server_manager.py` | a model that fails to load (too little VRAM) only produced "check the logs" - the last llama-server lines that name the cause are kept and shown with the error, and the message points at the GPU-layers setting | `def server_failure_reason` |
 | `app/utils/text_to_speech.py` | kokoro / RVC / fairseq imports are optional, so the app starts without them | `_kokoro_error` |

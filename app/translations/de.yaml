@@ -772,6 +772,7 @@ error_download_failed: 'Herunterladen von {filename} fehlgeschlagen:
 error_generation_failed: Bild konnte nicht generiert werden.
 error_generation_header: ⚠ GENERIERUNGSFEHLER
 error_header: ⚠ FEHLER
+error_no_linux_cuda_build: 'Für Linux gibt es von llama.cpp keinen CUDA-Build. Nimm Vulkan - das ist auch auf NVIDIA-Karten schnell -, installiere einen System-llama-server mit CUDA, oder lege einen selbst gebauten nach app/utils/ai_clients/backend/cuda/.'
 error_server_crashed: 'Der lokale Server hat sich beim Laden des Modells beendet - zu wenig VRAM? Verringere in den LLM-Einstellungen die GPU-Schichten, dann wird ein Teil des Modells in den Arbeitsspeicher ausgelagert.'
 error_server_start_failed: "Der lokale Serverprozess hat sich direkt nach dem Start beendet. Details stehen im Log."
 error_title: Download-Fehler

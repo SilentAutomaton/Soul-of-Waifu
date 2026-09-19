@@ -243,6 +243,15 @@ class LocalServerManager:
         if not Path(current_server).exists():
             logger.error(f"Server executable not found at: {current_server}")
             self.update_ui_for_server_state(False)
+            # llama.cpp ships no CUDA build for Linux, so "not found" is the normal outcome
+            # here and the generic message leaves the user without a way forward.
+            if platform.system() != "Windows" and llm_device == 1 and llm_backend == 1:
+                raise RuntimeError(self.translations.get(
+                    "error_no_linux_cuda_build",
+                    "llama.cpp publishes no CUDA build for Linux. Choose Vulkan - it is fast on "
+                    "NVIDIA cards as well - or install a system llama-server with CUDA support, or "
+                    "put your own build into app/utils/ai_clients/backend/cuda/."
+                ))
             raise RuntimeError(self.translations.get(
                 "error_backend_not_found",
                 f"Server executable not found: {current_server}"
