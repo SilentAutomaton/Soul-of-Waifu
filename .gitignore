@@ -1,6 +1,7 @@
 app/configuration/api.json
 app/configuration/settings.json
 app/configuration/characters.json
+app/configuration/*.bak
 
 # --- Linux port: files copied from the release archive or created at runtime ---
 __pycache__/
