@@ -3060,7 +3060,33 @@ class InterfaceSignals():
             logger.error(f"[Autostart] Local LLM server failed to start: {e}")
 
     def on_pushButton_launch_server_clicked(self):
-        asyncio.create_task(self.local_server_manager.ensure_server_running())
+        task = asyncio.create_task(self.local_server_manager.ensure_server_running())
+        task.add_done_callback(self._on_launch_server_task_done)
+
+    def _on_launch_server_task_done(self, task):
+        """
+        A model that fails to load used to fail silently here: no message, and the button in the
+        Models Hub kept saying "Unload" because it is switched before the server is even up.
+        """
+        try:
+            task.result()
+        except asyncio.CancelledError:
+            return
+        except Exception as e:
+            logger.error(f"The local server could not be started: {e}", exc_info=True)
+            sow_toast(
+                parent=self.main_window,
+                title=self.translations.get("toast_local_server_failed_title", "Local model"),
+                text=self.translations.get(
+                    "toast_local_server_failed_body", "The local server could not be started:"
+                ) + f"\n{e}",
+                msg_type="error"
+            )
+        finally:
+            try:
+                self.show_my_models()
+            except Exception as refresh_error:
+                logger.debug(f"Could not refresh the model list: {refresh_error}")
 
     def get_local_ip(self):
         try:

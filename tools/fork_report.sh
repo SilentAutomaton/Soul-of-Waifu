@@ -51,6 +51,7 @@ CHECKS=(
     "Local server follows model and context|app/utils/ai_clients/local_server_manager.py|_server_configuration_mismatch"
     "Summary speaks the reply language|app/utils/ai_clients/prompt_engine.py|def _resolve_reply_language"
     "Failed model load says why|app/utils/ai_clients/local_server_manager.py|def server_failure_reason"
+    "Models Hub reports a failed load|app/gui/interface_signals.py|_on_launch_server_task_done"
 )
 
 echo "${BOLD}Soul of Waifu - fork report${RESET}"

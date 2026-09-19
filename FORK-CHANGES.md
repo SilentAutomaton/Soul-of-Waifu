@@ -100,6 +100,7 @@ Conflicts can only appear in the files under "Changed upstream files" below. Rul
 | `app/utils/ai_clients/prompt_engine.py` | the story summary follows the reply language too - an English summary sits in every later prompt and pulls the model back to English | `_resolve_reply_language` |
 | `app/gui/sowInterface.py`, `main.py`, `app/gui/interface_signals.py`, `app/gui/sow_system_signals.py`, `app/utils/ai_clients/soul_stage_engine.py` | German as a chat translation target next to Russian | `{0: "ru", 1: "de"}` |
 | `app/gui/interface_signals.py`, `main.py` | local LLM starts when a chat is opened, and a message waits for the server | `autostart_local_llm` |
+| `app/gui/interface_signals.py` | loading a model from the Models Hub swallowed every error - the button stayed on "Unload" and nothing was shown; failures now raise a toast and the list is refreshed | `_on_launch_server_task_done` |
 | `app/gui/sowInterface.py` | RP editor cards grow with longer translations instead of clipping them | `heightForWidth(card_width)` |
 | `app/gui/interface_signals.py` | `update_lip_sync` tolerates a configuration without `character_list` | `character_list = config.get("character_list", {})` |
 | `app/gui/interface_signals.py` | start page greeting picks from all variants the language file has (upstream drew 1-5 although every language ships 7) | `available = [i for i in range(1, 8)` |
