@@ -1,5 +1,6 @@
 import os
 import json
+import collections
 import logging
 import asyncio
 import platform
@@ -37,6 +38,9 @@ class LocalServerManager:
                 self.load_translation("de")
 
         self.server_process = None
+        # llama-server explains a failed load in its last lines ("failed to allocate
+        # Vulkan0 buffer", "unable to load model") - keep them for the error message.
+        self.recent_server_log = collections.deque(maxlen=60)
         self.SERVER_PORT = 48596
         self.lock_file = Path(f"app/utils/ai_clients/backend/_temp/llama_server_{self.SERVER_PORT}.lock")
         
@@ -370,12 +374,38 @@ class LocalServerManager:
             self.server_process = None
             self.cleanup_lock_file()
             self.update_ui_for_server_state(False)
-            raise RuntimeError(self.translations.get(
+            reason = self.server_failure_reason()
+            message = self.translations.get(
                 "error_server_start_failed",
                 "The local server process exited immediately after launch. Check the logs for details."
-            ))
+            )
+            raise RuntimeError(f"{message}\n\n{reason}" if reason else message)
         else:
             logger.info("Server started successfully.")
+
+    # The line that names the cause ("ErrorOutOfDeviceMemory") comes before the generic ones.
+    _FAILURE_HINTS = ("outofdevicememory", "out of memory", "failed to allocate", "unable to allocate",
+                      "not enough", "insufficient", "no space", "cuda error", "vk::")
+    _FAILURE_WORDS = ("error", "failed", "cannot", "unable")
+
+    def server_failure_reason(self) -> str:
+        """The telling lines of llama-server, so a failed load says why instead of 'check the logs'."""
+        log = [line.split(" E ", 1)[-1].strip() for line in self.recent_server_log]
+        log = [line for line in log if line]
+
+        picked = [line for line in log if any(h in line.lower() for h in self._FAILURE_HINTS)]
+        picked += [line for line in log if any(w in line.lower() for w in self._FAILURE_WORDS)]
+        if not picked:
+            picked = log[-3:]
+
+        seen, lines = set(), []
+        for line in picked:
+            if line not in seen:
+                seen.add(line)
+                lines.append(line)
+            if len(lines) == 3:
+                break
+        return "\n".join(lines)
 
     async def log_stream(self, stream, log_func):
         while True:
@@ -388,6 +418,7 @@ class LocalServerManager:
                 decoded_line = str(line, encoding="utf-8", errors="ignore").strip()
             
             log_func(decoded_line)
+            self.recent_server_log.append(decoded_line)
 
             if self.ui:
                 try:
@@ -527,7 +558,13 @@ class LocalServerManager:
                         logger.error(f"Server crashed with code {self.server_process.returncode}")
                         self.cleanup_lock_file()
                         self.update_ui_for_server_state(False)
-                        raise RuntimeError("Local server crashed. Check logs (Out of memory?)")
+                        reason = self.server_failure_reason()
+                        message = self.translations.get(
+                            "error_server_crashed",
+                            "The local server stopped while loading the model - too little VRAM? "
+                            "Lower 'GPU Layers' in the LLM settings to move part of the model into RAM."
+                        )
+                        raise RuntimeError(f"{message}\n\n{reason}" if reason else message)
                     
                     if elapsed > timeout:
                         logger.error("Server loading timed out.")

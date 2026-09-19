@@ -772,6 +772,7 @@ error_download_failed: 'Herunterladen von {filename} fehlgeschlagen:
 error_generation_failed: Bild konnte nicht generiert werden.
 error_generation_header: ⚠ GENERIERUNGSFEHLER
 error_header: ⚠ FEHLER
+error_server_crashed: 'Der lokale Server hat sich beim Laden des Modells beendet - zu wenig VRAM? Verringere in den LLM-Einstellungen die GPU-Schichten, dann wird ein Teil des Modells in den Arbeitsspeicher ausgelagert.'
 error_server_start_failed: "Der lokale Serverprozess hat sich direkt nach dem Start beendet. Details stehen im Log."
 error_title: Download-Fehler
 error_unsupported_backend: "Ungültige Kombination aus Gerät und Backend für das lokale Modell."

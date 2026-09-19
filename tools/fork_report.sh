@@ -50,6 +50,7 @@ CHECKS=(
     "Show a model in the file manager|app/utils/platform_compat.py|def reveal_path"
     "Local server follows model and context|app/utils/ai_clients/local_server_manager.py|_server_configuration_mismatch"
     "Summary speaks the reply language|app/utils/ai_clients/prompt_engine.py|def _resolve_reply_language"
+    "Failed model load says why|app/utils/ai_clients/local_server_manager.py|def server_failure_reason"
 )
 
 echo "${BOLD}Soul of Waifu - fork report${RESET}"

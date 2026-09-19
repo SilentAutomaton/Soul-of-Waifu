@@ -774,6 +774,8 @@ error_download_failed: 'Failed to download {filename}:
 error_generation_failed: Failed to generate image.
 error_generation_header: ⚠ GENERATION ERROR
 error_header: ⚠ ERROR
+error_server_crashed: 'The local server stopped while loading the model - too little VRAM? Lower "GPU Layers" in the LLM settings to move part of the model into RAM.'
+error_server_start_failed: 'The local server process exited immediately after launch. Details are in the log.'
 error_title: Download Error
 evening: Evening
 event_discovery: DISCOVERY

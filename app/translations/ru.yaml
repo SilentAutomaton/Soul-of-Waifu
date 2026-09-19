@@ -775,6 +775,8 @@ error_download_failed: 'Не удалось скачать файл {filename}:
 error_generation_failed: Не удалось сгенерировать изображение.
 error_generation_header: ⚠ ОШИБКА ГЕНЕРАЦИИ
 error_header: ⚠ ОШИБКА
+error_server_crashed: 'Локальный сервер завершился во время загрузки модели - не хватает видеопамяти? Уменьшите «Слои GPU» в настройках LLM, тогда часть модели уйдёт в оперативную память.'
+error_server_start_failed: 'Процесс локального сервера завершился сразу после запуска. Подробности в журнале.'
 error_title: Ошибка загрузки
 evening: Вечер
 event_discovery: ОТКРЫТИЕ
