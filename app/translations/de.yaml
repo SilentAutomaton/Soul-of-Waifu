@@ -1349,6 +1349,8 @@ models_hub_no_results: 'Nichts gefunden.
 
   Versuche eine andere Suchanfrage oder überprüfe deine Verbindung.'
 models_hub_open_folder_btn: ' Ordner öffnen'
+models_hub_open_location: Speicherort öffnen
+models_hub_open_location_error: 'Speicherort konnte nicht geöffnet werden:'
 models_hub_popular: ' Beliebt'
 models_hub_popular_banner: 🔥 Aktuell beliebte GGUF-Modelle, direkt vom HuggingFace Hub abgerufen.
 models_hub_recommendations: Empfehlungen

@@ -82,6 +82,34 @@ def open_path(path) -> None:
         _spawn(["xdg-open", path])
 
 
+def reveal_path(path) -> None:
+    """
+    Show a file in the file manager with the file itself selected - the Linux answer to
+    `explorer /select,`. Falls back to opening the containing folder.
+    """
+    path = os.path.abspath(str(path))
+    if IS_WINDOWS:
+        _spawn(["explorer", f"/select,{path}"])
+        return
+    if IS_MACOS:
+        _spawn(["open", "-R", path])
+        return
+
+    # org.freedesktop.FileManager1 is what Dolphin, Nautilus, Nemo and Thunar implement.
+    # _run returns None when the call fails, and then the folder fallback below applies.
+    if os.path.exists(path):
+        shown = _run(["gdbus", "call", "--session",
+                      "--dest", "org.freedesktop.FileManager1",
+                      "--object-path", "/org/freedesktop/FileManager1",
+                      "--method", "org.freedesktop.FileManager1.ShowItems",
+                      f"['file://{path}']", ""], timeout=5.0)
+        if shown is not None:
+            return
+
+    folder = path if os.path.isdir(path) else os.path.dirname(path) or "."
+    open_path(folder)
+
+
 _XDG_USER_DIR_KEYS = {
     "Desktop": "XDG_DESKTOP_DIR",
     "Downloads": "XDG_DOWNLOAD_DIR",

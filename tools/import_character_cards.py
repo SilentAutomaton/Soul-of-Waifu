@@ -80,6 +80,12 @@ def backup_configs() -> None:
         src = ROOT / rel
         if src.exists():
             shutil.copy2(src, src.with_suffix(src.suffix + ".bak"))
+    # characters.json is only the index - the characters themselves live in shards
+    shards = ROOT / "app" / "configuration" / "characters"
+    if shards.is_dir():
+        backup = shards.with_name("characters.bak")
+        shutil.rmtree(backup, ignore_errors=True)
+        shutil.copytree(shards, backup)
 
 
 def import_personas(path: Path, settings: ConfigurationSettings) -> list:

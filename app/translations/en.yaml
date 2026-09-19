@@ -1342,6 +1342,8 @@ models_hub_no_results: 'Nothing found.
 
   Try a different search query or check your connection.'
 models_hub_open_folder_btn: ' Open Folder'
+models_hub_open_location: Open file location
+models_hub_open_location_error: 'Cannot open file location:'
 models_hub_popular: ' Popular'
 models_hub_popular_banner: 🔥 Currently popular GGUF models directly fetched from HuggingFace Hub.
 models_hub_recommendations: Recommendations

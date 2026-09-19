@@ -28,7 +28,7 @@ from PyQt6.QtWidgets import (QApplication, QLabel, QMessageBox, QPushButton, QWi
 from app.utils.ai_clients.prompt_engine import PromptEngine
 from app.utils.ai_clients.ai_factory import AIFactory
 from app.utils.backend_updater import LlamaUpdater
-from app.utils.platform_compat import open_path
+from app.utils.platform_compat import open_path, reveal_path
 from app.configuration import configuration
 
 logger = logging.getLogger("Interface Signals")
@@ -1664,7 +1664,8 @@ class ModelListItemWidget(QWidget):
         actions_layout.addWidget(divider)
 
         self.btn_open_file = self._icon_button(
-            "app/gui/icons/folder.png", 15, "Open file location in Explorer"
+            "app/gui/icons/folder.png", 15,
+            self.translations.get("models_hub_open_location", "Open file location")
         )
         self.btn_open_file.clicked.connect(self.on_open_file_location_clicked)
         actions_layout.addWidget(self.btn_open_file)
@@ -1917,14 +1918,18 @@ class ModelListItemWidget(QWidget):
  
     def on_open_file_location_clicked(self):
         try:
-            subprocess.Popen(["explorer", "/select,", os.path.abspath(self.full_path)])
+            # Was "explorer /select," - reveal_path does that on Windows and shows the file
+            # in Dolphin/Nautilus/Finder everywhere else.
+            reveal_path(self.full_path)
         except Exception as e:
             parent_win = self.window() if hasattr(self, "window") else self
- 
+
             sow_toast(
                 parent=parent_win,
-                title="Error",
-                text=f"Cannot open file location:\n{str(e)}",
+                title=self.translations.get("system_error_title", "System Error"),
+                text=self.translations.get(
+                    "models_hub_open_location_error", "Cannot open file location:"
+                ) + f"\n{str(e)}",
                 msg_type="error"
             )
 

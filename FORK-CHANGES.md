@@ -77,6 +77,7 @@ Conflicts can only appear in the files under "Changed upstream files" below. Rul
 | `app/gui/sow_system_signals.py` | idle time via `platform_compat`; `wintypes` import moved into the Windows branch | `get_idle_time_ms as _get_system_idle_time_ms` |
 | `app/gui/sow_system_signals.py` | Live2D start guarded: a warning instead of a crash when OpenGL fails (from upstream PR #61) | `live2d_unavailable_title` |
 | `app/gui/custom_widgets.py` | memory folder opens via `open_path` | `from app.utils.platform_compat import open_path` |
+| `app/gui/custom_widgets.py`, `app/utils/platform_compat.py` | Models Hub: the folder button ran `explorer /select,` and failed with `[Errno 2] explorer` on Linux - `reveal_path` shows the file in Dolphin/Nautilus (D-Bus FileManager1, folder as fallback), Finder on macOS, Explorer on Windows; its tooltip and error message are translated | `def reveal_path` |
 | `app/utils/soul_companion/soul_companion.py` | Linux versions of the companion tools: open apps/folders, media keys, clipboard, window title/focus, OS/CPU/GPU info | `_open_target_posix` |
 | `app/utils/soul_companion/plugins/agentic_tools.py` | Bash instead of PowerShell, typing via wtype/ydotool/xdotool, Linux system folders protected, localized XDG folders | `_SHELL_LANGUAGE` |
 | `app/utils/backend_updater.py` | llama.cpp: Ubuntu builds and `.tar.gz` extraction on Linux | `_match_linux_assets` |

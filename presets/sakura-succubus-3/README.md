@@ -6,17 +6,20 @@ were written for the German UI of this fork.
 
 | File | Who |
 |---|---|
-| `ayu_tatekawa.json` | Ayu - the tsundere pop idol |
-| `marina_yamamoto.json` | Marina - the corporate CEO |
+| `ayu_ikue.json` | Ayu - the tsundere pop idol |
+| `marina_wakatsuki.json` | Marina - the corporate CEO |
 | `cosmos.json` | Cosmos - the playful cat girl |
 | `hazel_williams.json` | Hazel - the tomboy tennis pro |
-| `hifumi_minamoto.json` | Hifumi - the Yamato Nadeshiko |
+| `hifumi_yamamoto.json` | Hifumi - the actress, a Yamato Nadeshiko |
 | `yue.json` | Yue - the dethroned succubus queen |
 | `persona_hiroki.json` | Hiroki as a **user persona** - who *you* are in the chat |
 
 Each card carries description, personality, scenario, one greeting plus two alternate greetings
 (the app offers them as variants of the first message) and three example dialogues. `{{user}}` and
 `{{char}}` are filled in by the app, so the cards are not hard-wired to the name "Hiroki".
+
+Names and occupations follow the game's own script (Ayu **Ikue**, Marina **Wakatsuki**, Hifumi
+**Yamamoto**, an actress; Hiroki is a photographer at the tabloid *Sakura Daily*).
 
 The files are plain **chara_card_v2** JSON and work in SillyTavern, Chub and anything else that
 reads that format. Every card points at its `<name>.png` next to it through

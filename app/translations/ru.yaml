@@ -1342,6 +1342,8 @@ models_hub_no_results: 'Ничего не найдено.
 
   Попробуйте изменить запрос или проверьте подключение.'
 models_hub_open_folder_btn: ' Открыть Папку'
+models_hub_open_location: Открыть расположение файла
+models_hub_open_location_error: 'Не удалось открыть расположение файла:'
 models_hub_popular: ' Популярное'
 models_hub_popular_banner: 🔥 Список актуальных и популярных на данный момент GGUF-моделей из репозиториев сайта HuggingFace.
 models_hub_recommendations: Рекомендации
