@@ -96,6 +96,7 @@ Conflicts can only appear in the files under "Changed upstream files" below. Rul
 | `app/gui/sowInterface.py`, `main.py`, `app/gui/interface_signals.py`, `app/gui/soul_stage_page.py`, `app/gui/custom_widgets.py`, `app/gui/sow_system_signals.py`, `app/utils/ai_clients/local_server_manager.py` | German as the third program language (`case 2` / `2: "de"` everywhere the language is resolved) | `load_translation("de")`, `2: "de"` |
 | `main.py` | translates the 6th options tab (upstream bug: never translated in any language) | `appearance_tab_name` |
 | `app/gui/sowInterface.py`, `main.py`, `app/utils/ai_clients/prompt_engine.py` | **Reply Language** setting: tells the model which language to answer in, narration included | `_build_language_directive` |
+| `app/utils/ai_clients/prompt_engine.py` | the story summary follows the reply language too - an English summary sits in every later prompt and pulls the model back to English | `_resolve_reply_language` |
 | `app/gui/sowInterface.py`, `main.py`, `app/gui/interface_signals.py`, `app/gui/sow_system_signals.py`, `app/utils/ai_clients/soul_stage_engine.py` | German as a chat translation target next to Russian | `{0: "ru", 1: "de"}` |
 | `app/gui/interface_signals.py`, `main.py` | local LLM starts when a chat is opened, and a message waits for the server | `autostart_local_llm` |
 | `app/gui/sowInterface.py` | RP editor cards grow with longer translations instead of clipping them | `heightForWidth(card_width)` |

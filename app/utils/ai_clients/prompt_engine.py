@@ -573,12 +573,8 @@ class PromptEngine:
     _RESPONSE_LANGUAGE_NAMES = {1: "English", 2: "Russian", 3: "German"}
     _PROGRAM_LANGUAGE_NAMES = {0: "English", 1: "Russian", 2: "German"}
 
-    def _build_language_directive(self) -> str:
-        """
-        The default system prompt is written in English, so models tend to narrate in
-        English even when the user writes in another language. State the reply language
-        explicitly - narration included.
-        """
+    def _resolve_reply_language(self):
+        """The language the model has to answer in, or None when it may choose for itself."""
         setting = self.configuration_settings.get_main_setting("response_language") or 0
         try:
             setting = int(setting)
@@ -586,7 +582,7 @@ class PromptEngine:
             setting = 0
 
         if setting == 4:
-            return ""
+            return None
         if setting == 0:
             program_language = self.configuration_settings.get_main_setting("program_language") or 0
             try:
@@ -594,11 +590,17 @@ class PromptEngine:
             except (TypeError, ValueError):
                 program_language = 0
             if program_language == 0:
-                return ""  # English UI: keep the upstream behaviour
-            language = self._PROGRAM_LANGUAGE_NAMES.get(program_language)
-        else:
-            language = self._RESPONSE_LANGUAGE_NAMES.get(setting)
+                return None  # English UI: keep the upstream behaviour
+            return self._PROGRAM_LANGUAGE_NAMES.get(program_language)
+        return self._RESPONSE_LANGUAGE_NAMES.get(setting)
 
+    def _build_language_directive(self) -> str:
+        """
+        The default system prompt is written in English, so models tend to narrate in
+        English even when the user writes in another language. State the reply language
+        explicitly - narration included.
+        """
+        language = self._resolve_reply_language()
         if not language:
             return ""
 
@@ -1035,6 +1037,16 @@ class PromptEngine:
             f"Task: Generate the updated summary based on the new messages above. "
             f"Do not write dialogue. Do not repeat the prompt. Start your response directly with the [CHARACTER STATES & INVENTORY] tag."
         )
+
+        # The summary ends up inside every later prompt, so an English summary keeps pulling
+        # the model back to English however clear the reply-language directive is.
+        language = self._resolve_reply_language()
+        if language:
+            system_instruction += (
+                f"\n\nLANGUAGE: Write the summary itself in {language}. Keep the section tags "
+                f"([CHARACTER STATES & INVENTORY] and the others) exactly as written above, in English. "
+                f"If the previous summary is in another language, translate it while merging."
+            )
 
         messages = [
             {"role": "system", "content": system_instruction},
