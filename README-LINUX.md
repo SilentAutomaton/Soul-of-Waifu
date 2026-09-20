@@ -126,10 +126,20 @@ all Vulkan devices, and the slower one holds it back. Put `--device Vulkan0` int
 Custom Args** to use only the first GPU. `llama-server --list-devices` shows the numbering.
 
 To use CUDA, pick one of these:
-- Choose the **Vulkan** backend. It is fast on NVIDIA cards too.
-- Install a system `llama-server` with CUDA, for example the AUR package `llama.cpp-cuda`. If no bundled binary is
-  found, the app uses the `llama-server` from your `PATH`.
-- Build llama.cpp yourself and put `llama-server` and its `.so` files into `app/utils/ai_clients/backend/cuda/`.
+- Choose the **Vulkan** backend. It is fast on NVIDIA cards too, and it is what the installer sets up.
+- Build it yourself - `./tools/build_llama_cuda.sh` does the whole job: it fetches the llama.cpp release the
+  bundled backend reports, builds `llama-server` with CUDA for your card and copies it (with its libraries)
+  into `app/utils/ai_clients/backend/cuda/`, where the app's CUDA option looks for it.
+
+  ```bash
+  ./tools/build_llama_cuda.sh              # same tag as the bundled backend, sm_89 (RTX 40xx)
+  ./tools/build_llama_cuda.sh b11056 86    # a specific tag, sm_86 (RTX 30xx)
+  ```
+
+  Needs `cuda`, `cmake`, `ninja` and a compiler; the build takes a while. The backend updater does not know
+  about your build, so run the script again after it replaces the bundled backends.
+- Install a system `llama-server` with CUDA. If no bundled binary is found, the app uses the `llama-server`
+  from your `PATH`.
 
 ## Feature status
 
