@@ -166,6 +166,16 @@ class LocalServerManager:
         if running_template != wanted_template:
             differences.append(f"chat template {running_template} -> {wanted_template}")
 
+        running_fa = (value_of("-fa") or "off").lower()
+        wanted_fa = "on" if self.configuration_settings.get_main_setting("flash_attention_status") else "off"
+        if running_fa != wanted_fa:
+            differences.append(f"flash attention {running_fa} -> {wanted_fa}")
+
+        running_batch = value_of("--batch-size")
+        wanted_batch = self.configuration_settings.get_main_setting("llm_batch_size")
+        if running_batch and wanted_batch and str(running_batch) != str(wanted_batch):
+            differences.append(f"batch size {running_batch} -> {wanted_batch}")
+
         return ", ".join(differences)
 
     async def _terminate_running_server(self, proc):
