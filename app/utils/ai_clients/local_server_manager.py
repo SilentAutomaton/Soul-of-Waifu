@@ -144,6 +144,28 @@ class LocalServerManager:
         if running_ctx and wanted_ctx and str(running_ctx) != str(wanted_ctx):
             differences.append(f"context {running_ctx} -> {wanted_ctx}")
 
+        # The backend, the KV cache type and the chat template are just as invisible to a
+        # running server: switching them in the settings would otherwise change nothing.
+        wanted_exe = self.resolve_server_executable(
+            self.configuration_settings.get_main_setting("llm_device"),
+            self.configuration_settings.get_main_setting("llm_backend"),
+        )
+        if wanted_exe and args:
+            running_backend = Path(args[0]).parent.name
+            wanted_backend = Path(wanted_exe).parent.name
+            if running_backend != wanted_backend:
+                differences.append(f"backend {running_backend} -> {wanted_backend}")
+
+        running_kv = value_of("--cache-type-k") or "f16"
+        wanted_kv = (self.configuration_settings.get_main_setting("kv_cache_type") or "f16").strip()
+        if running_kv != wanted_kv:
+            differences.append(f"KV cache {running_kv} -> {wanted_kv}")
+
+        running_template = value_of("--chat-template") or "auto"
+        wanted_template = (self.configuration_settings.get_main_setting("chat_template") or "auto").strip().lower()
+        if running_template != wanted_template:
+            differences.append(f"chat template {running_template} -> {wanted_template}")
+
         return ", ".join(differences)
 
     async def _terminate_running_server(self, proc):
