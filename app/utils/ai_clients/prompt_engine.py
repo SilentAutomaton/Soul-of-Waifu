@@ -200,11 +200,29 @@ class PromptEngine:
             logger.error(f"Failed to initialize tiktoken encoder: {e}")
             self.encoder = None
 
-        self.response_reserve = 500
+        self.response_reserve = 500  # floor; the answer's real budget follows max_tokens
 
         self.IMAGE_TOKEN_ESTIMATE = 300
         
         self.SOUL_MEMORY_MIN_MAX_TOKENS = 1500
+
+    def _get_response_reserve(self) -> int:
+        """
+        How much of the context window to keep free for the answer. Upstream always reserved
+        500 tokens, however many the user allowed under "max tokens" - the model then ran into
+        the context limit in the middle of a long answer. Never more than half the window, so
+        a generous setting cannot starve the prompt.
+        """
+        try:
+            wanted = int(self.configuration_settings.get_main_setting("max_tokens") or 0)
+        except (TypeError, ValueError):
+            wanted = 0
+
+        reserve = max(self.response_reserve, wanted)
+        max_context = self._get_max_context_tokens()
+        if max_context > 0:
+            reserve = min(reserve, max(self.response_reserve, max_context // 2))
+        return reserve
 
     def _get_max_context_tokens(self) -> int:
         raw_size = self.configuration_settings.get_main_setting("context_size")
@@ -912,7 +930,7 @@ class PromptEngine:
             self._dump_last_prompt(mem_dir, final_messages)
             return final_messages, activated_entries
 
-        available_tokens = max_context_tokens - current_token_count - self.response_reserve
+        available_tokens = max_context_tokens - current_token_count - self._get_response_reserve()
         
         if available_tokens <= 128:
             logger.warning("Context full! Drastic compression triggered: sending only system blocks + last message.")

@@ -100,6 +100,7 @@ Conflicts can only appear in the files under "Changed upstream files" below. Rul
 | `main.py` | translates the 6th options tab (upstream bug: never translated in any language) | `appearance_tab_name` |
 | `app/gui/sowInterface.py`, `main.py`, `app/utils/ai_clients/prompt_engine.py` | **Reply Language** setting: tells the model which language to answer in, narration included | `_build_language_directive` |
 | `app/utils/ai_clients/prompt_engine.py` | the story summary follows the reply language too - an English summary sits in every later prompt and pulls the model back to English | `_resolve_reply_language` |
+| `app/utils/ai_clients/prompt_engine.py` | the prompt keeps as much room free for the answer as "max tokens" allows - upstream always reserved 500, so a longer answer ran into the context limit halfway | `_get_response_reserve` |
 | `app/gui/sowInterface.py`, `main.py`, `app/gui/interface_signals.py`, `app/gui/sow_system_signals.py`, `app/utils/ai_clients/soul_stage_engine.py` | German as a chat translation target next to Russian | `{0: "ru", 1: "de"}` |
 | `app/gui/interface_signals.py`, `main.py` | local LLM starts when a chat is opened, and a message waits for the server | `autostart_local_llm` |
 | `app/gui/interface_signals.py` | loading a model from the Models Hub swallowed every error - the button stayed on "Unload" and nothing was shown; failures now raise a toast and the list is refreshed | `_on_launch_server_task_done` |
