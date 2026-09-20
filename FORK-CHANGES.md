@@ -56,11 +56,12 @@ Conflicts can only appear in the files under "Changed upstream files" below. Rul
 | `app/utils/platform_compat.py` | Linux equivalents of the Windows-only calls (`os.startfile`, `winreg`, `ctypes.windll`) |
 | `tools/patch_venv.py` | venv fixes: fairseq on Python 3.11, pyworld's `pkg_resources` warning, qwen_tts' flash-attn banner |
 | `tools/fetch_llama_backend.py` | downloads the llama.cpp Linux build for a backend |
+| `tools/fetch_live2d_models.py` | downloads and installs matching Live2D Cubism models into `assets/emotions/live2d/` |
 | `tools/build_llama_cuda.sh` | builds `llama-server` with CUDA and installs it into the backend folder - llama.cpp ships no Linux CUDA build |
 | `tools/fork_report.sh` | diff against `release` + check that every patch below is present |
-| `tools/import_character_cards.py` | imports `chara_card_v2` cards with their avatars, user personas, lorebooks and Soul Stage scenes into the configuration in bulk - no UI clicking |
+| `tools/import_character_cards.py` | imports `chara_card_v2` cards with their avatars, Live2D models, user personas, lorebooks and Soul Stage scenes into the configuration in bulk - no UI clicking |
 | `app/translations/de.yaml` | German translation of the app. Besides every `en.yaml` key it also fills 26 gaps upstream left: keys the code asks for that exist in no language file, so all languages fall back to the English string in the code (import dialog, backup restore, scene tooltips, local server errors, …). Four keys stay untranslated on purpose - their defaults are f-strings carrying a path, chat name or error, and a YAML value would drop that detail. |
-| `presets/sakura-succubus-3/` | a German preset set: seven character cards (`chara_card_v2`) with AI-generated avatars and the prompts they were made from, six Soul Stage scenes and three lorebooks - import them with the tool above |
+| `presets/sakura-succubus-3/` | a German preset set: seven character cards (`chara_card_v2`) with AI-generated avatars, matching Live2D models and the prompts they were made from, six Soul Stage scenes and three lorebooks - import them with the tool above |
 | `README-LINUX.md`, `README_DE.md`, `FORK-CHANGES.md` | documentation |
 
 ## Changed upstream files
@@ -78,6 +79,7 @@ Conflicts can only appear in the files under "Changed upstream files" below. Rul
 | `app/gui/interface_signals.py` | audio device list: only the sound-server PCMs on Linux (raw ALSA devices reject the TTS sample rates) | `_selectable_audio_devices` |
 | `app/gui/sow_system_signals.py` | idle time via `platform_compat`; `wintypes` import moved into the Windows branch | `get_idle_time_ms as _get_system_idle_time_ms` |
 | `app/gui/sow_system_signals.py` | Live2D start guarded: a warning instead of a crash when OpenGL fails (from upstream PR #61) | `live2d_unavailable_title` |
+| `app/gui/custom_widgets.py`, `app/gui/interface_signals.py`, `app/gui/sow_system_signals.py` | switching characters deletes the chat page while its timers keep calling the VRM view - "wrapped C/C++ object of type QWebEngineView has been deleted"; every call goes through a guard now | `def run_webview_js` |
 | `app/gui/custom_widgets.py` | memory folder opens via `open_path` | `from app.utils.platform_compat import open_path` |
 | `app/gui/custom_widgets.py`, `app/utils/platform_compat.py` | Models Hub: the folder button ran `explorer /select,` and failed with `[Errno 2] explorer` on Linux - `reveal_path` shows the file in Dolphin/Nautilus (D-Bus FileManager1, folder as fallback), Finder on macOS, Explorer on Windows; its tooltip and error message are translated | `def reveal_path` |
 | `app/utils/soul_companion/soul_companion.py` | Linux versions of the companion tools: open apps/folders, media keys, clipboard, window title/focus, OS/CPU/GPU info | `_open_target_posix` |

@@ -55,6 +55,7 @@ CHECKS=(
     "CUDA on Linux explains itself|app/utils/ai_clients/local_server_manager.py|error_no_linux_cuda_build"
     "Answer budget follows max tokens|app/utils/ai_clients/prompt_engine.py|def _get_response_reserve"
     "Server stops with the app|app/utils/ai_clients/local_server_manager.py|def shutdown_sync"
+    "VRM view survives a character switch|app/gui/custom_widgets.py|def run_webview_js"
 )
 
 echo "${BOLD}Soul of Waifu - fork report${RESET}"

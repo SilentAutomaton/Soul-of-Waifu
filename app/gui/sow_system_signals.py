@@ -43,7 +43,8 @@ from app.utils.text_to_speech import TTSWorker, PipelinedTTSWorker
 from app.utils.speech_to_text import AudioInputWorker, STTWorker
 from app.utils.vrm_server import VRMServerThread
 from app.utils.discord_rpc import DiscordRPCManager
-from app.gui.custom_widgets import sow_toast, safe_paint
+from PyQt6 import sip
+from app.gui.custom_widgets import sow_toast, safe_paint, run_webview_js
 
 import sys
 import ctypes
@@ -243,7 +244,7 @@ class Soul_Of_Waifu_System(QtCore.QObject):
         try:
             current_mode = self._get_current_mode()
             if current_mode == "VRM" and hasattr(self, 'vrm_webview'):
-                self.vrm_webview.page().runJavaScript(f"if (typeof window.setAppState !== 'undefined') window.setAppState('{state}');")
+                run_webview_js(self.vrm_webview, f"if (typeof window.setAppState !== 'undefined') window.setAppState('{state}');")
         except Exception as e:
             logger.error(f"Failed to send state to VRM: {e}")
     
@@ -402,9 +403,9 @@ class Soul_Of_Waifu_System(QtCore.QObject):
         elif current_mode == "VRM":
             if hasattr(self, 'vrm_no_gui') and self.vrm_no_gui:
                 if self.vrm_no_gui.vrm_webview:
-                    self.vrm_no_gui.vrm_webview.page().runJavaScript(f"setMouthOpen({mouth_value});")
+                    run_webview_js(self.vrm_no_gui.vrm_webview, f"setMouthOpen({mouth_value});")
             elif hasattr(self, 'vrm_webview') and self.vrm_webview:
-                self.vrm_webview.page().runJavaScript(f"setMouthOpen({mouth_value});")
+                run_webview_js(self.vrm_webview, f"setMouthOpen({mouth_value});")
     
     async def initialize_sow_system(self, character_name):
         self.parent_window.setVisible(False)
@@ -683,35 +684,35 @@ class Soul_Of_Waifu_System(QtCore.QObject):
                     if bg_type == 0:
                         match color:
                             case 0:
-                                self.vrm_webview.page().runJavaScript(f"setBackground('color', 0x000000)")
+                                run_webview_js(self.vrm_webview, f"setBackground('color', 0x000000)")
                             case 1:
-                                self.vrm_webview.page().runJavaScript(f"setBackground('color', 0x1A202F)")
+                                run_webview_js(self.vrm_webview, f"setBackground('color', 0x1A202F)")
                             case 2:
-                                self.vrm_webview.page().runJavaScript(f"setBackground('color', 0x2C1A22)")
+                                run_webview_js(self.vrm_webview, f"setBackground('color', 0x2C1A22)")
                             case 3:
-                                self.vrm_webview.page().runJavaScript(f"setBackground('color', 0x222B24)")
+                                run_webview_js(self.vrm_webview, f"setBackground('color', 0x222B24)")
                             case 4:
-                                self.vrm_webview.page().runJavaScript(f"setBackground('color', 0x2E2232)")
+                                run_webview_js(self.vrm_webview, f"setBackground('color', 0x2E2232)")
                             case 5:
-                                self.vrm_webview.page().runJavaScript(f"setBackground('color', 0x292929)")
+                                run_webview_js(self.vrm_webview, f"setBackground('color', 0x292929)")
                     elif bg_type == 1:
                         safe_path = image.replace("\\", "/")
                         imageUrl = f"/{safe_path}"
-                        self.vrm_webview.page().runJavaScript(f"setBackground('image', null, '{imageUrl}')")
+                        run_webview_js(self.vrm_webview, f"setBackground('image', null, '{imageUrl}')")
 
                 def set_expression_vrm(emotion):
                     if emotion in ['anger', 'disapproval', 'annoyance', 'disgust']:
-                        self.vrm_webview.page().runJavaScript(f"setExpression('angry')")
+                        run_webview_js(self.vrm_webview, f"setExpression('angry')")
                     elif emotion in ['admiration', 'amusement', 'approval', 'desire', 'gratitude', 'love', 'optimism', 'pride', 'joy']:
-                        self.vrm_webview.page().runJavaScript(f"setExpression('happy')")
+                        run_webview_js(self.vrm_webview, f"setExpression('happy')")
                     elif emotion == 'neutral':
-                        self.vrm_webview.page().runJavaScript(f"setExpression('neutral')")
+                        run_webview_js(self.vrm_webview, f"setExpression('neutral')")
                     elif emotion in ['caring', 'relief']:
-                        self.vrm_webview.page().runJavaScript(f"setExpression('relaxed')")
+                        run_webview_js(self.vrm_webview, f"setExpression('relaxed')")
                     elif emotion in ['disappointment', 'grief', 'remorse', 'sadness']:
-                        self.vrm_webview.page().runJavaScript(f"setExpression('sad')")
+                        run_webview_js(self.vrm_webview, f"setExpression('sad')")
                     elif emotion in ['confusion', 'curiosity', 'embarrassment', 'fear', 'nervousness', 'realization', 'surprise']:
-                        self.vrm_webview.page().runJavaScript(f"setExpression('surprised')")
+                        run_webview_js(self.vrm_webview, f"setExpression('surprised')")
 
                 def play_vrm_animation(emotion):
                     animation_map = {
@@ -748,7 +749,7 @@ class Soul_Of_Waifu_System(QtCore.QObject):
                     anim_file = animation_map.get(emotion, "neutral.fbx")
                     animation_url = f"/app/utils/emotions/vrm/expressions/{anim_file}"
                     
-                    self.vrm_webview.page().runJavaScript(f"loadFBX('{animation_url}')")
+                    run_webview_js(self.vrm_webview, f"loadFBX('{animation_url}')")
 
                 self.set_background_vrm = set_background_vrm
                 self.set_expression_vrm = set_expression_vrm
@@ -758,7 +759,7 @@ class Soul_Of_Waifu_System(QtCore.QObject):
 
                 def on_load_finished(ok):
                     if ok:
-                        self.vrm_webview.page().runJavaScript(
+                        run_webview_js(self.vrm_webview, 
                             "window.vrmLoaded",
                             lambda is_loaded: on_vrm_loaded(is_loaded)
                         )
@@ -772,7 +773,7 @@ class Soul_Of_Waifu_System(QtCore.QObject):
                         QtCore.QTimer.singleShot(500, lambda: play_vrm_animation(current_emotion))
                     else:
                         QtCore.QTimer.singleShot(1000, lambda: 
-                            self.vrm_webview.page().runJavaScript(
+                            run_webview_js(self.vrm_webview, 
                                 "window.vrmLoaded",
                                 lambda is_loaded: on_vrm_loaded(is_loaded))
                             )
@@ -2043,11 +2044,18 @@ class Soul_Of_Waifu_System(QtCore.QObject):
         return getattr(getattr(self, 'live2d_openGL_widget', None), 'live2d_model', None)
 
     def _get_webview(self):
-        """Return the active VRM QWebEngineView, or None."""
-        w = getattr(getattr(self, 'vrm_no_gui', None), 'vrm_webview', None)
-        if w:
-            return w
-        return getattr(self, 'vrm_webview', None)
+        """
+        Return the active VRM QWebEngineView, or None.
+
+        A view whose C++ side is already gone - switching characters tears the chat page down
+        while these timers keep running - has to count as None here, otherwise the next call
+        raises "wrapped C/C++ object of type QWebEngineView has been deleted".
+        """
+        for view in (getattr(getattr(self, 'vrm_no_gui', None), 'vrm_webview', None),
+                     getattr(self, 'vrm_webview', None)):
+            if view is not None and not sip.isdeleted(view):
+                return view
+        return None
 
     def _get_current_mode(self) -> str:
         """Return current_sow_system_mode string."""
@@ -3868,11 +3876,11 @@ class VRMWidget_NoGUI(QWidget):
                 }};
                 if (window.vrmLoaded) setExpression('{emotion}');
             """
-            self.vrm_webview.page().runJavaScript(js)
+            run_webview_js(self.vrm_webview, js)
     
     def set_expression(self, emotion):
         if self.vrm_webview:
-            self.vrm_webview.page().runJavaScript(f"setExpression('{emotion}');")
+            run_webview_js(self.vrm_webview, f"setExpression('{emotion}');")
  
     def play_animation(self, emotion):
         if self.vrm_webview:
@@ -3908,7 +3916,7 @@ class VRMWidget_NoGUI(QWidget):
             }
             anim_file = animation_map.get(emotion, "neutral.fbx")
             animation_url = f"/app/utils/emotions/vrm/expressions/{anim_file}"
-            self.vrm_webview.page().runJavaScript(f"loadFBX('{animation_url}');")
+            run_webview_js(self.vrm_webview, f"loadFBX('{animation_url}');")
 
     def show_hormones_hud(self):
         if not self.sow_system_ref or not hasattr(self.sow_system_ref, "soul_companion"):

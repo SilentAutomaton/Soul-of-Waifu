@@ -63,7 +63,7 @@ from app.utils.ai_clients.soul_stage_engine import (
 from app.utils.vrm_server import VRMServerThread
 
 from app.gui.custom_widgets import PersonasEditorDialog, SystemPromptEditorDialog, DiscordGatewayDialog, LorebookEditorDialog, AuthorNotesEditorDialog, SummaryEditorDialog, ImageGenSettingsDialog
-from app.gui.custom_widgets import SLIDER_STYLE_DARK
+from app.gui.custom_widgets import SLIDER_STYLE_DARK, run_webview_js
 from app.gui.custom_widgets import (
     Live2DWidget, AnimatedHoverButton, TextEditUserMessage, SmoothMessageFrame, TypingIndicatorWidget,
     CharacterCardCharactersGateway, SceneGatewayCard, LorebookGatewayCard, CharacterCardList, CharacterFolderCard, MethodCard, ModelListItemWidget,
@@ -2381,7 +2381,7 @@ class InterfaceSignals():
                     
         elif mode == "VRM":
             if hasattr(self, 'vrm_webview') and self.vrm_webview and self.vrm_webview.isVisible():
-                self.vrm_webview.page().runJavaScript(f"setMouthOpen({value});")
+                run_webview_js(self.vrm_webview, f"setMouthOpen({value});")
 
     def _setup_scroll_area(self, scroll_area, widget):
         scroll_area.setWidgetResizable(True)
@@ -17153,30 +17153,30 @@ class InterfaceSignals():
                 def set_background_vrm(bg_type, color=None, image=None):
                     if bg_type == 0:
                         match color:
-                            case 0: self.vrm_webview.page().runJavaScript(f"setBackground('color', 0x000000)")
-                            case 1: self.vrm_webview.page().runJavaScript(f"setBackground('color', 0x1A202F)")
-                            case 2: self.vrm_webview.page().runJavaScript(f"setBackground('color', 0x2C1A22)")
-                            case 3: self.vrm_webview.page().runJavaScript(f"setBackground('color', 0x222B24)")
-                            case 4: self.vrm_webview.page().runJavaScript(f"setBackground('color', 0x2E2232)")
-                            case 5: self.vrm_webview.page().runJavaScript(f"setBackground('color', 0x292929)")
+                            case 0: run_webview_js(self.vrm_webview, f"setBackground('color', 0x000000)")
+                            case 1: run_webview_js(self.vrm_webview, f"setBackground('color', 0x1A202F)")
+                            case 2: run_webview_js(self.vrm_webview, f"setBackground('color', 0x2C1A22)")
+                            case 3: run_webview_js(self.vrm_webview, f"setBackground('color', 0x222B24)")
+                            case 4: run_webview_js(self.vrm_webview, f"setBackground('color', 0x2E2232)")
+                            case 5: run_webview_js(self.vrm_webview, f"setBackground('color', 0x292929)")
                     elif bg_type == 1:
                         safe_path = image.replace("\\", "/")
                         imageUrl = f"/{safe_path}"
-                        self.vrm_webview.page().runJavaScript(f"setBackground('image', null, '{imageUrl}')")
+                        run_webview_js(self.vrm_webview, f"setBackground('image', null, '{imageUrl}')")
 
                 def set_expression_vrm(emotion):
                     if emotion in ['anger', 'disapproval', 'annoyance', 'disgust']:
-                        self.vrm_webview.page().runJavaScript(f"setExpression('angry')")
+                        run_webview_js(self.vrm_webview, f"setExpression('angry')")
                     elif emotion in ['admiration', 'amusement', 'approval', 'desire', 'gratitude', 'love', 'optimism', 'pride', 'joy']:
-                        self.vrm_webview.page().runJavaScript(f"setExpression('happy')")
+                        run_webview_js(self.vrm_webview, f"setExpression('happy')")
                     elif emotion == 'neutral':
-                        self.vrm_webview.page().runJavaScript(f"setExpression('neutral')")
+                        run_webview_js(self.vrm_webview, f"setExpression('neutral')")
                     elif emotion in ['caring', 'relief']:
-                        self.vrm_webview.page().runJavaScript(f"setExpression('relaxed')")
+                        run_webview_js(self.vrm_webview, f"setExpression('relaxed')")
                     elif emotion in ['disappointment', 'grief', 'remorse', 'sadness']:
-                        self.vrm_webview.page().runJavaScript(f"setExpression('sad')")
+                        run_webview_js(self.vrm_webview, f"setExpression('sad')")
                     elif emotion in ['confusion', 'curiosity', 'embarrassment', 'fear', 'nervousness', 'realization', 'surprise']:
-                        self.vrm_webview.page().runJavaScript(f"setExpression('surprised')")
+                        run_webview_js(self.vrm_webview, f"setExpression('surprised')")
 
                 def play_vrm_animation(emotion):
                     animation_map = {
@@ -17191,7 +17191,7 @@ class InterfaceSignals():
                     }
                     anim_file = animation_map.get(emotion, "neutral.fbx")
                     animation_url = f"/app/utils/emotions/vrm/expressions/{anim_file}"
-                    self.vrm_webview.page().runJavaScript(f"loadFBX('{animation_url}')")
+                    run_webview_js(self.vrm_webview, f"loadFBX('{animation_url}')")
 
                 self.set_background_vrm = set_background_vrm
                 self.set_expression_vrm = set_expression_vrm
@@ -17201,7 +17201,7 @@ class InterfaceSignals():
 
                 def on_load_finished(ok):
                     if ok:
-                        self.vrm_webview.page().runJavaScript("window.vrmLoaded", lambda is_loaded: on_vrm_loaded(is_loaded))
+                        run_webview_js(self.vrm_webview, "window.vrmLoaded", lambda is_loaded: on_vrm_loaded(is_loaded))
                     else:
                         logger.error("Error loading page")
 
@@ -17211,7 +17211,7 @@ class InterfaceSignals():
                         QtCore.QTimer.singleShot(500, lambda: set_expression_vrm(current_emotion))
                         QtCore.QTimer.singleShot(500, lambda: play_vrm_animation(current_emotion))
                     else:
-                        QtCore.QTimer.singleShot(1000, lambda: self.vrm_webview.page().runJavaScript("window.vrmLoaded", lambda is_loaded: on_vrm_loaded(is_loaded)))
+                        QtCore.QTimer.singleShot(1000, lambda: run_webview_js(self.vrm_webview, "window.vrmLoaded", lambda is_loaded: on_vrm_loaded(is_loaded)))
 
                 self.vrm_webview.page().loadFinished.connect(on_load_finished)
 

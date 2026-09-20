@@ -3,6 +3,7 @@ import re
 import math
 import subprocess
 import logging
+from PyQt6 import sip
 import tiktoken
 import json
 import aiohttp
@@ -47,6 +48,29 @@ SLIDER_STYLE_DARK = """
     QSlider::handle:horizontal { background: white; width: 16px; height: 16px; margin: -5px 0; border-radius: 8px; border: 1px solid rgba(0,0,0,0.2); }
     QSlider::handle:horizontal:hover { background: #ffffff; }
 """
+
+
+def run_webview_js(view, script, callback=None) -> bool:
+    """
+    Run JavaScript in a QWebEngineView that may already be gone.
+
+    The VRM view belongs to the chat page: switching characters deletes it, while timers and
+    signals of the old page still fire. Calling into it then raises "wrapped C/C++ object of
+    type QWebEngineView has been deleted", which the app shows as a critical error.
+    """
+    if view is None or sip.isdeleted(view):
+        return False
+    try:
+        page = view.page()
+        if page is None:
+            return False
+        if callback is not None:
+            page.runJavaScript(script, callback)
+        else:
+            page.runJavaScript(script)
+        return True
+    except RuntimeError:
+        return False
 
 
 def safe_paint(method):
