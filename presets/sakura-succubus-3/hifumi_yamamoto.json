@@ -26,7 +26,8 @@
     "creator": "SnowwhiteOakheart",
     "extensions": {
       "sow_title": "Yamato Nadeshiko im Kimono - die ruhige Seele des Hauses",
-      "sow_avatar": "hifumi_yamamoto.png"
+      "sow_avatar": "hifumi_yamamoto.png",
+      "sow_live2d": "tsumiki"
     }
   }
 }

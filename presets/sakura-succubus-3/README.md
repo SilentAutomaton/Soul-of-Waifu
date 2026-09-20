@@ -23,7 +23,8 @@ Names and occupations follow the game's own script (Ayu **Ikue**, Marina **Wakat
 
 The files are plain **chara_card_v2** JSON and work in SillyTavern, Chub and anything else that
 reads that format. Every card points at its `<name>.png` next to it through
-`extensions.sow_avatar`, relative to the card, so the folder can be copied anywhere.
+`extensions.sow_avatar` (relative to the card), and at its matching Live2D model through
+`extensions.sow_live2d`.
 
 ## Scenes and lorebooks
 
@@ -64,12 +65,36 @@ app/data/envs/sow/bin/python tools/import_character_cards.py presets/sakura-succ
 
 Import the characters before the scenes: a scene names its party by character name, and the tool warns
 about every name it cannot find.
+Fetch the matching Live2D models before or after importing:
 
-Characters that already exist are left alone. `--update-avatars` then refreshes only their picture
-and keeps chats and settings; `--replace` overwrites the whole character and deletes its chats.
+```bash
+app/data/envs/sow/bin/python tools/fetch_live2d_models.py --all
+```
+
+Characters that already exist are left alone. `--update-avatars` refreshes only their picture,
+`--update-live2d` links their Live2D models, `--update-scenes` updates scene metadata (like backgrounds)
+while preserving existing chat logs, and all keep existing chats and settings;
+`--replace` overwrites the whole character and deletes its chats.
 `--dry-run` shows what would happen. Everything can also be imported in the app itself: cards under
 **Create character -> Import character card**, lorebooks in the lorebook editor, scenes in the Soul Stage
-lobby.
+lobby. Backgrounds from `backgrounds/` are deployed automatically to `assets/backgrounds/`.
+
+## Backgrounds
+
+`backgrounds/` holds nine 16:9 widescreen anime visual novel background scenes (empty scenery without characters,
+so Live2D models and dialogue boxes render unobstructed):
+
+- **6 Story Backgrounds:**
+  - `Horizontal Tokyo Living Room.png` (Scene: *Wohnungskrieg*)
+  - `Horizontal Newsroom Office.png` (Scene: *Redaktionsschluss*)
+  - `Horizontal Gala Ballroom.png` (Scene: *Der Wohltätigkeitsball*)
+  - `Horizontal Succubus Throne Room.png` (Scene: *Audienz im Thronsaal*)
+  - `Horizontal Japanese Tea Room.png` (Scene: *Ein Tee zu zweit*)
+  - `Horizontal Tennis Court.png` (Scene: *Matchball*)
+- **3 Character Lore Backgrounds:**
+  - `Horizontal Idol Stage.png` (Ayu Ikue - Concert Idol Stage)
+  - `Horizontal Corporate Office.png` (Marina Wakatsuki - Penthouse Executive Office)
+  - `Horizontal Cosplay Cafe.png` (Cosmos - Cosplay Maid Cat Café)
 
 ## About the pictures
 

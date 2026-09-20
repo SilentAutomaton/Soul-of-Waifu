@@ -59,9 +59,9 @@ Conflicts can only appear in the files under "Changed upstream files" below. Rul
 | `tools/fetch_live2d_models.py` | downloads and installs matching Live2D Cubism models into `assets/emotions/live2d/` |
 | `tools/build_llama_cuda.sh` | builds `llama-server` with CUDA and installs it into the backend folder - llama.cpp ships no Linux CUDA build |
 | `tools/fork_report.sh` | diff against `release` + check that every patch below is present |
-| `tools/import_character_cards.py` | imports `chara_card_v2` cards with their avatars, Live2D models, user personas, lorebooks and Soul Stage scenes into the configuration in bulk - no UI clicking |
+| `tools/import_character_cards.py` | imports `chara_card_v2` cards with their avatars, Live2D models, user personas, lorebooks, backgrounds and Soul Stage scenes into the configuration in bulk - no UI clicking |
 | `app/translations/de.yaml` | German translation of the app. Besides every `en.yaml` key it also fills 26 gaps upstream left: keys the code asks for that exist in no language file, so all languages fall back to the English string in the code (import dialog, backup restore, scene tooltips, local server errors, …). Four keys stay untranslated on purpose - their defaults are f-strings carrying a path, chat name or error, and a YAML value would drop that detail. |
-| `presets/sakura-succubus-3/` | a German preset set: seven character cards (`chara_card_v2`) with AI-generated avatars, matching Live2D models and the prompts they were made from, six Soul Stage scenes and three lorebooks - import them with the tool above |
+| `presets/sakura-succubus-3/` | a German preset set: seven character cards (`chara_card_v2`) with AI-generated avatars, matching Live2D models and the prompts they were made from, six Soul Stage scenes, three lorebooks, and nine 16:9 anime visual novel background scenes - import them with the tool above |
 | `README-LINUX.md`, `README_DE.md`, `FORK-CHANGES.md` | documentation |
 
 ## Changed upstream files

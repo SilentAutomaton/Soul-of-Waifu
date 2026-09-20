@@ -38,6 +38,23 @@ CONFIG_FILES = ("app/configuration/characters.json", "app/configuration/settings
 SCENES_FILE = ROOT / ".soul_stage" / "scenes.json"
 
 
+def resolve_live2d(name_or_path: str, card_dir: Path) -> str | None:
+    """Finds the Live2D model folder by name or path."""
+    if not name_or_path:
+        return None
+    raw = str(name_or_path).strip()
+    p = Path(raw).expanduser()
+    if p.is_dir():
+        return str(p.resolve())
+    card_rel = card_dir / raw
+    if card_rel.is_dir():
+        return str(card_rel.resolve())
+    builtin = ROOT / "assets" / "emotions" / "live2d" / raw
+    if builtin.is_dir():
+        return str(builtin.resolve())
+    return None
+
+
 def read_card(path: Path) -> dict:
     raw = json.loads(path.read_text(encoding="utf-8"))
     data = raw.get("data", raw)
@@ -48,6 +65,8 @@ def read_card(path: Path) -> dict:
         avatar = Path(avatar).expanduser()
         if not avatar.is_absolute():          # relative to the card, so a folder can be moved
             avatar = path.parent / avatar
+    live2d = data.get("extensions", {}).get("sow_live2d")
+    live2d_folder = resolve_live2d(live2d, path.parent) if live2d else None
     return {
         "name": str(data["name"]).strip(),
         "title": str(data.get("extensions", {}).get("sow_title") or data.get("title") or "").strip(),
@@ -58,6 +77,8 @@ def read_card(path: Path) -> dict:
         "example_messages": str(data.get("mes_example") or data.get("example_messages") or "").strip(),
         "alternate_greetings": [str(g).strip() for g in data.get("alternate_greetings", []) if str(g).strip()],
         "avatar": str(avatar) if avatar else None,
+        "live2d_folder": live2d_folder,
+        "live2d_name": str(live2d).strip() if live2d else None,
     }
 
 
@@ -73,6 +94,27 @@ def cache_avatar(source, character_name: str) -> str:
     if src.resolve() != dest.resolve():
         shutil.copy2(src, dest)
     return f"app/cache/avatars/{dest.name}"
+
+
+def deploy_backgrounds(source_dirs: list[Path]) -> int:
+    """Copies background images from any backgrounds/ subfolder into assets/backgrounds/."""
+    dest_dir = ROOT / "assets" / "backgrounds"
+    dest_dir.mkdir(parents=True, exist_ok=True)
+    deployed = 0
+    seen = set()
+    for raw in source_dirs:
+        p = raw.resolve()
+        candidate = p if p.name == "backgrounds" and p.is_dir() else (p / "backgrounds" if p.is_dir() else p.parent / "backgrounds")
+        if not candidate.is_dir():
+            continue
+        for src in candidate.glob("*"):
+            if src.suffix.lower() in (".jpg", ".png", ".jpeg") and src.name not in seen:
+                seen.add(src.name)
+                dest = dest_dir / src.name
+                if not dest.exists() or src.stat().st_mtime > dest.stat().st_mtime:
+                    shutil.copy2(src, dest)
+                    deployed += 1
+    return deployed
 
 
 def backup_configs() -> None:
@@ -142,7 +184,7 @@ def import_lorebooks(paths, settings, replace: bool) -> int:
     return added
 
 
-def import_scenes(paths, replace: bool, known_characters, known_lorebooks) -> int:
+def import_scenes(paths, replace: bool, known_characters, known_lorebooks, update_scenes: bool = False) -> int:
     """Soul Stage stores its scenes in .soul_stage/scenes.json, keyed by a uuid."""
     data = {"scenes": {}, "scene_groups": {}}
     if SCENES_FILE.exists():
@@ -161,6 +203,20 @@ def import_scenes(paths, replace: bool, known_characters, known_lorebooks) -> in
             print(f"  skipped {path.name}: the scene has no title")
             continue
         if title in by_title and not replace:
+            if update_scenes:
+                sid = by_title[title]
+                existing_scene = data["scenes"][sid]
+                chat_log = existing_scene.get("chat_log", [])
+                created_at = existing_scene.get("created_at", now)
+                last_played = existing_scene.get("last_played", "")
+                existing_scene.update(scene)
+                existing_scene["chat_log"] = chat_log
+                existing_scene["created_at"] = created_at
+                existing_scene["last_played"] = last_played
+                bg_info = f", bg: {existing_scene.get('starting_bg')}" if existing_scene.get("starting_bg") else ""
+                print(f"  updated scene: {title}  ({existing_scene.get('gm_tone', '?')}{bg_info})")
+                added += 1
+                continue
             print(f"  scene already there, kept: {title}")
             continue
 
@@ -200,6 +256,11 @@ def main() -> int:
     parser.add_argument("--update-avatars", action="store_true",
                         help="give characters that already exist the avatar from their card, "
                              "leaving everything else - their chats above all - untouched")
+    parser.add_argument("--update-live2d", action="store_true",
+                        help="assign configured Live2D models to characters that already exist, "
+                             "leaving everything else - their chats above all - untouched")
+    parser.add_argument("--update-scenes", action="store_true",
+                        help="update settings of existing scenes (such as starting_bg) without clearing chat logs")
     parser.add_argument("--replace", action="store_true",
                         help="overwrite characters that already exist - this deletes their chats")
     parser.add_argument("--dry-run", action="store_true", help="only show what would be imported")
@@ -236,14 +297,25 @@ def main() -> int:
 
     if args.dry_run:
         for card in cards:
-            print(f"  would import: {card['name']}")
+            l2d = f" (Live2D: {card['live2d_name']})" if card.get("live2d_folder") else ""
+            print(f"  would import: {card['name']}{l2d}")
         for card in skipped:
-            note = "would update its avatar" if (card["avatar"] and args.update_avatars) else "would skip"
+            actions = []
+            if card["avatar"] and args.update_avatars:
+                actions.append("update avatar")
+            if card.get("live2d_folder") and args.update_live2d:
+                actions.append(f"update Live2D: {card['live2d_name']}")
+            note = f"would {', '.join(actions)}" if actions else "would skip"
             print(f"  already there, {note}: {card['name']}")
         return 0
 
     if not args.dry_run:
         backup_configs()
+
+    search_dirs = [Path(p).expanduser() for p in args.paths] + [Path(s).expanduser() for s in args.scenes]
+    deployed_bgs = deploy_backgrounds(search_dirs)
+    if deployed_bgs:
+        print(f"  deployed {deployed_bgs} background image(s) to assets/backgrounds/")
 
     if args.lorebooks:
         import_lorebooks(args.lorebooks, settings, args.replace)
@@ -256,6 +328,7 @@ def main() -> int:
 
     for card in cards:
         avatar = cache_avatar(card["avatar"], card["name"]) if card["avatar"] else None
+        live2d_folder = card.get("live2d_folder")
         characters.save_character_card(
             character_name=card["name"],
             character_title=card["title"],
@@ -274,26 +347,52 @@ def main() -> int:
             rvc_enabled=False,
             rvc_file=None,
             expression_images_folder=None,
-            live2d_model_folder=None,
+            live2d_model_folder=live2d_folder,
             vrm_model_file=None,
             conversation_method=args.conversation_method,
         )
-        greetings = len(card["alternate_greetings"])
-        print(f"  imported: {card['name']}" + (f"  (+{greetings} alternative greetings)" if greetings else ""))
+        if live2d_folder:
+            config = characters.load_configuration()
+            config["character_list"][card["name"]]["current_sow_system_mode"] = "Live2D Model"
+            characters.save_configuration_edit(config)
 
-    updated = 0
+        greetings = len(card["alternate_greetings"])
+        l2d_info = f"  (Live2D: {card['live2d_name']})" if live2d_folder else ""
+        print(f"  imported: {card['name']}" + (f"  (+{greetings} alternative greetings)" if greetings else "") + l2d_info)
+
+    updated_avatars = 0
     if args.update_avatars and skipped:
         config = characters.load_configuration()
         for card in skipped:
             if not card["avatar"]:
                 continue
             config["character_list"][card["name"]]["character_avatar"] = cache_avatar(card["avatar"], card["name"])
-            updated += 1
-        if updated:
+            updated_avatars += 1
+        if updated_avatars:
+            characters.save_configuration_edit(config)
+
+    updated_live2d = 0
+    if args.update_live2d and skipped:
+        config = characters.load_configuration()
+        for card in skipped:
+            if not card.get("live2d_folder"):
+                continue
+            char_entry = config["character_list"].get(card["name"])
+            if not char_entry:
+                continue
+            char_entry["live2d_model_folder"] = card["live2d_folder"]
+            char_entry["current_sow_system_mode"] = "Live2D Model"
+            updated_live2d += 1
+        if updated_live2d:
             characters.save_configuration_edit(config)
 
     for card in skipped:
-        note = "avatar updated" if (args.update_avatars and card["avatar"]) else "kept unchanged"
+        actions = []
+        if args.update_avatars and card["avatar"]:
+            actions.append("avatar updated")
+        if args.update_live2d and card.get("live2d_folder"):
+            actions.append(f"Live2D set to {card['live2d_name']}")
+        note = ", ".join(actions) if actions else "kept unchanged"
         print(f"  already there, {note}: {card['name']}")
 
     scenes_added = 0
@@ -302,13 +401,18 @@ def main() -> int:
             args.scenes, args.replace,
             set(characters.load_configuration().get("character_list", {})),
             set(settings.get_user_data("lorebooks") or {}),
+            update_scenes=args.update_scenes,
         )
 
     summary = f"{len(cards)} character(s) imported"
     if scenes_added:
         summary += f", {scenes_added} scene(s) imported"
-    if updated:
-        summary += f", {updated} avatar(s) updated"
+    if updated_avatars:
+        summary += f", {updated_avatars} avatar(s) updated"
+    if updated_live2d:
+        summary += f", {updated_live2d} Live2D model(s) updated"
+    if deployed_bgs:
+        summary += f", {deployed_bgs} background(s) deployed"
     print(f"\n{summary}. Start the app to see them in the character list.")
     return 0
 

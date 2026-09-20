@@ -22,7 +22,7 @@
   "solo_mode": false,
   "max_actor_depth": 3,
   "dice_rolls_enabled": true,
-  "starting_bg": "None",
+  "starting_bg": "Horizontal Gala Ballroom.png",
   "starting_ambient": "None",
   "lock_bg": false,
   "disable_ambient": false

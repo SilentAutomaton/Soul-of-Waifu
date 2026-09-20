@@ -26,7 +26,7 @@
   "solo_mode": false,
   "max_actor_depth": 4,
   "dice_rolls_enabled": false,
-  "starting_bg": "None",
+  "starting_bg": "Horizontal Tokyo Living Room.png",
   "starting_ambient": "None",
   "lock_bg": false,
   "disable_ambient": false
