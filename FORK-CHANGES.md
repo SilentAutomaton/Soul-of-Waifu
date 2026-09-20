@@ -72,6 +72,7 @@ Conflicts can only appear in the files under "Changed upstream files" below. Rul
 | File | Change | Pattern |
 |---|---|---|
 | `main.py` | reports the desktop file name, so task bars show the app icon | `setDesktopFileName` |
+| `main.py`, `app/utils/ai_clients/local_server_manager.py` | the llama-server outlived the app and kept the model in VRAM - it is stopped when the window closes, and on SIGTERM/SIGINT, which Qt otherwise ignores | `def shutdown_sync` |
 | `app/gui/interface_signals.py` | opens folders via `platform_compat.open_path` instead of `os.startfile` | `from app.utils.platform_compat import open_path` |
 | `app/gui/interface_signals.py` | asset paths use `/` instead of `\\` (Windows keeps working) | no `assets\\` left in the file |
 | `app/gui/interface_signals.py` | audio device list: only the sound-server PCMs on Linux (raw ALSA devices reject the TTS sample rates) | `_selectable_audio_devices` |

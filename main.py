@@ -1,5 +1,7 @@
 import os
 import sys
+import atexit
+import signal
 import yaml
 import torch
 import ctypes
@@ -920,6 +922,15 @@ class MainWindow(QMainWindow):
             if hasattr(self, "interface_signals") and getattr(self.interface_signals, "_is_generating", False):
                 self.interface_signals.abort_generation = True
 
+        # The local server is a child process that used to outlive the app: it kept the model
+        # in VRAM, and the next start attached to that stale server instead of a fresh one.
+        try:
+            server_manager = getattr(self.interface_signals, "local_server_manager", None)
+            if server_manager is not None:
+                server_manager.shutdown_sync()
+        except Exception as e:
+            logger.warning(f"Could not stop the local server: {e}")
+
         if hasattr(self, 'discord_rpc'):
             self.discord_rpc.close()
 
@@ -961,6 +972,37 @@ if __name__ == "__main__":
 
     QtCore.QTimer.singleShot(0, deferred_update_check)
     
+    def stop_local_server(*_args):
+        """Also covers the paths that never reach closeEvent: SIGTERM, SIGINT, sys.exit."""
+        try:
+            signals = getattr(main_window, "interface_signals", None)
+            manager = getattr(signals, "local_server_manager", None) if signals else None
+            if manager is not None:
+                manager.shutdown_sync()
+        except Exception as e:
+            logger.warning(f"Could not stop the local server on exit: {e}")
+
+    def handle_termination(*_args):
+        stop_local_server()
+        try:
+            main_window.close()
+        except Exception:
+            pass
+        loop.stop()
+
+    atexit.register(stop_local_server)
+    for _signal in (signal.SIGINT, signal.SIGTERM):
+        try:
+            signal.signal(_signal, handle_termination)
+        except (ValueError, OSError):
+            pass
+
+    # Qt's event loop runs in C, so Python only sees a signal when it gets control -
+    # this idle timer gives it that chance a few times per second.
+    _signal_timer = QtCore.QTimer()
+    _signal_timer.timeout.connect(lambda: None)
+    _signal_timer.start(300)
+
     asyncio.ensure_future(main_window.startup_sequence())
 
     loop.run_forever()

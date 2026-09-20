@@ -612,6 +612,38 @@ class LocalServerManager:
                         await self.stop_server()
                         raise RuntimeError("Server loading timed out.")
 
+    def shutdown_sync(self, timeout: float = 10.0) -> bool:
+        """
+        Stop the llama-server we started, without an event loop - on shutdown awaiting
+        stop_server() is no longer reliable. A server this instance did not start (a system
+        one, or another instance's) is left alone.
+        """
+        pid = getattr(self.server_process, "pid", None)
+        if not pid or not psutil.pid_exists(pid):
+            self.server_process = None
+            return False
+
+        try:
+            proc = psutil.Process(pid)
+            proc.terminate()
+            proc.wait(timeout=timeout)
+        except psutil.TimeoutExpired:
+            logger.warning("Local server did not stop in time - killing it.")
+            try:
+                proc.kill()
+            except Exception:
+                pass
+        except Exception as e:
+            logger.error(f"Could not stop the local server: {e}")
+            return False
+        finally:
+            self.server_process = None
+            self.model_loaded = False
+            self.cleanup_lock_file()
+
+        logger.info("Local server stopped on shutdown.")
+        return True
+
     async def shutdown_server_and_model(self):
         logger.info("Shutting down server and model...")
         await self.stop_server()
