@@ -22,7 +22,8 @@ VERSION_FILE="$ROOT/app/utils/ai_clients/backend/version.json"
 
 TAG="${1:-}"
 if [ -z "$TAG" ] && [ -f "$VERSION_FILE" ]; then
-    TAG=$(python3 -c "import json,sys; d=json.load(open('$VERSION_FILE')); print(next(iter(d.values()), ''))" 2>/dev/null || true)
+    # Own "cuda" key, not the bundled backends' - they update independently of this build.
+    TAG=$(python3 -c "import json,sys; d=json.load(open('$VERSION_FILE')); print(d.get('cuda', ''))" 2>/dev/null || true)
 fi
 TAG="${TAG:-master}"
 ARCH="${2:-89}"
@@ -60,7 +61,17 @@ mkdir -p "$DEST"
 find "$SRC/build" \( -name 'llama-server' -o -name '*.so*' \) -exec cp -a {} "$DEST/" \;
 chmod +x "$DEST/llama-server"
 
+RESOLVED_TAG=$(git -C "$SRC" describe --tags --exact-match 2>/dev/null || git -C "$SRC" rev-parse --short HEAD)
+python3 -c "
+import json
+from pathlib import Path
+vf = Path('$VERSION_FILE')
+data = json.loads(vf.read_text()) if vf.exists() else {}
+data['cuda'] = '$RESOLVED_TAG'
+vf.write_text(json.dumps(data, indent=4))
+"
+
 echo
-echo "Done: $DEST/llama-server"
-echo "Pick GPU -> CUDA in the app's LLM settings. The backend updater does not know about"
-echo "this build, so run the script again after an update of the bundled backends."
+echo "Done: $DEST/llama-server ($RESOLVED_TAG)"
+echo "Pick GPU -> CUDA in the app's LLM settings. The bundled-backend updater in the app"
+echo "does not manage this build - use tools/update_llama_cuda_channel.sh to keep it current."
