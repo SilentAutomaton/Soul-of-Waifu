@@ -1272,7 +1272,7 @@ lorebooks_soul_stage_page: Lorebooks  (optional)
 main_button: ' Main'
 main_button_2: Main Hub
 max_actor_depth: Max Actors Per Turn
-max_actor_depth_hint: How many party members and NPCs may speak in a single turn (1-6, default 3).
+max_actor_depth_hint: How many party members and NPCs may speak in a single turn (1-6, default 4). Set it to at least your party size if you want everyone to be able to react in one beat.
 max_tokens_label: Max Tokens
 max_tokens_text: Max Tokens
 max_tokens_tooltip: '<b>Max Response Length</b><br><br>

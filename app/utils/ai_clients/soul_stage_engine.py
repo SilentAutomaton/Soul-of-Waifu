@@ -757,6 +757,16 @@ class WorldState:
         self.arc_archive: list[dict] = []
         self.turn_counter: int = 0
         self.consequence_ledger: list[dict] = []
+        self.recent_speakers: list[str] = []
+
+    MAX_RECENT_SPEAKERS = 12
+
+    def record_speaker(self, name: str):
+        if not name:
+            return
+        self.recent_speakers.append(name)
+        if len(self.recent_speakers) > self.MAX_RECENT_SPEAKERS:
+            self.recent_speakers = self.recent_speakers[-self.MAX_RECENT_SPEAKERS:]
 
     _STATUS_REMINDERS: dict[str, str] = {
         "poison":   "The player is POISONED — reflect physical symptoms (nausea, sweat, tremor) where natural, worsening if untreated.",
@@ -970,6 +980,7 @@ class WorldState:
             "lock_bg": self.lock_bg, "disable_ambient": self.disable_ambient,
             "arc_archive": list(self.arc_archive), "turn_counter": int(self.turn_counter),
             "consequence_ledger": copy.deepcopy(getattr(self, "consequence_ledger", [])),
+            "recent_speakers": list(getattr(self, "recent_speakers", [])),
         }
 
     def add_event(self, actor: str, action: str, outcome: str = ""):
@@ -985,7 +996,7 @@ class WorldState:
             )
             self.pending_summarization.append(compressed)
 
-    def to_prompt(self, viewer: Optional[str] = None) -> str:
+    def to_prompt(self, viewer: Optional[str] = None, other_actors: Optional[list] = None) -> str:
         lines =[f"LOCATION: {self.location}", f"TIME: {self.time_of_day}"]
         
         if self.atmosphere:
@@ -1044,9 +1055,16 @@ class WorldState:
             overlay_line = self.overlay_registry.view_block(viewer)
             if overlay_line:
                 lines.append(overlay_line)
-            rel_line = self.relationship_graph.view_block(viewer, "PLAYER")
-            if rel_line:
-                lines.append(rel_line)
+
+            rel_targets = ["PLAYER"] + [a for a in (other_actors or []) if a and a != viewer]
+            rel_lines = []
+            for target in rel_targets:
+                rel_line = self.relationship_graph.view_block(viewer, target)
+                if rel_line:
+                    rel_lines.append(rel_line)
+            if rel_lines:
+                lines.append("RELATIONSHIPS:")
+                lines.extend(f"  {rl}" for rl in rel_lines)
 
         return "\n".join(lines)
 
@@ -2231,6 +2249,11 @@ DIALOGUE THIS TURN SO FAR
 {intra_turn_dialogue}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+RECENT SPEAKERS  (oldest → newest, across recent turns — not just this one)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+{recent_speakers}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 OUTPUT
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Return ONLY valid JSON. No markdown fences. No explanation.
@@ -2267,17 +2290,24 @@ ROUTING RULES  (apply in this strict priority order)
    Do NOT route the same two characters back and forth more than 3 consecutive exchanges.
    If a loop is forming, break it by routing to PLAYER or a third character.
 
-6. REFLECTIVE OR RHETORICAL STATEMENT.
+6. FAIR SPOTLIGHT.
+   Check RECENT SPEAKERS above. If a party member hasn't spoken in a while while others keep
+   getting picked, and no rule above clearly points elsewhere, prefer giving them the turn —
+   a party is more alive when everyone gets a voice over the course of a scene. This is a
+   soft preference, not an override: rules 1-3 (direct address, unanswered question, natural
+   reaction) always win when they clearly apply.
+
+7. REFLECTIVE OR RHETORICAL STATEMENT.
    If {last_speaker} said something deeply personal, vulnerable, or rhetorical that does not
    demand an immediate response — it is acceptable and often correct to route to PLAYER,
    letting the moment breathe rather than forcing a character reaction.
 
-7. NPC DESPAWN.
+8. NPC DESPAWN.
    Only add to "despawns" if the NPC clearly, unambiguously left the scene:
    said goodbye, was dismissed, walked away, died, or was removed by plot event.
    Do not despawn to make room without narrative cause.
 
-8. "next_actor" MUST be one of: {all_actor_names}, or exactly "PLAYER".
+9. "next_actor" MUST be one of: {all_actor_names}, or exactly "PLAYER".
    No invented names. No characters not in the party or active NPC list.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -2594,7 +2624,7 @@ class SoulStageOrchestrator:
 
         self._temp_boost = 0.0
 
-        self.max_actor_depth = 3
+        self.max_actor_depth = 4
 
         self.bg_list      = self._get_files("assets/backgrounds", [".jpg", ".png", ".jpeg"])
         self.ambient_list = self._get_files("assets/ambient", [".mp3", ".wav", ".ogg"])
@@ -2640,25 +2670,30 @@ class SoulStageOrchestrator:
             r'эй|послушай|подожди|окей|ну|итак|слушай|погоди|стой|слышишь'
         )
 
+        # Check every name against every pattern and keep the match that appears earliest in
+        # the actual text - not the first name that happens to match, in party_names order.
+        # With 3-4 companions a message often names more than one; list order otherwise
+        # decides the "winner" regardless of what the sentence is actually doing.
+        best_name = None
+        best_pos = None
+
         for name in all_names:
             n = re.escape(name)
-            if re.match(rf'^{n}[\s,!?\.…]', msg_stripped, re.IGNORECASE):
-                logger.info(f"[DirectAddress] Vocative at start: '{name}' in '{msg_stripped[:60]}'")
-                return name
+            patterns = (
+                rf'^{n}[\s,!?\.…]',
+                rf'\b(?:{attention_markers}),?\s+{n}\b',
+                rf',\s+{n}[,!?\.…\s]',
+                rf',\s+{n}[!?\.…]?$',
+            )
+            for pattern in patterns:
+                match = re.search(pattern, msg_stripped, re.IGNORECASE)
+                if match and (best_pos is None or match.start() < best_pos):
+                    best_name = name
+                    best_pos = match.start()
 
-            if re.search(rf'\b(?:{attention_markers}),?\s+{n}\b', msg_stripped, re.IGNORECASE):
-                logger.info(f"[DirectAddress] Attention marker + name: '{name}' in '{msg_stripped[:60]}'")
-                return name
-
-            if re.search(rf',\s+{n}[,!?\.…\s]', msg_stripped, re.IGNORECASE):
-                logger.info(f"[DirectAddress] Mid-sentence vocative: '{name}' in '{msg_stripped[:60]}'")
-                return name
-
-            if re.search(rf',\s+{n}[!?\.…]?$', msg_stripped, re.IGNORECASE):
-                logger.info(f"[DirectAddress] End vocative: '{name}' in '{msg_stripped[:60]}'")
-                return name
-
-        return None
+        if best_name:
+            logger.info(f"[DirectAddress] '{best_name}' at position {best_pos} in '{msg_stripped[:60]}'")
+        return best_name
 
     async def _archive_resolved_arc(self, arc: StoryArc, conversation_method: str):
         try:
@@ -2936,11 +2971,14 @@ class SoulStageOrchestrator:
         return clean[:1500]
 
     async def _call_gm_routing(self, party_names, last_speaker, last_text, conversation_method, intra_turn_dialogue, context_messages) -> dict:
+        recent = getattr(self.world_state, "recent_speakers", [])
+        recent_speakers_text = ", ".join(recent) if recent else "(no history yet)"
         system = GM_ROUTING_SYSTEM.format(
             party_list=", ".join(party_names),
             npc_list=self.npc_registry.as_text(),
             world_state=self.world_state.to_prompt(),
             intra_turn_dialogue=intra_turn_dialogue or "(none yet)",
+            recent_speakers=recent_speakers_text,
             last_speaker=last_speaker,
             last_text=last_text[:250],
             all_actor_names=self._all_actor_names(party_names),
@@ -3152,7 +3190,7 @@ class SoulStageOrchestrator:
             f"{self.world_state.world_context or '(none)'}\n\n"
         )
 
-        world_block = f"[CURRENT WORLD STATE]\n{self.world_state.to_prompt(viewer=character_name)}\n\n"
+        world_block = f"[CURRENT WORLD STATE]\n{self.world_state.to_prompt(viewer=character_name, other_actors=all_others)}\n\n"
         private_block = self.world_state.private_knowledge_block(character_name)
         if private_block:
             private_block += "\n\n"
@@ -3226,12 +3264,15 @@ class SoulStageOrchestrator:
         think_mode: bool = False,
     ) -> str:
         party_list = ", ".join(party_names) if party_names else "none"
+        other_actors_for_npc = party_names + [
+            n.name for n in self.npc_registry.list_active() if n.name != npc.name
+        ]
         system = NPC_SYSTEM_PROMPT.format(
             npc_name=npc.name,
             npc_personality=npc.personality,
             npc_archetype=npc.archetype,
             world_context=self.world_state.world_context or "(none)",
-            world_state=self.world_state.to_prompt(viewer=npc.name),
+            world_state=self.world_state.to_prompt(viewer=npc.name, other_actors=other_actors_for_npc),
             party_list=party_list,
             user_name=user_name,
             user_description=user_description
@@ -3336,7 +3377,8 @@ class SoulStageOrchestrator:
         self._cancel_flag = False
         self.is_running   = True
         self.current_task = asyncio.current_task()
-        max_actor_depth   = self.max_actor_depth if hasattr(self, 'max_actor_depth') and self.max_actor_depth else 3
+        self._last_turn_speakers = []
+        max_actor_depth   = self.max_actor_depth if hasattr(self, 'max_actor_depth') and self.max_actor_depth else 4
 
         meta = player_meta if isinstance(player_meta, dict) else {}
         think_mode = bool(meta.get("mode") == "think")
@@ -3464,6 +3506,7 @@ class SoulStageOrchestrator:
                         p_action = f"leaned close to {private_recipient} and whispered something."
 
                     self.world_state.add_event(actor="Player", action=p_action)
+                    self.world_state.record_speaker("PLAYER")
 
                 for s in plan.get("spawns",[]):
                     if s.get("name") not in party_names:
@@ -3657,6 +3700,9 @@ class SoulStageOrchestrator:
 
                     dry_action = self._extract_dry_action(actor_full_text)
                     self.world_state.add_event(actor=_actor, action=dry_action)
+                    self.world_state.record_speaker(_actor)
+                    if _actor not in self._last_turn_speakers:
+                        self._last_turn_speakers.append(_actor)
                     await on_char_done(_actor, actor_full_text)
 
                 elif self.npc_registry.get(_actor):
@@ -3693,6 +3739,7 @@ class SoulStageOrchestrator:
 
                     dry_action = self._extract_dry_action(actor_full_text)
                     self.world_state.add_event(actor=npc.name, action=dry_action)
+                    self.world_state.record_speaker(npc.name)
                     await on_npc_done(npc.name, actor_full_text)
 
                 else:
@@ -3809,6 +3856,7 @@ class SoulStageOrchestrator:
         self.world_state.narrator_style = ws.get("narrator_style", "Standard evocative present-tense prose")
         self.world_state.arc_archive = list(ws.get("arc_archive", scene_dict.get("arc_archive", [])))
         self.world_state.turn_counter = int(ws.get("turn_counter", scene_dict.get("turn_counter", 0)))
+        self.world_state.recent_speakers = list(ws.get("recent_speakers", []))[-WorldState.MAX_RECENT_SPEAKERS:]
 
         raw_facts = ws.get("key_facts", {})
         normalized_facts: dict = {}

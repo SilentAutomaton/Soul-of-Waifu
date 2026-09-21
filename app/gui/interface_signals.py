@@ -4760,11 +4760,14 @@ class InterfaceSignals():
                 _save_scenes(d)
                 full_chat_log = d["scenes"][self._soul_stage_scene_id].get("chat_log", [])
 
-        asyncio.create_task(
-            session.orchestrator.sync_party_memory(
-                session.conversation_method, session.party_names, full_chat_log, user_name
+        spoken = getattr(session.orchestrator, "_last_turn_speakers", [])
+        sync_names = [n for n in session.party_names if n in spoken]
+        if sync_names:
+            asyncio.create_task(
+                session.orchestrator.sync_party_memory(
+                    session.conversation_method, sync_names, full_chat_log, user_name
+                )
             )
-        )
 
     def _ss_restore_chat(self, chat_log: list):
         chat_view = self.ui.soul_stage_page.chat_view
@@ -4937,6 +4940,16 @@ class InterfaceSignals():
 
         if log_entries and self._soul_stage_scene_id:
             append_to_scene_log(self._soul_stage_scene_id, log_entries)
+
+        if first_message and len(party_names) > 1:
+            opener = party_names[0]
+            trigger_message = (
+                f"[SYSTEM DIRECTIVE — SCENE OPENING]\n"
+                f"The scene has just begun; {opener} already greeted the player. Let ONE other "
+                f"party member react naturally to this opening moment - brief, in character. "
+                f"Do not re-narrate the opening. Do not force a reaction from everyone."
+            )
+            await self._ss_run_plot_advance(trigger_message)
 
     def _ss_add_custom_message(self, name: str, text: str, is_user: bool, msg_idx=None, insert_at=None):
         from app.gui.soul_stage_page import _get_char_avatar_pixmap, _load_scenes
@@ -5394,9 +5407,12 @@ class InterfaceSignals():
                 _save_scenes(d)
                 full_chat_log = d["scenes"][self._soul_stage_scene_id].get("chat_log", [])
 
-        asyncio.create_task(session.orchestrator.sync_party_memory(
-            session.conversation_method, session.party_names, full_chat_log, user_name
-        ))
+        spoken = getattr(session.orchestrator, "_last_turn_speakers", [])
+        sync_names = [n for n in session.party_names if n in spoken]
+        if sync_names:
+            asyncio.create_task(session.orchestrator.sync_party_memory(
+                session.conversation_method, sync_names, full_chat_log, user_name
+            ))
 
     def _soul_stage_interrupt(self):
         if getattr(self, "_ss_auto_active", False):

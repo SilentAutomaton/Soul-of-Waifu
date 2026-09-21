@@ -217,6 +217,10 @@ BACKUPS_DIR = SOUL_STAGE_DIR / "backups"
 BACKUPS_DIR.mkdir(exist_ok=True)
 MAX_SCENE_BACKUPS = 5
 
+# How many party avatars the scene-card and in-chat header strips render before collapsing
+# the rest into a "+N" chip. Comfortably covers the tuned target of up to 4 AI companions.
+PARTY_AVATAR_DISPLAY_CAP = 5
+
 def _save_scenes(data: dict):
     global _SCENES_CACHE, _SCENES_CACHE_STAMP
     try:
@@ -923,26 +927,43 @@ class SceneCard(QFrame):
         party_layout.setContentsMargins(0, 0, 0, 0)
         party_layout.setSpacing(-10)
         
-        for name in party[:5]:
+        avatar_img_size = 28
+        border_thickness = 2
+        widget_size = avatar_img_size + (border_thickness * 2)
+
+        for name in party[:PARTY_AVATAR_DISPLAY_CAP]:
             p_av = QLabel()
-            avatar_img_size = 28 
-            border_thickness = 2
-            widget_size = avatar_img_size + (border_thickness * 2)
-            
             p_av.setPixmap(_get_round_char_avatar(name, avatar_img_size))
             p_av.setFixedSize(widget_size, widget_size)
             p_av.setToolTip(name)
-            
+
             border_radius = widget_size // 2
             p_av.setStyleSheet(f"""
                 QLabel {{
-                    border: {border_thickness}px solid #1c1c23; 
-                    border-radius: {border_radius}px; 
+                    border: {border_thickness}px solid #1c1c23;
+                    border-radius: {border_radius}px;
                     background: transparent;
                 }}
             """)
             party_layout.addWidget(p_av)
-        
+
+        if len(party) > PARTY_AVATAR_DISPLAY_CAP:
+            more_lbl = QLabel(f"+{len(party) - PARTY_AVATAR_DISPLAY_CAP}")
+            more_lbl.setFixedSize(widget_size, widget_size)
+            more_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            more_lbl.setToolTip(", ".join(party[PARTY_AVATAR_DISPLAY_CAP:]))
+            more_lbl.setStyleSheet(f"""
+                QLabel {{
+                    border: {border_thickness}px solid #1c1c23;
+                    border-radius: {widget_size // 2}px;
+                    background: rgba(255,255,255,0.08);
+                    color: rgba(255,255,255,0.75);
+                    font-size: 10px;
+                    font-weight: 600;
+                }}
+            """)
+            party_layout.addWidget(more_lbl)
+
         bottom_row.addWidget(party_wrapper)
         bottom_row.addStretch()
 
@@ -1599,7 +1620,7 @@ class SoulStageLobbyView(QWidget):
             "persona": scene_data.get("persona", "None"),
             "lorebook": scene_data.get("lorebook", []),
             "solo_mode": scene_data.get("solo_mode", False),
-            "max_actor_depth": scene_data.get("max_actor_depth", 3),
+            "max_actor_depth": scene_data.get("max_actor_depth", 4),
             "dice_rolls_enabled": scene_data.get("dice_rolls_enabled", False),
             "starting_bg": scene_data.get("starting_bg", "None"),
             "starting_ambient": scene_data.get("starting_ambient", "None"),
@@ -1861,12 +1882,12 @@ class SceneEditorView(QWidget):
 
         ly4b.addWidget(_FieldLabel(
             self.translations.get("max_actor_depth", "Max Actors Per Turn"),
-            self.translations.get("max_actor_depth_hint", "How many party members and NPCs may speak in a single turn (1-6, default 3).")
+            self.translations.get("max_actor_depth_hint", "How many party members and NPCs may speak in a single turn (1-6, default 4). Set it to at least your party size if you want everyone to be able to react in one beat.")
         ))
         from PyQt6.QtWidgets import QSpinBox
         self.f_max_actor_depth = QSpinBox()
         self.f_max_actor_depth.setRange(1, 6)
-        self.f_max_actor_depth.setValue(3)
+        self.f_max_actor_depth.setValue(4)
         self.f_max_actor_depth.setFixedHeight(36)
         self.f_max_actor_depth.setStyleSheet(INPUT)
         ly4b.addWidget(self.f_max_actor_depth)
@@ -1997,7 +2018,7 @@ class SceneEditorView(QWidget):
         }.get(scene_data.get("conversation_method", "Local LLM"), 0))
         self.f_persona.setCurrentText(scene_data.get("persona", "None"))
         self.f_narrator_style.setCurrentText(scene_data.get("narrator_style", "Standard evocative present-tense prose"))
-        self.f_max_actor_depth.setValue(int(scene_data.get("max_actor_depth", 3)))
+        self.f_max_actor_depth.setValue(int(scene_data.get("max_actor_depth", 4)))
         self.f_dice_enabled.setChecked(bool(scene_data.get("dice_rolls_enabled", False)))
 
         self.f_lock_bg.setChecked(bool(scene_data.get("lock_bg", False)))
@@ -2037,7 +2058,7 @@ class SceneEditorView(QWidget):
         self.f_tone.setCurrentIndex(0)
         self.f_method.setCurrentIndex(0)
         self.f_narrator_style.setCurrentIndex(0)
-        self.f_max_actor_depth.setValue(3)
+        self.f_max_actor_depth.setValue(4)
         self.f_dice_enabled.setChecked(False)
         self.f_lock_bg.setChecked(False)
         self.f_disable_ambient.setChecked(False)
@@ -2098,9 +2119,9 @@ class SceneEditorView(QWidget):
         self.f_lock_bg.setChecked(bool(import_data.get("lock_bg", False)))
         self.f_disable_ambient.setChecked(bool(import_data.get("disable_ambient", False)))
         try:
-            _import_depth = int(import_data.get("max_actor_depth", 3))
+            _import_depth = int(import_data.get("max_actor_depth", 4))
         except Exception:
-            _import_depth = 3
+            _import_depth = 4
         self.f_max_actor_depth.setValue(max(1, min(6, _import_depth)))
         self.f_bg_image.setCurrentText(str(import_data.get("starting_bg", "None")))
         self.f_ambient.setCurrentText(str(import_data.get("starting_ambient", "None")))
@@ -4744,7 +4765,8 @@ class SoulStageChatView(QFrame):
             item = self._party_row.takeAt(0)
             if item.widget(): item.widget().deleteLater()
 
-        for name in scene_data.get("party", [])[:5]:
+        party = scene_data.get("party", [])
+        for name in party[:PARTY_AVATAR_DISPLAY_CAP]:
             av_lbl = QLabel()
             av_px  = _get_char_avatar_pixmap(name)
             av_lbl.setPixmap(_round_pixmap(av_px, 32))
@@ -4752,6 +4774,17 @@ class SoulStageChatView(QFrame):
             av_lbl.setStyleSheet("background: transparent; border: none;")
             av_lbl.setToolTip(name)
             self._party_row.addWidget(av_lbl)
+
+        if len(party) > PARTY_AVATAR_DISPLAY_CAP:
+            more_lbl = QLabel(f"+{len(party) - PARTY_AVATAR_DISPLAY_CAP}")
+            more_lbl.setFixedSize(32, 32)
+            more_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            more_lbl.setToolTip(", ".join(party[PARTY_AVATAR_DISPLAY_CAP:]))
+            more_lbl.setStyleSheet(
+                "background: rgba(255,255,255,0.08); border: none; border-radius: 16px; "
+                "color: rgba(255,255,255,0.75); font-size: 10px; font-weight: 600;"
+            )
+            self._party_row.addWidget(more_lbl)
 
         bg_val = scene_data.get("starting_bg", "None")
         if bg_val and bg_val != "None":

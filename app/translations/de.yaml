@@ -1279,7 +1279,7 @@ lorebooks_soul_stage_page: Lorebooks  (optional)
 main_button: ' Hauptmenü'
 main_button_2: Haupt-Hub
 max_actor_depth: Max. Akteure pro Zug
-max_actor_depth_hint: Wie viele Gruppenmitglieder und NPCs in einem einzigen Zug sprechen dürfen (1-6, Standard 3).
+max_actor_depth_hint: Wie viele Gruppenmitglieder und NPCs in einem einzigen Zug sprechen dürfen (1-6, Standard 4). Auf mindestens die Gruppengröße setzen, damit jeder in einem Zug reagieren kann.
 max_tokens_label: Max. Tokens
 max_tokens_text: Max. Tokens
 max_tokens_tooltip: '<b>Maximale Antwortlänge</b><br><br>
