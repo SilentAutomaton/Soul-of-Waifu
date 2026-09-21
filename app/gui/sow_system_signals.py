@@ -86,6 +86,7 @@ class Soul_Of_Waifu_System(QtCore.QObject):
 
         self.ui = SOW_System(parent=None)
         self.ui.setupUi()
+        self.ui.sow_system_ref = self
         self.character_name = character_name
         self.parent_window = parent
 
@@ -301,6 +302,7 @@ class Soul_Of_Waifu_System(QtCore.QObject):
 
         self.stop_all_workers()
         self._stop_companion_systems()
+        self._close_avatar_widgets()
         self.ui.stop_call_timer()
 
         if hasattr(self, 'server_thread') and self.server_thread is not None:
@@ -1774,7 +1776,12 @@ class Soul_Of_Waifu_System(QtCore.QObject):
         """
         character_data = self.configuration_characters.load_configuration()
         character_info = character_data["character_list"][self.character_name]
-        
+
+        # Defensive: a leftover companion window from a previous session (e.g. the chat
+        # was closed via the window's native close button rather than the tray icon's
+        # "Quit Companion") would otherwise keep floating and show the character twice.
+        self._close_avatar_widgets()
+
         def toggle_voice_callback():
             self.toggle_voice_interaction(self.character_name)
 
@@ -2005,6 +2012,34 @@ class Soul_Of_Waifu_System(QtCore.QObject):
             logger.error(f"Failed to display Action Approval Banner for '{tool_name}': {e}")
             if hasattr(self, "soul_companion"):
                 self.soul_companion.resolve_approval(request_id, False)
+
+    def _close_avatar_widgets(self):
+        """
+        Close any live Live2D/VRM desktop-companion window and the embedded Live2D GL widget.
+
+        Live2DWidget_NoGUI/VRMWidget_NoGUI are independent top-level windows (no Qt parent),
+        so nothing closes them automatically when the chat window closes. An orphaned one
+        is exactly what shows the character twice - the new window on top can be dragged,
+        the old one keeps rendering behind it. Call this before creating a new one and
+        whenever the SOW System window closes, from whichever path triggers that.
+        """
+        for attr in ("live2d_no_gui", "vrm_no_gui"):
+            widget = getattr(self, attr, None)
+            if widget is not None and not sip.isdeleted(widget):
+                try:
+                    widget.close()
+                except Exception:
+                    pass
+            setattr(self, attr, None)
+
+        widget = getattr(self, "live2d_openGL_widget", None)
+        if widget is not None and not sip.isdeleted(widget):
+            try:
+                widget.setParent(None)
+                widget.deleteLater()
+            except Exception:
+                pass
+        self.live2d_openGL_widget = None
 
     def _stop_companion_systems(self):
         self._eye_tracker_timer.stop()

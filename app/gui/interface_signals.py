@@ -22108,6 +22108,16 @@ Image prompt:"""
                     if not self.user_avatar or not os.path.exists(self.user_avatar):
                         self.user_avatar = "app/gui/icons/person.png"
             
+            existing_sow_system = getattr(self, 'sow_system', None)
+            if existing_sow_system is not None:
+                # A previous session's desktop-companion window has no Qt parent and
+                # outlives its controller unless explicitly closed - without this, opening
+                # the chat again would spawn a second Live2D/VRM window on top of it.
+                try:
+                    existing_sow_system.safe_close()
+                except Exception:
+                    pass
+
             if gui_mode == 1:
                 if current_sow_system_mode in ("Nothing", "Expressions Images"):
                     sow_toast(

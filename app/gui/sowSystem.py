@@ -782,6 +782,19 @@ class SOW_System(QMainWindow):
             self.waveform_widget._timer.stop()
         if hasattr(self, 'call_timer'):
             self.call_timer.stop()
+
+        # Closing this window via its native close button (X / Alt+F4) bypassed
+        # close_app_btn's safe_close() entirely, leaking workers, companion timers
+        # and - most visibly - the standalone Live2D/VRM desktop-companion window.
+        sow_system_ref = getattr(self, 'sow_system_ref', None)
+        if sow_system_ref is not None:
+            try:
+                sow_system_ref.stop_all_workers()
+                sow_system_ref._stop_companion_systems()
+                sow_system_ref._close_avatar_widgets()
+            except Exception:
+                pass
+
         app = QtWidgets.QApplication.instance()
         if hasattr(app, 'main_window'):
             mw = app.main_window
