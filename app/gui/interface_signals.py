@@ -3771,6 +3771,16 @@ class InterfaceSignals():
             self.soul_stage_orchestrator.world_state.ambient_audio
         )
 
+        ws_initial = self.soul_stage_orchestrator.world_state
+        self.ui.soul_stage_page.chat_view.update_player_hud(
+            ws_initial.resources,
+            ws_initial.player_status,
+            ws_initial.status_durations
+        )
+        self.ui.soul_stage_page.chat_view.update_campaign_tracker(
+            ws_initial.campaign_board.to_dict()
+        )
+
         self.soul_stage_session = SoulStageSession(self.soul_stage_orchestrator, party_names, conv_method)
 
         try:
@@ -3826,6 +3836,17 @@ class InterfaceSignals():
                     self.soul_stage_session.party_names if self.soul_stage_session else [],
                     [npc.name for npc in self.soul_stage_orchestrator.npc_registry.list_active()],
                 )
+                ws = self.soul_stage_orchestrator.world_state
+                chat_view.update_inventory_hud(ws.player_inventory)
+                chat_view.update_player_skills(ws.player_skills)
+                chat_view.update_player_hud(
+                    ws.resources,
+                    ws.player_status,
+                    ws.status_durations
+                )
+                chat_view.update_campaign_tracker(
+                    ws.campaign_board.to_dict()
+                )
 
             self.ss_msg_mgr = SoulStageMessageManager(
                 orchestrator=self.soul_stage_orchestrator,
@@ -3869,6 +3890,24 @@ class InterfaceSignals():
         )
 
         try:
+            chat_view.manual_dice_submitted.disconnect()
+        except Exception:
+            pass
+        chat_view.manual_dice_submitted.connect(self._ss_handle_manual_dice)
+
+        try:
+            chat_view.item_consumed_signal.disconnect()
+        except Exception:
+            pass
+        chat_view.item_consumed_signal.connect(self._ss_handle_item_consumed)
+
+        try:
+            chat_view.camp_action_requested.disconnect()
+        except Exception:
+            pass
+        chat_view.camp_action_requested.connect(self._ss_handle_camp_action)
+
+        try:
             self.ui.soul_stage_page.chat_view.exit_clicked.disconnect(self._ss_stop_ambient)
         except Exception:
             pass
@@ -3909,6 +3948,9 @@ class InterfaceSignals():
         QtCore.QTimer.singleShot(200, lambda: (
             self.ui.soul_stage_page.chat_view.update_inventory_hud(
                 self.soul_stage_orchestrator.world_state.player_inventory
+            ),
+            self.ui.soul_stage_page.chat_view.update_player_skills(
+                self.soul_stage_orchestrator.world_state.player_skills
             )
         ))
 
@@ -4227,7 +4269,217 @@ class InterfaceSignals():
         panel.item_used.connect(on_item_used)
         panel.item_dropped.connect(on_item_dropped)
         panel.exec()
-    
+
+    def _ss_handle_manual_dice(self, result: dict):
+        if not self.soul_stage_session:
+            return
+        chat_view = self.ui.soul_stage_page.chat_view
+        from app.gui.soul_stage_page import SoulStageDiceCard, _load_scenes, _save_scenes
+
+        card = SoulStageDiceCard()
+        wrap = QWidget()
+        wrap.setStyleSheet("background: transparent;")
+        lyt = QVBoxLayout(wrap)
+        lyt.setContentsMargins(0, 2, 0, 2)
+        lyt.addWidget(card)
+        chat_view.chat_container.addWidget(wrap)
+        card.animate_to(result["description"], result.get("success"), sides=result.get("sides", 20))
+        chat_view.scroll_to_bottom()
+
+        entry = {
+            "role": "event",
+            "event_type": "dice",
+            "content": f"[MANUELLER WURF]: {result['description']}",
+            "success": result.get("success"),
+        }
+        if self._soul_stage_scene_id:
+            try:
+                d = _load_scenes()
+                if self._soul_stage_scene_id in d["scenes"]:
+                    d["scenes"][self._soul_stage_scene_id].setdefault("chat_log", []).append(entry)
+                    _save_scenes(d)
+            except Exception as e:
+                logger.warning(f"Error saving manual dice roll to scene: {e}")
+
+        intent = result.get("intent", "").strip()
+        if intent:
+            dice_info = f"[WURF: {result['description']}]"
+            chat_view.text_input.setPlainText(f"{dice_info} {intent}")
+            asyncio.create_task(self._ss_send_message())
+
+    def _ss_handle_item_consumed(self, item_name: str, effect: dict):
+        if not self.soul_stage_session:
+            return
+        session = self.soul_stage_session
+        ws = session.orchestrator.world_state
+        chat_view = self.ui.soul_stage_page.chat_view
+        from app.gui.soul_stage_page import SoulStageEventCard, _load_scenes, _save_scenes
+
+        hp_change = int(effect.get("hp", 0))
+        energy_change = int(effect.get("energy", 0))
+        stress_change = int(effect.get("stress", 0))
+        cure_list = effect.get("cure_status", [])
+
+        if hp_change:
+            ws.resources["hp"] = max(0, min(10, ws.resources.get("hp", 10) + hp_change))
+        if energy_change:
+            ws.resources["energy"] = max(0, min(6, ws.resources.get("energy", 6) + energy_change))
+        if stress_change:
+            ws.resources["stress"] = max(0, min(6, ws.resources.get("stress", 0) + stress_change))
+
+        cured = []
+        for st in list(ws.active_statuses):
+            if any(c.lower() in st.lower() for c in cure_list):
+                ws.remove_status(st)
+                cured.append(st)
+
+        item_removed = False
+        for it in list(ws.player_inventory):
+            if it.lower() == item_name.lower():
+                ws.player_inventory.remove(it)
+                item_removed = True
+                break
+        if not item_removed and item_name in ws.player_inventory:
+            ws.player_inventory.remove(item_name)
+
+        chat_view.player_status_hud.update_resources(ws.resources, ws.active_statuses)
+        chat_view.update_inventory_hud(ws.player_inventory)
+
+        scene_data = _load_scenes().get("scenes", {}).get(self._soul_stage_scene_id, {})
+        persona_key = scene_data.get("persona", "None")
+        personas = self.configuration_settings.get_user_data("personas") or {}
+        user_name = "Spieler"
+        if persona_key and persona_key in personas:
+            user_name = personas[persona_key].get("user_name", "Spieler")
+
+        effect_parts = []
+        if hp_change: effect_parts.append(f"+{hp_change} LP" if hp_change > 0 else f"{hp_change} LP")
+        if energy_change: effect_parts.append(f"+{energy_change} Energie" if energy_change > 0 else f"{energy_change} Energie")
+        if stress_change: effect_parts.append(f"{stress_change} Stress")
+        if cured: effect_parts.append(f"Heilt: {', '.join(cured)}")
+        details = f" ({', '.join(effect_parts)})" if effect_parts else ""
+
+        card = SoulStageEventCard(event_type="item")
+        content_text = f"**{user_name}** verwendet **{item_name}**.{details}"
+        card.set_text(content_text)
+        card.tts_requested.connect(lambda name, txt: self._ss_speak_text("NARRATOR", txt, is_narrator=True))
+
+        wrap = QWidget()
+        wrap.setStyleSheet("background: transparent;")
+        lyt = QVBoxLayout(wrap)
+        lyt.setContentsMargins(0, 2, 0, 2)
+        lyt.addWidget(card)
+        chat_view.chat_container.addWidget(wrap)
+        chat_view.scroll_to_bottom()
+
+        entry = {"role": "event", "event_type": "item", "content": content_text}
+        if self._soul_stage_scene_id:
+            try:
+                d = _load_scenes()
+                if self._soul_stage_scene_id in d["scenes"]:
+                    d["scenes"][self._soul_stage_scene_id].setdefault("chat_log", []).append(entry)
+                    d["scenes"][self._soul_stage_scene_id]["world_state"] = session.orchestrator.serialize_scene_state()
+                    _save_scenes(d)
+            except Exception as e:
+                logger.warning(f"Error saving item consumption to scene: {e}")
+
+    def _ss_handle_camp_action(self, rest_type: str, include_interlude: bool):
+        if not self.soul_stage_session:
+            return
+        session = self.soul_stage_session
+        ws = session.orchestrator.world_state
+        chat_view = self.ui.soul_stage_page.chat_view
+        from app.gui.soul_stage_page import SoulStageEventCard, _load_scenes, _save_scenes
+        from app.utils.sfx_manager import SFXManager
+
+        try:
+            SFXManager.get_instance().play_rest()
+        except Exception:
+            pass
+
+        scene_data = _load_scenes().get("scenes", {}).get(self._soul_stage_scene_id, {})
+        persona_key = scene_data.get("persona", "None")
+        personas = self.configuration_settings.get_user_data("personas") or {}
+        user_name = "Spieler"
+        if persona_key and persona_key in personas:
+            user_name = personas[persona_key].get("user_name", "Spieler")
+
+        if rest_type == "long":
+            ws.resources["hp"] = 10
+            ws.resources["energy"] = 6
+            ws.resources["stress"] = 0
+            ws.active_statuses.clear()
+            ws.status_durations.clear()
+            title = "⛺ Lange Rast abgeschlossen (8 Stunden)"
+            desc = (
+                "Die Gruppe schlägt ihr Nachtlager auf. Die Flammen knistern leise, während alle tief und fest schlafen.\n"
+                "• Volle Lebenspunkte (10/10) & volle Energie (6/6)\n"
+                "• Stress vollständig abgebaut (0/6)\n"
+                "• Alle Erschöpfungs- und Statuseffekte sind auskuriert."
+            )
+        else:
+            ws.resources["energy"] = min(6, ws.resources.get("energy", 6) + 3)
+            ws.resources["hp"] = min(10, ws.resources.get("hp", 10) + 2)
+            title = "🍵 Kurze Rast abgeschlossen (1 Stunde)"
+            desc = (
+                "Eine kurze Atempause am Lagerfeuer. Die Gefährten pflegen ihre Wunden und trinken heißes Wasser.\n"
+                f"• +3 Energie ({ws.resources['energy']}/6)\n"
+                f"• +2 Lebenspunkte ({ws.resources['hp']}/10)"
+            )
+
+        bond_milestones = []
+        for companion_name in session.party_names:
+            rel = ws.relationship_graph.relationships.get((companion_name, user_name))
+            old_aff = rel.affinity if rel else 0
+            if not rel:
+                rel = ws.relationship_graph.set(companion_name, user_name, affinity=10, role_view="Gefährte")
+            else:
+                rel.affinity = min(100, rel.affinity + (5 if rest_type == "long" else 2))
+            new_aff = rel.affinity
+            for th, title_th in [(25, "Vertraute(r)"), (50, "Enger Freund & Verbündete(r)"), (75, "Seelenbande & Treue")]:
+                if old_aff < th <= new_aff:
+                    bond_milestones.append(
+                        f"⭐ **Bond Milestone erreicht!** {companion_name} betrachtet {user_name} nun als **{title_th}** (Affinität: {new_aff})!"
+                    )
+
+        chat_view.player_status_hud.update_resources(ws.resources, ws.active_statuses)
+
+        card = SoulStageEventCard(event_type="camp")
+        camp_text = f"**{title}**\n\n{desc}"
+        if bond_milestones:
+            camp_text += "\n\n" + "\n".join(bond_milestones)
+        card.set_text(camp_text)
+        card.tts_requested.connect(lambda name, txt: self._ss_speak_text("NARRATOR", txt, is_narrator=True))
+
+        wrap = QWidget()
+        wrap.setStyleSheet("background: transparent;")
+        lyt = QVBoxLayout(wrap)
+        lyt.setContentsMargins(0, 2, 0, 2)
+        lyt.addWidget(card)
+        chat_view.chat_container.addWidget(wrap)
+        chat_view.scroll_to_bottom()
+
+        entry = {"role": "event", "event_type": "camp", "content": camp_text}
+        if self._soul_stage_scene_id:
+            try:
+                d = _load_scenes()
+                if self._soul_stage_scene_id in d["scenes"]:
+                    d["scenes"][self._soul_stage_scene_id].setdefault("chat_log", []).append(entry)
+                    d["scenes"][self._soul_stage_scene_id]["world_state"] = session.orchestrator.serialize_scene_state()
+                    _save_scenes(d)
+            except Exception as e:
+                logger.warning(f"Error saving camp rest to scene: {e}")
+
+        if include_interlude:
+            prompt = (
+                f"[SYSTEM DIRECTIVE — CAMPFIRE INTERLUDE / LAGERFEUER-SZENE]:\n"
+                f"Die Gruppe versammelt sich im Schein des knisternden Lagerfeuers. "
+                f"Es ist eine intime, ruhige Nacht. Die Gefährten lassen den Tag Revue passieren, "
+                f"sprechen über ihre Sorgen, Hoffnungen oder scherzen entspannt miteinander. "
+                f"Gib den Charakteren Raum für tiefgründige, authentische Dialoge und emotionale Momente mit {user_name}."
+            )
+            asyncio.create_task(self._ss_run_plot_advance(prompt))
+
     def _ss_promote_npc_to_companion(self, npc_name: str):
         if not self.soul_stage_session or not npc_name:
             return
@@ -4343,6 +4595,14 @@ class InterfaceSignals():
 
         chat_view = self.ui.soul_stage_page.chat_view
         chat_view.update_inventory_hud(orch.world_state.player_inventory)
+        chat_view.update_player_hud(
+            orch.world_state.resources,
+            orch.world_state.player_status,
+            orch.world_state.status_durations
+        )
+        chat_view.update_campaign_tracker(
+            orch.world_state.campaign_board.to_dict()
+        )
 
     async def _ss_continue_plot(self):
         if not self.soul_stage_session:
@@ -4579,6 +4839,7 @@ class InterfaceSignals():
             nonlocal narrator_bubble, narrator_wrap
             if narrator_bubble is None:
                 narrator_bubble = SoulStageEventCard(event_type="none")
+                narrator_bubble.tts_requested.connect(lambda name, txt: self._ss_speak_text("NARRATOR", txt, is_narrator=True))
                 narrator_wrap = QWidget()
                 narrator_wrap.setStyleSheet("background: transparent;")
                 lyt = QVBoxLayout(narrator_wrap)
@@ -4598,14 +4859,17 @@ class InterfaceSignals():
         async def on_narrator_done():
             nonlocal narrator_bubble, narrator_wrap
             if narrator_bubble:
+                txt = narrator_bubble.text_label.text()
                 entry = {
                     "role": "narrator",
-                    "content": narrator_bubble.text_label.text(),
+                    "content": txt,
                     "actor_name": "NARRATOR"
                 }
                 if pending_dice[0] is not None:
                     entry["dice_check"] = pending_dice[0].to_dict()
                 turn_log.append(entry)
+                if getattr(chat_view, "btn_audio", None) and chat_view.btn_audio.isChecked():
+                    self._ss_speak_text("NARRATOR", txt, is_narrator=True)
             narrator_bubble = narrator_wrap = None
 
         async def on_char_start(name: str, _avatar):
@@ -4625,11 +4889,14 @@ class InterfaceSignals():
 
         async def on_char_done(name: str, full_text: str):
             turn_log.append({"role": "char", "content": full_text, "actor_name": name})
+            if getattr(chat_view, "btn_audio", None) and chat_view.btn_audio.isChecked():
+                self._ss_speak_text(name, full_text)
 
         async def on_npc_start(npc, avatar_path: str):
             nonlocal npc_bubble, npc_full_text
             npc_full_text = ""
             npc_bubble = SoulStageNPCBubble(npc.name, npc.archetype, avatar_path)
+            npc_bubble.tts_requested.connect(lambda name, txt, a=npc.name: self._ss_speak_text(a, txt))
             wrap = QWidget()
             wrap.setStyleSheet("background: transparent;")
             lyt = QVBoxLayout(wrap)
@@ -4664,6 +4931,8 @@ class InterfaceSignals():
             npc_obj = session.orchestrator.npc_registry.get(name)
             arch = npc_obj.archetype if npc_obj else "citizen"
             turn_log.append({"role": "npc", "content": full_text, "actor_name": name, "archetype": arch})
+            if getattr(chat_view, "btn_audio", None) and chat_view.btn_audio.isChecked():
+                self._ss_speak_text(name, full_text)
 
         async def on_turn_complete():
             chat_view.btn_stop.hide()
@@ -4683,13 +4952,49 @@ class InterfaceSignals():
                 session.orchestrator.world_state.bg_image,
                 session.orchestrator.world_state.ambient_audio
             )
-            inv = session.orchestrator.world_state.player_inventory
+            ws = session.orchestrator.world_state
+            inv = ws.player_inventory
             chat_view.update_inventory_hud(inv)
+            chat_view.update_player_hud(
+                ws.resources,
+                ws.player_status,
+                ws.status_durations
+            )
+            chat_view.update_campaign_tracker(
+                ws.campaign_board.to_dict()
+            )
         
         async def on_choices(choices: list, event_type: str):
             _plot_event_type[0] = event_type
             if choices and not getattr(self, "_ss_auto_active", False):
                 chat_view.show_choices(choices, event_type)
+
+        async def on_narrative_event(event_type: str, title: str, description: str):
+            try:
+                from app.utils.sfx_manager import SFXManager
+                SFXManager.get_instance().play_stinger(event_type)
+            except Exception:
+                pass
+            b = SoulStageEventCard(event_type=event_type)
+            content_md = f"**{title}**\n\n{description}" if title else description
+            b.set_text(self.markdown_to_html(content_md))
+            b.tts_requested.connect(lambda name, txt: self._ss_speak_text("NARRATOR", txt, is_narrator=True))
+            wrap = QWidget()
+            wrap.setStyleSheet("background: transparent;")
+            lyt = QVBoxLayout(wrap)
+            lyt.setContentsMargins(0, 4, 0, 4)
+            lyt.addWidget(b)
+            chat_view.chat_container.addWidget(wrap)
+            chat_view.scroll_to_bottom()
+            entry = {
+                "role": "event",
+                "event_type": event_type,
+                "content": content_md,
+                "title": title,
+                "description": description,
+            }
+            turn_log.append(entry)
+            await asyncio.sleep(0)
 
         async def on_error(msg: str):
             b = SoulStageEventCard(event_type="none")
@@ -4746,7 +5051,8 @@ class InterfaceSignals():
             on_char_start=on_char_start, on_char_chunk=on_char_chunk, on_char_done=on_char_done,
             on_npc_start=on_npc_start, on_npc_chunk=on_npc_chunk, on_npc_done=on_npc_done,
             on_turn_complete=on_turn_complete, on_error=on_error, on_choices=on_choices,
-            on_dice_roll=on_dice_roll
+            on_dice_roll=on_dice_roll,
+            on_narrative_event=on_narrative_event
         )
 
         full_chat_log = []
@@ -4827,6 +5133,7 @@ class InterfaceSignals():
 
             b = SoulStageEventCard(event_type="none")
             b.set_text(self.markdown_to_html(content))
+            b.tts_requested.connect(lambda _, txt=content: self._ss_speak_text("NARRATOR", txt, is_narrator=True))
             if insert_at is not None:
                 chat_view.chat_container.insertWidget(insert_at, b)
             else:
@@ -4839,6 +5146,7 @@ class InterfaceSignals():
             avatar_path = self.soul_stage_orchestrator.npc_registry.get_avatar_path_for_name(actor, archetype)
             b = SoulStageNPCBubble(actor, archetype, avatar_path)
             b.set_text(self.markdown_to_html(content))
+            b.tts_requested.connect(lambda _, txt=content, a=actor: self._ss_speak_text(a, txt))
             if insert_at is not None:
                 chat_view.chat_container.insertWidget(insert_at, b)
             else:
@@ -4860,6 +5168,25 @@ class InterfaceSignals():
 
         elif role == "char":
             self._ss_add_custom_message(actor, content, is_user=False, msg_idx=idx, insert_at=insert_at)
+
+        elif role == "event":
+            event_type = entry.get("event_type", "discovery")
+            if event_type == "dice":
+                card = SoulStageDiceCard()
+                clean_content = content.replace("[MANUELLER WURF]: ", "")
+                card.set_final(clean_content, entry.get("success"))
+                if insert_at is not None:
+                    chat_view.chat_container.insertWidget(insert_at, card)
+                else:
+                    chat_view.chat_container.addWidget(card)
+                return
+            b = SoulStageEventCard(event_type=event_type)
+            b.set_text(self.markdown_to_html(content))
+            b.tts_requested.connect(lambda _, txt=content: self._ss_speak_text("NARRATOR", txt, is_narrator=True))
+            if insert_at is not None:
+                chat_view.chat_container.insertWidget(insert_at, b)
+            else:
+                chat_view.chat_container.addWidget(b)
 
     def _on_ss_chat_scroll(self, value):
         if getattr(self, '_ss_is_loading_history', False):
@@ -4950,6 +5277,89 @@ class InterfaceSignals():
                 f"Do not re-narrate the opening. Do not force a reaction from everyone."
             )
             await self._ss_run_plot_advance(trigger_message)
+
+    def _ss_stop_all_audio(self):
+        try:
+            import sounddevice as sd
+            sd.stop()
+        except Exception:
+            pass
+        if hasattr(self, "_ss_tts_active_workers"):
+            for w in list(self._ss_tts_active_workers):
+                try:
+                    w.stop_audio()
+                    w.is_running = False
+                except Exception:
+                    pass
+            self._ss_tts_active_workers.clear()
+
+    def _ss_speak_text(self, actor_name: str, text: str, is_narrator: bool = False):
+        if not text or not str(text).strip():
+            return
+        import re, html, threading
+        from app.utils.text_to_speech import TTSWorker
+        # Strip HTML and basic markdown syntax for speech
+        clean = html.unescape(text)
+        clean = re.sub(r'<[^>]+>', ' ', clean)
+        clean = re.sub(r'[*_~`#\[\]]', '', clean)
+        clean = re.sub(r'\s+', ' ', clean).strip()
+        if not clean:
+            return
+
+        if not hasattr(self, "_ss_tts_active_workers"):
+            self._ss_tts_active_workers = []
+
+        # Check if party companion has configured voice
+        if not is_narrator and actor_name != "NARRATOR":
+            try:
+                c_data = self.configuration_characters.load_configuration()
+                char_info = c_data.get("character_list", {}).get(actor_name)
+                if char_info:
+                    current_tts = char_info.get("current_text_to_speech")
+                    if current_tts not in ("Nothing", None):
+                        voice_id = char_info.get("elevenlabs_voice_id")
+                        translator_on = self.configuration_settings.get_main_setting("translator") != 0
+                        target_lang_code = {0: "ru", 1: "de"}.get(self.configuration_settings.get_main_setting("target_language"), "ru")
+                        lang = target_lang_code if translator_on else "en"
+                        worker = TTSWorker(current_tts, actor_name, voice_id=voice_id, language=lang)
+                        worker.start()
+                        worker.add_text(clean)
+                        self._ss_tts_active_workers.append(worker)
+                        return
+            except Exception as e:
+                logger.debug(f"[SoulStage] Companion TTS setup failed, falling back: {e}")
+
+        # Narrator, NPC, or companion without voice engine -> Edge TTS
+        try:
+            import edge_tts
+            lang_code = self.configuration_settings.get_main_setting("program_language") or 0
+            if lang_code == 2:    # German
+                narrator_voice = "de-DE-ConradNeural"
+            elif lang_code == 1:  # Russian
+                narrator_voice = "ru-RU-DmitryNeural"
+            else:
+                narrator_voice = "en-US-ChristopherNeural"
+
+            def _play_edge():
+                try:
+                    import io, soundfile as sf, sounddevice as sd, asyncio
+                    comm = edge_tts.Communicate(clean, narrator_voice)
+                    mp3_data = io.BytesIO()
+                    async def _run_comm():
+                        async for chunk in comm.stream():
+                            if chunk["type"] == "audio":
+                                mp3_data.write(chunk["data"])
+                    asyncio.run(_run_comm())
+                    mp3_data.seek(0)
+                    data, sr = sf.read(mp3_data, dtype='float32')
+                    dev = self.configuration_settings.get_main_setting("output_device_real_index")
+                    sd.play(data, sr, device=dev)
+                except Exception as err:
+                    logger.debug(f"[SoulStage] Edge TTS play error: {err}")
+
+            threading.Thread(target=_play_edge, daemon=True).start()
+        except Exception as e:
+            logger.debug(f"[SoulStage] Edge TTS speech failed: {e}")
 
     def _ss_add_custom_message(self, name: str, text: str, is_user: bool, msg_idx=None, insert_at=None):
         from app.gui.soul_stage_page import _get_char_avatar_pixmap, _load_scenes
@@ -5059,6 +5469,28 @@ class InterfaceSignals():
         header_layout.addWidget(avatar_label)
         header_layout.addWidget(name_label)
         header_layout.addStretch()
+
+        if not is_user:
+            btn_play = QPushButton()
+            btn_play.setFixedSize(22, 22)
+            btn_play.setIcon(QIcon("app/gui/icons/voice.png"))
+            btn_play.setIconSize(QtCore.QSize(13, 13))
+            btn_play.setToolTip("Vorlesen (TTS)")
+            btn_play.setCursor(Qt.CursorShape.PointingHandCursor)
+            btn_play.setStyleSheet("""
+                QPushButton {
+                    background: rgba(255, 255, 255, 0.08);
+                    border: 1px solid rgba(255, 255, 255, 0.15);
+                    border-radius: 11px;
+                    padding: 1px;
+                }
+                QPushButton:hover {
+                    background: rgba(255, 255, 255, 0.22);
+                    border-color: rgba(255, 255, 255, 0.35);
+                }
+            """)
+            btn_play.clicked.connect(lambda _, a=name: self._ss_speak_text(a, text))
+            header_layout.addWidget(btn_play)
 
         bubble_layout.addLayout(header_layout)
 
@@ -5225,6 +5657,7 @@ class InterfaceSignals():
             nonlocal narrator_bubble, narrator_wrap
             if narrator_bubble is None:
                 narrator_bubble = SoulStageEventCard(event_type="none")
+                narrator_bubble.tts_requested.connect(lambda name, txt: self._ss_speak_text("NARRATOR", txt, is_narrator=True))
                 narrator_wrap = QWidget()
                 narrator_wrap.setStyleSheet("background: transparent;")
                 lyt = QVBoxLayout(narrator_wrap)
@@ -5244,10 +5677,13 @@ class InterfaceSignals():
         async def on_narrator_done():
             nonlocal narrator_bubble, narrator_wrap
             if narrator_bubble:
-                entry = {"role": "narrator", "content": narrator_bubble.text_label.text(), "actor_name": "NARRATOR"}
+                txt = narrator_bubble.text_label.text()
+                entry = {"role": "narrator", "content": txt, "actor_name": "NARRATOR"}
                 if pending_dice[0] is not None:
                     entry["dice_check"] = pending_dice[0].to_dict()
                 turn_log.append(entry)
+                if getattr(chat_view, "btn_audio", None) and chat_view.btn_audio.isChecked():
+                    self._ss_speak_text("NARRATOR", txt, is_narrator=True)
             narrator_bubble = narrator_wrap = None
 
         async def on_char_start(name: str, _avatar):
@@ -5267,11 +5703,14 @@ class InterfaceSignals():
 
         async def on_char_done(name: str, full_text: str):
             turn_log.append({"role": "char", "content": full_text, "actor_name": name})
+            if getattr(chat_view, "btn_audio", None) and chat_view.btn_audio.isChecked():
+                self._ss_speak_text(name, full_text)
 
         async def on_npc_start(npc, avatar_path: str):
             nonlocal npc_bubble, npc_full_text
             npc_full_text = ""
             npc_bubble = SoulStageNPCBubble(npc.name, npc.archetype, avatar_path)
+            npc_bubble.tts_requested.connect(lambda name, txt, a=npc.name: self._ss_speak_text(a, txt))
             wrap = QWidget()
             wrap.setStyleSheet("background: transparent;")
             lyt = QVBoxLayout(wrap)
@@ -5304,6 +5743,8 @@ class InterfaceSignals():
             npc_obj = session.orchestrator.npc_registry.get(name)
             arch = npc_obj.archetype if npc_obj else "citizen"
             turn_log.append({"role": "npc", "content": full_text, "actor_name": name, "archetype": arch})
+            if getattr(chat_view, "btn_audio", None) and chat_view.btn_audio.isChecked():
+                self._ss_speak_text(name, full_text)
 
         async def _ss_set_controls_enabled(enabled: bool):
             chat_view.btn_stop.hide()
@@ -5325,8 +5766,17 @@ class InterfaceSignals():
                 session.orchestrator.world_state.bg_image,
                 session.orchestrator.world_state.ambient_audio
             )
-            inv = session.orchestrator.world_state.player_inventory
+            ws = session.orchestrator.world_state
+            inv = ws.player_inventory
             chat_view.update_inventory_hud(inv)
+            chat_view.update_player_hud(
+                ws.resources,
+                ws.player_status,
+                ws.status_durations
+            )
+            chat_view.update_campaign_tracker(
+                ws.campaign_board.to_dict()
+            )
 
         async def on_error(msg: str):
             b = SoulStageEventCard(event_type="none")
@@ -5374,6 +5824,33 @@ class InterfaceSignals():
             if choices:
                 chat_view.show_choices(choices, event_type)
 
+        async def on_narrative_event(event_type: str, title: str, description: str):
+            try:
+                from app.utils.sfx_manager import SFXManager
+                SFXManager.get_instance().play_stinger(event_type)
+            except Exception:
+                pass
+            b = SoulStageEventCard(event_type=event_type)
+            content_md = f"**{title}**\n\n{description}" if title else description
+            b.set_text(self.markdown_to_html(content_md))
+            b.tts_requested.connect(lambda name, txt: self._ss_speak_text("NARRATOR", txt, is_narrator=True))
+            wrap = QWidget()
+            wrap.setStyleSheet("background: transparent;")
+            lyt = QVBoxLayout(wrap)
+            lyt.setContentsMargins(0, 4, 0, 4)
+            lyt.addWidget(b)
+            chat_view.chat_container.addWidget(wrap)
+            chat_view.scroll_to_bottom()
+            entry = {
+                "role": "event",
+                "event_type": event_type,
+                "content": content_md,
+                "title": title,
+                "description": description,
+            }
+            turn_log.append(entry)
+            await asyncio.sleep(0)
+
         if self.ss_msg_mgr is not None:
             try:
                 from app.gui.soul_stage_page import _load_scenes as _ss_ls_snap
@@ -5394,6 +5871,7 @@ class InterfaceSignals():
             manual_next_actor=manual_next_actor,
             private_recipient=private_recipient,
             player_meta=player_meta,
+            on_narrative_event=on_narrative_event,
         )
 
         full_chat_log = []

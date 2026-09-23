@@ -84,6 +84,13 @@ release; `./tools/fork_report.sh` verifies afterwards that none of them got lost
 - **26 strings translated that upstream never put in a language file** - the code asks for them, no
   language file has them, so *every* language silently fell back to English (import dialog, backup
   restore, scene tooltips, local server errors, …).
+- **Soul Stage Tabletop RPG Evolution (Phases 1–4):**
+  - **Live Player HUD & Clocks:** Real-time visibility of HP, Energy, Stress, active condition badges with duration counters, and a toggleable Campaign Clocks tracker.
+  - **Procedural SFX & Speech:** Built-in procedural audio synthesizer (`numpy`/`sounddevice`) for rolling dice, critical fanfares, failure stingers, consumable sounds, and crackling campfires. Voice readout buttons (`🔊`) for every narrator, NPC, and companion bubble.
+  - **Manual Dice Roller & Skills:** Dedicated dice button (`🎲`) allowing player-driven skill checks (d20, d100, 2d6, d6, d12) with character skill modifiers and DC target evaluation.
+  - **Tagged Decision Options:** Decision cards with colored skill check and resource cost pills (Baldur's Gate 3 / Disco Elysium style).
+  - **Interactive Consumable Inventory:** Clicking potions, bread, water, or bandages instantly restores HP/Energy, lowers stress, and cures ailments.
+  - **Campfire Rest & Bond Milestones:** Short & Long Rests (`🏕️`), intimate campfire banter interludes, and companion affinity progression with bond milestone announcements (+25, +50, +75).
 - **Upstream bugs fixed:** the Appearance tab was never translated in any language; RP editor cards
   clipped longer translations; the start page greeting drew from 5 of the 7 variants each language file
   ships; `update_lip_sync` crashed on a configuration without `character_list`.
@@ -179,16 +186,20 @@ Choose between **Full Sync** (maximum depth), **Soul Link** (balanced), **Mind S
 Soul Stage transitions your chat into a structured tabletop roleplaying campaign managed by a virtual Game Master. The GM is a separate AI layer running independently of your character: it maintains the world state, directs events, and enforces structure for group roleplay sessions.
 
 - **WorldState Engine:** Rigorous state tracking for in-game time of day, weather, active location, and key facts.
-- **Dice Rolls & Skill Checks:** Deterministic mechanics resolve actions, instead of leaving outcomes to the AI's whim.
+- **Live Resource & Status HUD:** Continual real-time tracking of player HP (10/10), Energy (6/6), Stress (0/6), and active conditions (with remaining round durations and effect tooltips).
+- **Deterministic & Manual Dice Rolls:** AI-triggered and player-initiated checks (d20, d100, 2d6, d6, d12) with skill modifiers, DC targets, and procedural dice sound effects.
+- **Audio & TTS Atmosphere:** Dynamic procedural audio (dice rolls, critical fanfares, failure chords, campfire rest ambience) plus on-demand voice readout buttons on all dialog bubbles.
+- **Campaign Board & Clocks Tracker:** Live objective tracking with "Pressure Clocks" (guard alert levels, ritual countdowns) that shift dynamically with your choices.
+- **Tagged Choices:** Player decision options with colored skill check and resource cost badges (Baldur's Gate 3 / Disco Elysium style).
+- **Interactive Consumable Inventory:** Direct one-click consumption of potions, food, water, and bandages with instant recovery and condition cures.
+- **Campfire Rest & Bond Milestones:** Take short or long rests at the campfire (`🏕️`), trigger intimate companion conversations, and advance companion bond levels (+25, +50, +75).
 - **Story Arcs:** Hidden plot twists and investigations stay concealed from NPCs and the party until concrete clues are uncovered during play.
-- **Campaign Board:** A live objective tracker with "Pressure Clocks" - guard alert levels, trust meters, ritual countdowns - that shift dynamically with your choices.
 - **Turn Control Bar:** Switch between Say, Do, Think, and Director input modes, pick the next speaker manually, or send Private Whispers only one party member can see.
-- **Structural Relationship Tracker:** Trust levels and social roles are serialized and fed into every turn, so companions and NPCs never "forget" their dynamic with you, even dozens of turns later. Roles and titles can mutate mid-story and behavior updates immediately.
+- **Structural Relationship Tracker:** Trust levels and social roles are serialized and fed into every turn, so companions and NPCs never "forget" their dynamic with you, even dozens of turns later.
 - **Interactive Party & NPCs:** Main party members sync memories via Soul Memory, while dynamic temporary NPCs spawn (with their own persistent memory) for specific encounters.
-- **Inventory & Status HUD:** Track equipment, health, energy, stress, conditions (poisoned, exhausted, inspired), and gold in real time.
 - **Scene Folders:** Organize your scenario library into campaigns, genres, or settings.
 - **Atmospheric Automation:** Scene backgrounds and ambient audio loops switch automatically as the story moves to new locations.
-- **Event Cards:** Random encounter cards keep campaigns unpredictable.
+- **Event Cards:** Encounter, discovery, consequence, camp, and story milestone cards keep campaigns unpredictable.
 
 ---
 

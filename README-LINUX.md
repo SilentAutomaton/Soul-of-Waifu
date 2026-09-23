@@ -33,6 +33,13 @@ This branch also adds features that are not Linux-specific:
   (model and backend permitting), so it is warm by the time the first message is sent; sending a message waits
   for the server instead of failing with "Could not reach the local server". Nothing happens for cloud
   providers or when no local model is configured.
+- **Soul Stage Tabletop RPG Evolution (Phases 1–4):**
+  - Live Player Status HUD for HP, Energy, Stress, and condition badges with duration counters and tooltips.
+  - Procedural sound effects synthesizer (`app/utils/sfx_manager.py`) for dice, criticals, failures, and camp ambience.
+  - Dedicated manual dice roller (`🎲`) supporting d20, d100, 2d6, d6, d12 with player skill modifiers and DC target checks.
+  - Visual decision badges (Baldur's Gate 3 / Disco Elysium style) in the choices bar.
+  - Interactive consumable inventory with instant 1-click recovery.
+  - Campfire rest system (`🏕️`) with short/long rest, companion banter interludes, and bond milestones (+25, +50, +75).
 - Upstream fixes: the Appearance tab is translated at last, and RP editor cards no longer clip
   longer translations.
 

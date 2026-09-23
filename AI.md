@@ -28,10 +28,11 @@
 
 ### Schlüssel-Module des Ports:
 1. **`app/utils/platform_compat.py`:** Linux-Äquivalente für Windows-Calls (`open_path`, `reveal_path`, `get_idle_time_ms`, kein `os.startfile` oder `ctypes.windll`).
-2. **`tools/fork_report.sh`:** Verifiziert alle Patches gegen die Liste in `FORK-CHANGES.md`.
-3. **`tools/fetch_llama_backend.py`:** Lädt vorkompilierte Ubuntu/Linux llama.cpp Binaries herunter.
-4. **`tools/fetch_live2d_models.py`:** Lädt Cubism 3/4 Live2D-Modelle herunter und entpackt sie nach `assets/emotions/live2d/`.
-5. **`tools/import_character_cards.py`:** Importiert `chara_card_v2` Karten, Lorebooks, Soul-Stage-Szenen und deployt Hintergründe automatisch. Unterstützt `--update-live2d`, `--update-avatars` und `--update-scenes`.
+2. **`app/utils/sfx_manager.py`:** Prozedurale RPG-Soundeffekte (Würfelrollen, Settle, Critical Fanfares, Fehlschläge, Tränke, Lagerfeuer-Ambiente) via `numpy` und `sounddevice`.
+3. **`tools/fork_report.sh`:** Verifiziert alle Patches gegen die Liste in `FORK-CHANGES.md`.
+4. **`tools/fetch_llama_backend.py`:** Lädt vorkompilierte Ubuntu/Linux llama.cpp Binaries herunter.
+5. **`tools/fetch_live2d_models.py`:** Lädt Cubism 3/4 Live2D-Modelle herunter und entpackt sie nach `assets/emotions/live2d/`.
+6. **`tools/import_character_cards.py`:** Importiert `chara_card_v2` Karten, Lorebooks, Soul-Stage-Szenen und deployt Hintergründe automatisch. Unterstützt `--update-live2d`, `--update-avatars` und `--update-scenes`.
 
 ---
 
@@ -42,8 +43,11 @@
 ├── app/
 │   ├── configuration/         # Konfigurationen & aktive Charakter-Shards (characters/*.json)
 │   ├── gui/                   # PySide6 GUI (chat_page, soul_stage_page, interface_signals)
+│   │   ├── soul_stage_page.py # Soul Stage RPG (HUD, Clocks, Dice, Camp, Inventar)
+│   │   └── interface_signals.py # Signale, Turn-Management, Audio/TTS & Event-Dispatch
 │   ├── translations/          # Lokalisierung (de.yaml, en.yaml, ru.yaml)
-│   └── utils/                 # Platform-Compat, Local-Server-Manager, Audio, Live2D
+│   └── utils/                 # Platform-Compat, Local-Server-Manager, SFXManager, Audio, Live2D
+│       └── sfx_manager.py     # Prozedurale RPG-Soundeffekte (Würfel, Camp, Items)
 │
 ├── assets/
 │   ├── backgrounds/           # Globale Chat- & Soul-Stage-Hintergründe (16:9 PNG/JPG)
@@ -62,8 +66,9 @@
 │   ├── fetch_llama_backend.py # llama.cpp Linux Downloader
 │   └── import_character_cards.py # Bulk-Importer für Karten, Szenen & Hintergründe
 │
-├── FORK-CHANGES.md            # Ausführliche Dokumentation aller 41 Patches
+├── FORK-CHANGES.md            # Ausführliche Dokumentation aller Patches & Fork-Änderungen
 ├── README-LINUX.md            # Installations- und Betriebsanleitung für Linux
+├── Roadmap.md                 # Soul Stage RPG Roadmap (Phasen 1 bis 4 abgeschlossen)
 └── AI.md                      # Dieser Leitfaden
 ```
 

@@ -89,6 +89,13 @@ keine verloren gegangen ist.
 - **26 Texte übersetzt, die im Original in keiner Sprachdatei stehen** - der Code fragt sie ab, keine
   Sprachdatei kennt sie, also fiel *jede* Sprache stillschweigend auf Englisch zurück (Import-Dialog,
   Backup-Wiederherstellung, Szenen-Tooltips, Fehler des lokalen Servers, …).
+- **Soul-Stage-Rollenspiel-Erweiterung (Phasen 1–4):**
+  - **Live-HUD für Ressourcen & Zustände:** Echtzeit-Anzeige von LP (HP), Energie, Stress und aktiven Statuseffekten (mit verbleibender Rundenzahl und Tooltips) plus einblendbarem Uhren-Tracker (*Campaign Clocks*).
+  - **Prozedurale Soundeffekte & Sprachausgabe:** Integrierter Sound-Synthesizer (`numpy`/`sounddevice`) für Würfelgeräusche, Erfolgs-Chimes, Nat-20-Fanfaren, Fehlschläge, Tränke und knisterndes Lagerfeuer. Vorlese-Buttons (`🔊`) für alle Erzähler-, NPC- und Gefährten-Nachrichten.
+  - **Manuelle Würfelproben & Fertigkeiten:** Würfel-Button (`🎲`) für spielergesteuerte Proben (W20, W100, 2W6, W6, W12) mit automatischer Einbindung der Charakterfertigkeiten und DC-Zielwerten.
+  - **Gekennzeichnete Antwortoptionen:** Auswahlkarten mit farbigen Badges für erforderliche Fertigkeiten, Proben oder Ressourcenkosten (im Stil von *Baldur's Gate 3* / *Disco Elysium*).
+  - **Interaktives Inventar für Verbrauchsgegenstände:** Direkter 1-Klick-Verzehr von Heiltränken, Rationen, Wasser und Bandagen mit sofortiger Heilung und Auskurierung von Zuständen.
+  - **Lagerfeuer-Rast & Beziehungs-Meilensteine:** Kurze und Lange Rast (`🏕️`), intime Lagerfeuer-Gespräche (*Campfire Banter*) und steigende Gefährten-Affinität mit Meilenstein-Freischaltungen (+25, +50, +75).
 - **Fehler des Originals behoben:** Der Reiter „Appearance“ wurde in keiner Sprache übersetzt; Karten im
   RP-Editor schnitten längere Übersetzungen ab; die Begrüßung auf der Startseite nutzte 5 der 7 Varianten,
   die jede Sprachdatei mitbringt; `update_lip_sync` stürzte ohne `character_list` ab.
@@ -184,16 +191,20 @@ Wähle zwischen **Full Sync** (maximale Tiefe), **Soul Link** (ausgewogen), **Mi
 Soul Stage verwandelt deinen Chat in eine strukturierte Tabletop-Rollenspielkampagne, die von einem virtuellen Spielleiter geleitet wird. Der Spielleiter ist eine eigene KI-Ebene, die unabhängig von deinem Charakter läuft: Er verwaltet den Zustand der Welt, lenkt Ereignisse und sorgt für Struktur in Gruppen-Rollenspielsitzungen.
 
 - **WorldState-Engine:** Strikte Verfolgung von Tageszeit, Wetter, aktuellem Ort und wichtigen Fakten im Spiel.
-- **Würfelwürfe & Fertigkeitsproben:** Deterministische Mechaniken entscheiden über Aktionen, statt den Ausgang der Laune der KI zu überlassen.
+- **Live-Ressourcen- & Status-HUD:** Verfolge Lebenspunkte (10/10 LP), Energie (6/6), Stress (0/6) und aktive Statuseffekte (mit Rundenanzeige und Tooltips) kontinuierlich in Echtzeit.
+- **Deterministische & manuelle Würfelproben:** KI- und spielergesteuerte Proben (W20, W100, 2W6, W6, W12) mit Fertigkeitsmodifikatoren, DC-Zielen und prozeduralem Würfelsound.
+- **Audio- & TTS-Atmosphäre:** Dynamische prozedurale Soundeffekte (Würfeln, Fanfaren, Fehlschläge, Lagerfeuer) sowie Vorlese-Buttons (`🔊`) an jeder Chatblase.
+- **Kampagnenbrett & Uhren-Tracker:** Live-Zieltracker mit „Druck-Uhren“ (Alarmstufe der Wachen, Ritual-Countdowns), die dynamisch mit deinen Entscheidungen weitertickern.
+- **Gekennzeichnete Antwortoptionen:** Entscheidungskarten mit farbigen Badges für Fertigkeiten, Schwierigkeitsgrade oder Ressourcenkosten (im Stil von *Baldur's Gate 3* / *Disco Elysium*).
+- **Interaktive Verbrauchsgegenstände:** 1-Klick-Nutzung von Tränken, Nahrung und Bandagen mit Soforteffekt auf HP/Energie/Stress und Kuration von Statuseffekten.
+- **Lagerfeuer-Rast & Beziehungs-Meilensteine:** Kurze oder lange Rast am Feuer (`🏕️`), intime Gefährten-Zwischenszenen (*Campfire Banter*) und Auszeichnung von Vertrauens-Meilensteinen (+25, +50, +75).
 - **Story-Arcs:** Verborgene Wendungen und Ermittlungen bleiben vor NPCs und der Gruppe geheim, bis im Spiel konkrete Hinweise gefunden werden.
-- **Kampagnenbrett:** Ein Live-Zieltracker mit „Druck-Uhren“ – Alarmstufe der Wachen, Vertrauensanzeigen, Ritual-Countdowns –, die sich dynamisch mit deinen Entscheidungen verändern.
 - **Zugsteuerung:** Wechsle zwischen den Eingabemodi Sagen, Tun, Denken und Regie, wähle den nächsten Sprecher manuell oder sende private Flüsternachrichten, die nur ein Gruppenmitglied sieht.
-- **Strukturierte Beziehungsverfolgung:** Vertrauensstufen und soziale Rollen werden serialisiert und in jeden Zug eingespeist, sodass Gefährten und NPCs ihre Beziehung zu dir nie „vergessen“ – auch nicht Dutzende Züge später. Rollen und Titel können sich mitten in der Geschichte ändern, und das Verhalten passt sich sofort an.
+- **Strukturierte Beziehungsverfolgung:** Vertrauensstufen und soziale Rollen werden serialisiert und in jeden Zug eingespeist, sodass Gefährten und NPCs ihre Beziehung zu dir nie „vergessen“.
 - **Interaktive Gruppe & NPCs:** Die Hauptmitglieder der Gruppe synchronisieren ihre Erinnerungen über Soul Memory, während für bestimmte Begegnungen dynamische, temporäre NPCs (mit eigenem dauerhaftem Gedächtnis) erscheinen.
-- **Inventar- & Status-HUD:** Verfolge Ausrüstung, Gesundheit, Energie, Stress, Zustände (vergiftet, erschöpft, inspiriert) und Gold in Echtzeit.
 - **Szenenordner:** Organisiere deine Szenario-Bibliothek nach Kampagnen, Genres oder Settings.
 - **Atmosphärische Automatik:** Hintergründe und Umgebungsgeräusche wechseln automatisch, wenn die Geschichte an neue Orte führt.
-- **Ereigniskarten:** Karten für Zufallsbegegnungen halten Kampagnen unberechenbar.
+- **Ereigniskarten:** Karten für Begegnungen, Entdeckungen, Schicksalswenden, Rast und Meilensteine halten Kampagnen lebendig.
 
 ---
 

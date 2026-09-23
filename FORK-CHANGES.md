@@ -62,7 +62,9 @@ Conflicts can only appear in the files under "Changed upstream files" below. Rul
 | `tools/import_character_cards.py` | imports `chara_card_v2` cards with their avatars, Live2D models, user personas, lorebooks, backgrounds and Soul Stage scenes into the configuration in bulk - no UI clicking |
 | `app/translations/de.yaml` | German translation of the app. Besides every `en.yaml` key it also fills 26 gaps upstream left: keys the code asks for that exist in no language file, so all languages fall back to the English string in the code (import dialog, backup restore, scene tooltips, local server errors, …). Four keys stay untranslated on purpose - their defaults are f-strings carrying a path, chat name or error, and a YAML value would drop that detail. |
 | `presets/sakura-succubus-3/` | a German preset set: seven character cards (`chara_card_v2`) with AI-generated avatars, matching Live2D models and the prompts they were made from, six Soul Stage scenes, three lorebooks, and nine 16:9 anime visual novel background scenes - import them with the tool above |
-| `README-LINUX.md`, `README_DE.md`, `FORK-CHANGES.md` | documentation |
+| `app/utils/sfx_manager.py` | procedural audio SFX synthesizer via `numpy` and `sounddevice` (dice rolling & settle, critical fanfare, failure chords, encounter stingers, potion use, campfire rest ambience; fully cached, no external audio files required) |
+| `Roadmap.md` | Soul Stage RPG evolution roadmap and implementation log (Phases 1 - 4) |
+| `README-LINUX.md`, `README_DE.md`, `FORK-CHANGES.md`, `AI.md` | documentation |
 
 ## Changed upstream files
 
@@ -112,6 +114,7 @@ Conflicts can only appear in the files under "Changed upstream files" below. Rul
 | `app/gui/interface_signals.py` | start page greeting picks from all variants the language file has (upstream drew 1-5 although every language ships 7) | `available = [i for i in range(1, 8)` |
 | `app/gui/custom_widgets.py`, `app/gui/sowInterface.py` | the Context Inspector tooltip was hard-coded English in every language - now translated (13 keys), the widget takes the translations | `context_inspector_title` |
 | `app/gui/soul_stage_page.py` | a scene stores its GM tone as the displayed text, so an imported scene (or a language switch) fell back to the first entry - the key and the English name are now mapped onto the current language | `def _tone_text` |
+| `app/gui/soul_stage_page.py`, `app/gui/interface_signals.py`, `app/utils/ai_clients/soul_stage_engine.py` | **Soul Stage RPG Evolution (Phases 1-4)**: Live `PlayerStatusHUD` (HP/Energy/Stress/Conditions), Campaign Clocks & Objectives tracker, procedural SFX & TTS readout buttons, manual dice rolling dialog with skill modifiers & DCs, BG3-style choice badges, interactive consumable inventory, campfire rest system & companion bond milestones | `class PlayerStatusHUD` |
 | `app/translations/en.yaml`, `ru.yaml` | keys for the additions above | `response_language_label` |
 
 ## Releases

@@ -2035,7 +2035,10 @@ WHEN TO LEAVE choices EMPTY:
   - During calm, flowing conversation with no fork in sight.
   - When the player's next action is obvious from context and constraining it would feel patronizing.
 
-FORMAT: Each choice must be under 10 words. Write them EXACTLY as the player would say them (in quotes) or do them (in asterisks, first-person). Do NOT write imperative commands.
+FORMAT: Each choice must be concise (under 12 words). Write them EXACTLY as the player would say them (in quotes) or do them (in asterisks, first-person). Do NOT write imperative commands.
+RPG TAGS: Whenever a choice implies a skill check, difficulty check, or resource expenditure, you may prepend bracketed tags (e.g. [Stealth +2], [Persuasion | DC 12], [-1 Energy], [Item: Potion]):
+  - Skill Check -> "[Stealth +2] *I slip past the sentry.*", "[Persuasion | DC 13] \"Trust me, we are on your side.\""
+  - Resource Cost -> "[-1 Energy] *I sprint across the open courtyard.*"
   - Tense moment -> "*I draw my weapon.*", "*I hit the ground!*", "*I run.*"
   - Emotional moment -> "*I take her hand.*", "*I stay silent.*", '"I have to tell you the truth."'
   - Mystery -> "*I examine the symbol.*", '"Who sent this?"', "*I search the room.*"
@@ -3373,6 +3376,7 @@ class SoulStageOrchestrator:
         manual_next_actor: Optional[str] = None,
         private_recipient: Optional[str] = None,
         player_meta: Optional[dict] = None,
+        on_narrative_event: Optional[Callable] = None,
     ):
         self._cancel_flag = False
         self.is_running   = True
@@ -3459,7 +3463,13 @@ class SoulStageOrchestrator:
                         logger.warning(f"[SoulStage] Failed to upsert campaign objective: {e}")
                 for clk_data in plan.get("campaign_clock_updates", []):
                     try:
-                        self.world_state.campaign_board.upsert_clock(clk_data)
+                        updated_clk = self.world_state.campaign_board.upsert_clock(clk_data)
+                        if updated_clk and updated_clk.get("current", 0) >= updated_clk.get("max", 4):
+                            if on_narrative_event is not None:
+                                try:
+                                    await on_narrative_event("clock", f"Uhr vollendet: {updated_clk.get('title')}", updated_clk.get("description", ""))
+                                except Exception as ne_err:
+                                    logger.debug(f"[SoulStage] on_narrative_event clock failed: {ne_err}")
                     except Exception as e:
                         logger.warning(f"[SoulStage] Failed to upsert campaign clock: {e}")
                 for arc_data in plan.get("arc_stage_updates", []):
@@ -3594,6 +3604,11 @@ class SoulStageOrchestrator:
                     stage = str(arc_data.get("stage") or "").strip()
                     if title and stage:
                         ws_ledger.add_consequence("arc", f"Story arc \"{title}\" advanced to stage '{stage}'.")
+                        if on_narrative_event is not None:
+                            try:
+                                await on_narrative_event("arc", f"Story Arc: {title}", f"Neuer Abschnitt: {stage}")
+                            except Exception as ne_err:
+                                logger.debug(f"[SoulStage] on_narrative_event arc failed: {ne_err}")
                 for rel_data in plan.get("relationship_updates", []):
                     if not isinstance(rel_data, dict):
                         continue
@@ -3609,6 +3624,14 @@ class SoulStageOrchestrator:
                 if plot_event and plot_event != "none":
                     gist = self._smart_truncate(str(plan.get("narration_plan", "")), max_len=160)
                     ws_ledger.add_consequence(str(plot_event), gist or f"A {plot_event} occurred.")
+                
+                lasting = plan.get("lasting_consequence")
+                if isinstance(lasting, str) and lasting.strip():
+                    if on_narrative_event is not None:
+                        try:
+                            await on_narrative_event("consequence", "Dauerhafte Konsequenz verzeichnet", lasting.strip())
+                        except Exception as ne_err:
+                            logger.debug(f"[SoulStage] on_narrative_event consequence failed: {ne_err}")
             except Exception as e:
                 logger.warning(f"[SoulStage] Consequence ledger update failed: {e}")
 
