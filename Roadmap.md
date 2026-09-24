@@ -1,21 +1,21 @@
 # 🎲 Soul Stage RPG — Verbesserungs-Roadmap
 
-Diese Roadmap bündelt die Weiterentwicklung der **Soul Stage Tabletop-RPG-Engine** in Soul of Waifu in vier fokussierten Phasen, um das Spielerlebnis noch immersiver, responsiver und lebendiger zu machen.
+Diese Roadmap bündelt die Weiterentwicklung der **Soul Stage Tabletop-RPG-Engine** in Soul of Waifu in fünf fokussierten Phasen, um das Spielerlebnis noch immersiver, responsiver und lebendiger zu machen.
 
 ---
 
 ## Übersicht der Phasen
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                       SOUL STAGE EVOLUTION ROADMAP                          │
-└───────┬─────────────────────┬─────────────────────┬──────────────────┬──────┘
-        │                     │                     │                  │
-        ▼                     ▼                     ▼                  ▼
-   [Phase 1]             [Phase 2]             [Phase 3]          [Phase 4]
-   Live-HUD &            Audio & TTS-          Player Agency &    Rast- & Camp-
-   Sichtbarkeit          Atmosphäre            RPG-Entscheidungen Mechanik
-   (HP, Stress, Uhren)   (Würfel-SFX & Voice)  (Proben & Tags)    (Erholung & Bond)
+┌───────────────────────────────────────────────────────────────────────────────────────────┐
+│                              SOUL STAGE EVOLUTION ROADMAP                                   │
+└───────┬─────────────────────┬─────────────────────┬──────────────────┬──────────────────┬──┘
+        │                     │                     │                  │                  │
+        ▼                     ▼                     ▼                  ▼                  ▼
+   [Phase 1]             [Phase 2]             [Phase 3]          [Phase 4]           [Phase 5]
+   Live-HUD &            Audio & TTS-          Player Agency &    Rast- & Camp-       Taktischer
+   Sichtbarkeit          Atmosphäre            RPG-Entscheidungen Mechanik            Begegnungs-Modus
+   (HP, Stress, Uhren)   (Würfel-SFX & Voice)  (Proben & Tags)    (Erholung & Bond)   (Initiative & Kampf)
 ```
 
 ---
@@ -81,6 +81,17 @@ Diese Roadmap bündelt die Weiterentwicklung der **Soul Stage Tabletop-RPG-Engin
 
 ---
 
-## 📌 Zukünftig (Phase 5: Taktischer Begegnungs-Modus)
-- Leichtes Taktik-/Kampfsystem mit Initiative-Leiste, Gegner-HP und Schnellaktions-Buttons (*Angriff, Ausweichen, Item, Flucht*).
+## 📌 Phase 5: Taktischer Begegnungs-Modus
+> **Ziel:** Ein leichtgewichtiges Kampfsystem, das physische Konfrontationen greifbar und taktisch macht, ohne die erzählerische Tiefe der Engine durch ein volles Grid-Kampfsystem zu ersetzen.
+
+- [x] **5.1 Initiative-Leiste & Gegner-HP:**
+  - Sobald der GM ein `encounter` mit benannten, kampffähigen Gegnern auslöst, würfelt die Engine automatisch eine Initiative-Reihenfolge (Spieler, Begleiter, Gegner) und zeigt sie live über der Eingabeleiste an.
+  - Jeder Gegner erhält eine eigene HP-Leiste (`4/10`), die bei Treffern durch den GM in Echtzeit sinkt; besiegte Gegner werden durchgestrichen markiert.
+  - Nachrückende Verstärkung wird nahtlos in die laufende Initiative-Reihenfolge eingereiht.
+- [x] **5.2 Schnellaktions-Buttons (Angriff, Ausweichen, Item, Flucht):**
+  - Vier kontextsensitive Buttons erscheinen nur während eines aktiven Kampfes: 🗡️ *Angriff*, 🛡️ *Ausweichen*, 🎒 *Item* (öffnet das interaktive Inventar) und 🏃 *Flucht*.
+  - Jede Aktion sendet einen getaggten Vorschlag (`[Attack] *I attack!*`), den der GM narrativ auflöst — inklusive Würfelprobe, Schaden und ggf. Kampfende.
+- [x] **5.3 Kampfende & Auflösung:**
+  - Der GM markiert das Ende eines Kampfes explizit (Sieg, Flucht geglückt, Waffenstillstand) oder die Engine erkennt automatisch, wenn alle Gegner besiegt sind.
+  - Ein Ereignis-Kärtchen im Chat fasst Kampfbeginn, Verstärkung und Kampfende sichtbar zusammen, inklusive Sound-Stinger.
 

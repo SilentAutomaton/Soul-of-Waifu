@@ -89,13 +89,14 @@ keine verloren gegangen ist.
 - **26 Texte übersetzt, die im Original in keiner Sprachdatei stehen** - der Code fragt sie ab, keine
   Sprachdatei kennt sie, also fiel *jede* Sprache stillschweigend auf Englisch zurück (Import-Dialog,
   Backup-Wiederherstellung, Szenen-Tooltips, Fehler des lokalen Servers, …).
-- **Soul-Stage-Rollenspiel-Erweiterung (Phasen 1–4):**
+- **Soul-Stage-Rollenspiel-Erweiterung (Phasen 1–5):**
   - **Live-HUD für Ressourcen & Zustände:** Echtzeit-Anzeige von LP (HP), Energie, Stress und aktiven Statuseffekten (mit verbleibender Rundenzahl und Tooltips) plus einblendbarem Uhren-Tracker (*Campaign Clocks*).
   - **Prozedurale Soundeffekte & Sprachausgabe:** Integrierter Sound-Synthesizer (`numpy`/`sounddevice`) für Würfelgeräusche, Erfolgs-Chimes, Nat-20-Fanfaren, Fehlschläge, Tränke und knisterndes Lagerfeuer. Vorlese-Buttons (`🔊`) für alle Erzähler-, NPC- und Gefährten-Nachrichten.
   - **Manuelle Würfelproben & Fertigkeiten:** Würfel-Button (`🎲`) für spielergesteuerte Proben (W20, W100, 2W6, W6, W12) mit automatischer Einbindung der Charakterfertigkeiten und DC-Zielwerten.
   - **Gekennzeichnete Antwortoptionen:** Auswahlkarten mit farbigen Badges für erforderliche Fertigkeiten, Proben oder Ressourcenkosten (im Stil von *Baldur's Gate 3* / *Disco Elysium*).
   - **Interaktives Inventar für Verbrauchsgegenstände:** Direkter 1-Klick-Verzehr von Heiltränken, Rationen, Wasser und Bandagen mit sofortiger Heilung und Auskurierung von Zuständen.
   - **Lagerfeuer-Rast & Beziehungs-Meilensteine:** Kurze und Lange Rast (`🏕️`), intime Lagerfeuer-Gespräche (*Campfire Banter*) und steigende Gefährten-Affinität mit Meilenstein-Freischaltungen (+25, +50, +75).
+  - **Taktischer Begegnungs-Modus:** Sobald der Spielleiter einen echten Kampf startet, erscheinen eine Initiative-Leiste und Gegner-HP-Leisten mit Ein-Klick-Aktionen (Angriff/Ausweichen/Item/Flucht).
 - **Fehler des Originals behoben:** Der Reiter „Appearance“ wurde in keiner Sprache übersetzt; Karten im
   RP-Editor schnitten längere Übersetzungen ab; die Begrüßung auf der Startseite nutzte 5 der 7 Varianten,
   die jede Sprachdatei mitbringt; `update_lip_sync` stürzte ohne `character_list` ab.
@@ -198,6 +199,7 @@ Soul Stage verwandelt deinen Chat in eine strukturierte Tabletop-Rollenspielkamp
 - **Gekennzeichnete Antwortoptionen:** Entscheidungskarten mit farbigen Badges für Fertigkeiten, Schwierigkeitsgrade oder Ressourcenkosten (im Stil von *Baldur's Gate 3* / *Disco Elysium*).
 - **Interaktive Verbrauchsgegenstände:** 1-Klick-Nutzung von Tränken, Nahrung und Bandagen mit Soforteffekt auf HP/Energie/Stress und Kuration von Statuseffekten.
 - **Lagerfeuer-Rast & Beziehungs-Meilensteine:** Kurze oder lange Rast am Feuer (`🏕️`), intime Gefährten-Zwischenszenen (*Campfire Banter*) und Auszeichnung von Vertrauens-Meilensteinen (+25, +50, +75).
+- **Taktischer Begegnungs-Modus:** Startet der Spielleiter einen echten Kampf, erscheinen eine Initiative-Leiste (Gruppe + Gegner) und Gegner-HP-Leisten über der Eingabe, mit Ein-Klick-Aktionen ⚔️ Angriff / 🛡️ Ausweichen / 🎒 Item / 🏃 Flucht, die der Spielleiter narrativ auflöst.
 - **Story-Arcs:** Verborgene Wendungen und Ermittlungen bleiben vor NPCs und der Gruppe geheim, bis im Spiel konkrete Hinweise gefunden werden.
 - **Zugsteuerung:** Wechsle zwischen den Eingabemodi Sagen, Tun, Denken und Regie, wähle den nächsten Sprecher manuell oder sende private Flüsternachrichten, die nur ein Gruppenmitglied sieht.
 - **Strukturierte Beziehungsverfolgung:** Vertrauensstufen und soziale Rollen werden serialisiert und in jeden Zug eingespeist, sodass Gefährten und NPCs ihre Beziehung zu dir nie „vergessen“.

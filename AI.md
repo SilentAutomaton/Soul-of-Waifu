@@ -43,7 +43,7 @@
 ├── app/
 │   ├── configuration/         # Konfigurationen & aktive Charakter-Shards (characters/*.json)
 │   ├── gui/                   # PySide6 GUI (chat_page, soul_stage_page, interface_signals)
-│   │   ├── soul_stage_page.py # Soul Stage RPG (HUD, Clocks, Dice, Camp, Inventar)
+│   │   ├── soul_stage_page.py # Soul Stage RPG (HUD, Clocks, Dice, Camp, Inventar, CombatBar)
 │   │   └── interface_signals.py # Signale, Turn-Management, Audio/TTS & Event-Dispatch
 │   ├── translations/          # Lokalisierung (de.yaml, en.yaml, ru.yaml)
 │   └── utils/                 # Platform-Compat, Local-Server-Manager, SFXManager, Audio, Live2D
@@ -68,7 +68,7 @@
 │
 ├── FORK-CHANGES.md            # Ausführliche Dokumentation aller Patches & Fork-Änderungen
 ├── README-LINUX.md            # Installations- und Betriebsanleitung für Linux
-├── Roadmap.md                 # Soul Stage RPG Roadmap (Phasen 1 bis 4 abgeschlossen)
+├── Roadmap.md                 # Soul Stage RPG Roadmap (Phasen 1 bis 5 abgeschlossen)
 └── AI.md                      # Dieser Leitfaden
 ```
 

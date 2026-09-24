@@ -1949,6 +1949,78 @@ ss_setup_dialog_title: Soul Stage — Настройка пати
 ss_setup_header: ⬡ Soul Stage
 ss_setup_sub: Выберите персонажей для пати. <b>{name}</b> добавлен автоматически.
 ss_whisper_to: шёпот для
+manual_dice_tooltip: Бросок кубика и проверка навыка (d20, d100, 2d6...)
+ss_audio_tooltip: RPG-аудио и озвучка (SFX и TTS) вкл/выкл
+ss_camp_tooltip: Отдых и костёр (восстановление и разговоры в отряде)
+ss_default_player_name: Игрок
+ss_default_companion_role: Спутник
+ss_item_used_text: '**{user}** использует **{item}**.'
+ss_item_cures_label: Лечит
+ss_camp_dialog_title: 🏕️ Отдых у костра
+ss_camp_header: КОСТЁР И ОТДЫХ
+ss_camp_subheader: Разбейте лагерь, восстановите силы и поговорите со спутниками.
+ss_camp_short_radio: 🍵  Короткий отдых (1 час)
+ss_camp_short_bullets: '• Восстанавливает +3 энергии
+
+  • Лечит +2 ОЗ
+
+  • Быстрая передышка перед следующим испытанием'
+ss_camp_long_radio: ⛺  Долгий отдых (8 часов)
+ss_camp_long_bullets: '• Полностью восстанавливает ОЗ
+
+  • Полностью восстанавливает энергию
+
+  • Полностью снимает стресс
+
+  • Лечит истощение и временные статус-эффекты'
+ss_camp_interlude_check: 🔥  Начать разговор у костра
+ss_camp_interlude_tooltip: Запускает атмосферную сцену у костра, где спутники доверительно говорят о пережитом и секретах.
+ss_camp_confirm_btn: 🏕️  Разбить лагерь
+ss_camp_long_title: ⛺ Долгий отдых завершён (8 часов)
+ss_camp_long_desc: 'Отряд разбивает лагерь на ночь. Огонь тихо потрескивает, пока все крепко спят.
+
+  • Полные ОЗ ({hp}/{hp_max}) и полная энергия ({en}/{en_max})
+
+  • Стресс полностью снят (0/{stress_max})
+
+  • Все эффекты истощения и статус-эффекты вылечены.'
+ss_camp_short_title: 🍵 Короткий отдых завершён (1 час)
+ss_camp_short_desc: 'Короткая передышка у костра. Спутники обрабатывают раны и пьют горячую воду.
+
+  • +3 энергии ({en}/{en_max})
+
+  • +2 ОЗ ({hp}/{hp_max})'
+ss_bond_milestone_msg: '⭐ **Достигнута веха отношений!** {companion} теперь считает {user} — **{title}** (близость: {affinity})!'
+ss_bond_title_25: Доверенное лицо
+ss_bond_title_50: Близкий друг и союзник
+ss_bond_title_75: Родство душ и верность
+ss_dice_dialog_title: 🎲 Бросок кубика и проверка навыка
+ss_dice_header: ПРОВЕРКА НАВЫКА И КУБИКИ
+ss_dice_subheader: Сделайте активную проверку и определите свою судьбу.
+ss_dice_die_label: 'Кубик:'
+ss_dice_d20: d20 (стандартный настольный)
+ss_dice_d100: d100 (процентный)
+ss_dice_d6: d6 (простой)
+ss_dice_2d6: 2d6 (PbtA / два кубика)
+ss_dice_d12: d12 (двенадцатигранный)
+ss_dice_skill_label: 'Навык:'
+ss_dice_no_modifier: Без модификатора (+0)
+ss_dice_custom: Свой вариант...
+ss_dice_modifier_label: 'Бонус / штраф:'
+ss_dice_dc_check: 'Бросок против сложности (DC):'
+ss_dice_intent_label: 'Действие / намерение (опционально):'
+ss_dice_intent_placeholder: напр. Я бесшумно проскальзываю мимо стражника...
+ss_dice_cancel: Отмена
+ss_dice_roll_now: 🎲 Бросить!
+ss_combat_attack: Атака
+ss_combat_dodge: Уклонение
+ss_combat_item: Предмет
+ss_combat_flee: Бегство
+ss_combat_attack_tag: Атака
+ss_combat_dodge_tag: Уклонение
+ss_combat_flee_tag: Бегство
+ss_combat_round: РАУНД
+ss_combat_defeated: Повержен
 starting_ambient: Начальный эмбиент
 starting_ambient_hint: Фоновый аудио для этой сцены. Планировщик может переключать его динамически.
 starting_background: Начальный фон

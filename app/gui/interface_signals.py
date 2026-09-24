@@ -3780,6 +3780,7 @@ class InterfaceSignals():
         self.ui.soul_stage_page.chat_view.update_campaign_tracker(
             ws_initial.campaign_board.to_dict()
         )
+        self.ui.soul_stage_page.chat_view.update_combat_bar(ws_initial.combat.to_dict())
 
         self.soul_stage_session = SoulStageSession(self.soul_stage_orchestrator, party_names, conv_method)
 
@@ -3847,6 +3848,7 @@ class InterfaceSignals():
                 chat_view.update_campaign_tracker(
                     ws.campaign_board.to_dict()
                 )
+                chat_view.update_combat_bar(ws.combat.to_dict())
 
             self.ss_msg_mgr = SoulStageMessageManager(
                 orchestrator=self.soul_stage_orchestrator,
@@ -4289,7 +4291,7 @@ class InterfaceSignals():
         entry = {
             "role": "event",
             "event_type": "dice",
-            "content": f"[MANUELLER WURF]: {result['description']}",
+            "content": f"[MANUAL ROLL]: {result['description']}",
             "success": result.get("success"),
         }
         if self._soul_stage_scene_id:
@@ -4303,7 +4305,7 @@ class InterfaceSignals():
 
         intent = result.get("intent", "").strip()
         if intent:
-            dice_info = f"[WURF: {result['description']}]"
+            dice_info = f"[ROLL: {result['description']}]"
             chat_view.text_input.setPlainText(f"{dice_info} {intent}")
             asyncio.create_task(self._ss_send_message())
 
@@ -4321,16 +4323,20 @@ class InterfaceSignals():
         cure_list = effect.get("cure_status", [])
 
         if hp_change:
-            ws.resources["hp"] = max(0, min(10, ws.resources.get("hp", 10) + hp_change))
+            pool = ws.resources["health"]
+            pool["current"] = max(0, min(pool["max"], pool["current"] + hp_change))
         if energy_change:
-            ws.resources["energy"] = max(0, min(6, ws.resources.get("energy", 6) + energy_change))
+            pool = ws.resources["energy"]
+            pool["current"] = max(0, min(pool["max"], pool["current"] + energy_change))
         if stress_change:
-            ws.resources["stress"] = max(0, min(6, ws.resources.get("stress", 0) + stress_change))
+            pool = ws.resources["stress"]
+            pool["current"] = max(0, min(pool["max"], pool["current"] + stress_change))
 
         cured = []
-        for st in list(ws.active_statuses):
+        for st in list(ws.player_status):
             if any(c.lower() in st.lower() for c in cure_list):
-                ws.remove_status(st)
+                ws.player_status.remove(st)
+                ws.status_durations.pop(st, None)
                 cured.append(st)
 
         item_removed = False
@@ -4342,25 +4348,28 @@ class InterfaceSignals():
         if not item_removed and item_name in ws.player_inventory:
             ws.player_inventory.remove(item_name)
 
-        chat_view.player_status_hud.update_resources(ws.resources, ws.active_statuses)
+        chat_view.update_player_hud(ws.resources, ws.player_status, ws.status_durations)
         chat_view.update_inventory_hud(ws.player_inventory)
 
         scene_data = _load_scenes().get("scenes", {}).get(self._soul_stage_scene_id, {})
         persona_key = scene_data.get("persona", "None")
         personas = self.configuration_settings.get_user_data("personas") or {}
-        user_name = "Spieler"
+        user_name = self.translations.get("ss_default_player_name", "Player")
         if persona_key and persona_key in personas:
-            user_name = personas[persona_key].get("user_name", "Spieler")
+            user_name = personas[persona_key].get("user_name", user_name)
 
         effect_parts = []
-        if hp_change: effect_parts.append(f"+{hp_change} LP" if hp_change > 0 else f"{hp_change} LP")
-        if energy_change: effect_parts.append(f"+{energy_change} Energie" if energy_change > 0 else f"{energy_change} Energie")
-        if stress_change: effect_parts.append(f"{stress_change} Stress")
-        if cured: effect_parts.append(f"Heilt: {', '.join(cured)}")
+        if hp_change: effect_parts.append(f"{'+' if hp_change > 0 else ''}{hp_change} HP")
+        if energy_change: effect_parts.append(f"{'+' if energy_change > 0 else ''}{energy_change} EN")
+        if stress_change: effect_parts.append(f"{'+' if stress_change > 0 else ''}{stress_change} Stress")
+        if cured:
+            cures_label = self.translations.get("ss_item_cures_label", "Cures")
+            effect_parts.append(f"{cures_label}: {', '.join(cured)}")
         details = f" ({', '.join(effect_parts)})" if effect_parts else ""
 
         card = SoulStageEventCard(event_type="item")
-        content_text = f"**{user_name}** verwendet **{item_name}**.{details}"
+        used_text = self.translations.get("ss_item_used_text", "**{user}** uses **{item}**.")
+        content_text = f"{used_text.replace('{user}', user_name).replace('{item}', item_name)}{details}"
         card.set_text(content_text)
         card.tts_requested.connect(lambda name, txt: self._ss_speak_text("NARRATOR", txt, is_narrator=True))
 
@@ -4400,49 +4409,71 @@ class InterfaceSignals():
         scene_data = _load_scenes().get("scenes", {}).get(self._soul_stage_scene_id, {})
         persona_key = scene_data.get("persona", "None")
         personas = self.configuration_settings.get_user_data("personas") or {}
-        user_name = "Spieler"
+        user_name = self.translations.get("ss_default_player_name", "Player")
         if persona_key and persona_key in personas:
-            user_name = personas[persona_key].get("user_name", "Spieler")
+            user_name = personas[persona_key].get("user_name", user_name)
 
         if rest_type == "long":
-            ws.resources["hp"] = 10
-            ws.resources["energy"] = 6
-            ws.resources["stress"] = 0
-            ws.active_statuses.clear()
+            health_pool = ws.resources["health"]
+            health_pool["current"] = health_pool["max"]
+            energy_pool = ws.resources["energy"]
+            energy_pool["current"] = energy_pool["max"]
+            ws.resources["stress"]["current"] = 0
+            ws.player_status.clear()
             ws.status_durations.clear()
-            title = "⛺ Lange Rast abgeschlossen (8 Stunden)"
-            desc = (
-                "Die Gruppe schlägt ihr Nachtlager auf. Die Flammen knistern leise, während alle tief und fest schlafen.\n"
-                "• Volle Lebenspunkte (10/10) & volle Energie (6/6)\n"
-                "• Stress vollständig abgebaut (0/6)\n"
-                "• Alle Erschöpfungs- und Statuseffekte sind auskuriert."
+            title = self.translations.get("ss_camp_long_title", "⛺ Long Rest complete (8 hours)")
+            desc = self.translations.get(
+                "ss_camp_long_desc",
+                "The group makes camp for the night. The flames crackle quietly as everyone sleeps deep and sound.\n"
+                "• Full HP ({hp}/{hp_max}) & full Energy ({en}/{en_max})\n"
+                "• Stress fully cleared (0/{stress_max})\n"
+                "• All exhaustion and status effects are cured.",
+            ).format(
+                hp=health_pool["current"], hp_max=health_pool["max"],
+                en=energy_pool["current"], en_max=energy_pool["max"],
+                stress_max=ws.resources["stress"]["max"],
             )
         else:
-            ws.resources["energy"] = min(6, ws.resources.get("energy", 6) + 3)
-            ws.resources["hp"] = min(10, ws.resources.get("hp", 10) + 2)
-            title = "🍵 Kurze Rast abgeschlossen (1 Stunde)"
-            desc = (
-                "Eine kurze Atempause am Lagerfeuer. Die Gefährten pflegen ihre Wunden und trinken heißes Wasser.\n"
-                f"• +3 Energie ({ws.resources['energy']}/6)\n"
-                f"• +2 Lebenspunkte ({ws.resources['hp']}/10)"
-            )
+            health_pool = ws.resources["health"]
+            energy_pool = ws.resources["energy"]
+            health_pool["current"] = min(health_pool["max"], health_pool["current"] + 2)
+            energy_pool["current"] = min(energy_pool["max"], energy_pool["current"] + 3)
+            title = self.translations.get("ss_camp_short_title", "🍵 Short Rest complete (1 hour)")
+            desc = self.translations.get(
+                "ss_camp_short_desc",
+                "A brief respite by the campfire. The companions tend their wounds and drink hot water.\n"
+                "• +3 Energy ({en}/{en_max})\n"
+                "• +2 HP ({hp}/{hp_max})",
+            ).format(hp=health_pool["current"], hp_max=health_pool["max"], en=energy_pool["current"], en_max=energy_pool["max"])
 
+        bond_milestone_tpl = self.translations.get(
+            "ss_bond_milestone_msg",
+            "⭐ **Bond Milestone reached!** {companion} now considers {user} a **{title}** (Affinity: {affinity})!",
+        )
+        milestone_titles = [
+            (25, self.translations.get("ss_bond_title_25", "Confidant")),
+            (50, self.translations.get("ss_bond_title_50", "Close Friend & Ally")),
+            (75, self.translations.get("ss_bond_title_75", "Soulbound & Loyal")),
+        ]
         bond_milestones = []
         for companion_name in session.party_names:
             rel = ws.relationship_graph.relationships.get((companion_name, user_name))
             old_aff = rel.affinity if rel else 0
             if not rel:
-                rel = ws.relationship_graph.set(companion_name, user_name, affinity=10, role_view="Gefährte")
+                rel = ws.relationship_graph.set(
+                    companion_name, user_name, affinity=10,
+                    role_view=self.translations.get("ss_default_companion_role", "Companion"),
+                )
             else:
                 rel.affinity = min(100, rel.affinity + (5 if rest_type == "long" else 2))
             new_aff = rel.affinity
-            for th, title_th in [(25, "Vertraute(r)"), (50, "Enger Freund & Verbündete(r)"), (75, "Seelenbande & Treue")]:
+            for th, title_th in milestone_titles:
                 if old_aff < th <= new_aff:
-                    bond_milestones.append(
-                        f"⭐ **Bond Milestone erreicht!** {companion_name} betrachtet {user_name} nun als **{title_th}** (Affinität: {new_aff})!"
-                    )
+                    bond_milestones.append(bond_milestone_tpl.format(
+                        companion=companion_name, user=user_name, title=title_th, affinity=new_aff,
+                    ))
 
-        chat_view.player_status_hud.update_resources(ws.resources, ws.active_statuses)
+        chat_view.update_player_hud(ws.resources, ws.player_status, ws.status_durations)
 
         card = SoulStageEventCard(event_type="camp")
         camp_text = f"**{title}**\n\n{desc}"
@@ -4472,11 +4503,11 @@ class InterfaceSignals():
 
         if include_interlude:
             prompt = (
-                f"[SYSTEM DIRECTIVE — CAMPFIRE INTERLUDE / LAGERFEUER-SZENE]:\n"
-                f"Die Gruppe versammelt sich im Schein des knisternden Lagerfeuers. "
-                f"Es ist eine intime, ruhige Nacht. Die Gefährten lassen den Tag Revue passieren, "
-                f"sprechen über ihre Sorgen, Hoffnungen oder scherzen entspannt miteinander. "
-                f"Gib den Charakteren Raum für tiefgründige, authentische Dialoge und emotionale Momente mit {user_name}."
+                f"[SYSTEM DIRECTIVE — CAMPFIRE INTERLUDE]:\n"
+                f"The group gathers in the glow of the crackling campfire. "
+                f"It is an intimate, quiet night. The companions reflect on the day, "
+                f"share their worries and hopes, or joke around with each other. "
+                f"Give the characters room for deep, authentic dialogue and emotional moments with {user_name}."
             )
             asyncio.create_task(self._ss_run_plot_advance(prompt))
 
@@ -4603,6 +4634,7 @@ class InterfaceSignals():
         chat_view.update_campaign_tracker(
             orch.world_state.campaign_board.to_dict()
         )
+        chat_view.update_combat_bar(orch.world_state.combat.to_dict())
 
     async def _ss_continue_plot(self):
         if not self.soul_stage_session:
@@ -4963,7 +4995,8 @@ class InterfaceSignals():
             chat_view.update_campaign_tracker(
                 ws.campaign_board.to_dict()
             )
-        
+            chat_view.update_combat_bar(ws.combat.to_dict())
+
         async def on_choices(choices: list, event_type: str):
             _plot_event_type[0] = event_type
             if choices and not getattr(self, "_ss_auto_active", False):
@@ -5173,7 +5206,7 @@ class InterfaceSignals():
             event_type = entry.get("event_type", "discovery")
             if event_type == "dice":
                 card = SoulStageDiceCard()
-                clean_content = content.replace("[MANUELLER WURF]: ", "")
+                clean_content = content.replace("[MANUAL ROLL]: ", "").replace("[MANUELLER WURF]: ", "")
                 card.set_final(clean_content, entry.get("success"))
                 if insert_at is not None:
                     chat_view.chat_container.insertWidget(insert_at, card)
@@ -5777,6 +5810,7 @@ class InterfaceSignals():
             chat_view.update_campaign_tracker(
                 ws.campaign_board.to_dict()
             )
+            chat_view.update_combat_bar(ws.combat.to_dict())
 
         async def on_error(msg: str):
             b = SoulStageEventCard(event_type="none")

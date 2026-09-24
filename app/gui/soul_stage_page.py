@@ -2518,9 +2518,10 @@ class SoulStageEventCard(_BaseChatBubble):
         "arc":         ("📜 STORY ARC", "rgba(60, 30, 80, 0.90)"),
         "consequence": ("⚖ FATE RECORDED", "rgba(70, 50, 15, 0.90)"),
         "clock":       ("⏰ CLOCK ADVANCED", "rgba(75, 25, 25, 0.90)"),
-        "camp":        ("🏕️ LAGERFEUER & RAST", "rgba(70, 35, 10, 0.90)"),
+        "combat":      ("⚔ COMBAT", "rgba(80, 15, 15, 0.90)"),
+        "camp":        ("🏕️ CAMPFIRE & REST", "rgba(70, 35, 10, 0.90)"),
         "milestone":   ("⭐ BOND MILESTONE", "rgba(65, 30, 80, 0.90)"),
-        "item":        ("🎒 GEGENSTAND BENUTZT", "rgba(20, 50, 40, 0.90)"),
+        "item":        ("🎒 ITEM USED", "rgba(20, 50, 40, 0.90)"),
         "none":        ("NARRATOR", "rgba(35, 28, 15, 0.85)"),
     }
 
@@ -2534,6 +2535,8 @@ class SoulStageEventCard(_BaseChatBubble):
             avatar = "app/gui/icons/soul_stage/warning.svg"
         elif event_type == "clock":
             avatar = "app/gui/icons/soul_stage/stats.svg"
+        elif event_type == "combat":
+            avatar = "app/gui/icons/soul_stage/sword.svg"
         elif event_type == "camp":
             avatar = "app/gui/icons/soul_stage/torch.svg"
         elif event_type == "milestone":
@@ -2567,22 +2570,22 @@ class InventoryHUD(QWidget):
     _DEFAULT_ICON = "box.svg"
 
     _CONSUMABLE_EFFECTS = {
-        "potion": {"hp": 4, "msg": "Heilt 4 LP"},
-        "heiltrank": {"hp": 4, "msg": "Heilt 4 LP"},
-        "trank": {"hp": 3, "msg": "Heilt 3 LP"},
-        "elixir": {"hp": 3, "energy": 2, "msg": "Heilt 3 LP & +2 Energie"},
-        "elixier": {"hp": 3, "energy": 2, "msg": "Heilt 3 LP & +2 Energie"},
-        "apple": {"energy": 2, "msg": "+2 Energie"},
-        "apfel": {"energy": 2, "msg": "+2 Energie"},
-        "bread": {"energy": 2, "msg": "+2 Energie"},
-        "brot": {"energy": 2, "msg": "+2 Energie"},
-        "ration": {"energy": 3, "hp": 1, "msg": "+3 Energie & +1 LP"},
-        "water": {"stress": -2, "energy": 1, "msg": "-2 Stress & +1 Energie"},
-        "wasser": {"stress": -2, "energy": 1, "msg": "-2 Stress & +1 Energie"},
-        "bandage": {"hp": 2, "cure_status": ["bleeding", "blutend", "wound", "wunde"], "msg": "Stoppt Blutung, +2 LP"},
-        "verband": {"hp": 2, "cure_status": ["bleeding", "blutend", "wound", "wunde"], "msg": "Stoppt Blutung, +2 LP"},
-        "antidote": {"cure_status": ["poisoned", "vergiftet"], "msg": "Heilt Vergiftung"},
-        "gegengift": {"cure_status": ["poisoned", "vergiftet"], "msg": "Heilt Vergiftung"},
+        "potion": {"hp": 4, "msg": "Heals 4 HP"},
+        "heiltrank": {"hp": 4, "msg": "Heals 4 HP"},
+        "trank": {"hp": 3, "msg": "Heals 3 HP"},
+        "elixir": {"hp": 3, "energy": 2, "msg": "Heals 3 HP & +2 Energy"},
+        "elixier": {"hp": 3, "energy": 2, "msg": "Heals 3 HP & +2 Energy"},
+        "apple": {"energy": 2, "msg": "+2 Energy"},
+        "apfel": {"energy": 2, "msg": "+2 Energy"},
+        "bread": {"energy": 2, "msg": "+2 Energy"},
+        "brot": {"energy": 2, "msg": "+2 Energy"},
+        "ration": {"energy": 3, "hp": 1, "msg": "+3 Energy & +1 HP"},
+        "water": {"stress": -2, "energy": 1, "msg": "-2 Stress & +1 Energy"},
+        "wasser": {"stress": -2, "energy": 1, "msg": "-2 Stress & +1 Energy"},
+        "bandage": {"hp": 2, "cure_status": ["bleeding", "blutend", "wound", "wunde"], "msg": "Stops bleeding, +2 HP"},
+        "verband": {"hp": 2, "cure_status": ["bleeding", "blutend", "wound", "wunde"], "msg": "Stops bleeding, +2 HP"},
+        "antidote": {"cure_status": ["poisoned", "vergiftet"], "msg": "Cures poison"},
+        "gegengift": {"cure_status": ["poisoned", "vergiftet"], "msg": "Cures poison"},
         "herb": {"stress": -2, "msg": "-2 Stress"},
         "kraut": {"stress": -2, "msg": "-2 Stress"},
     }
@@ -2678,9 +2681,9 @@ class InventoryHUD(QWidget):
             eff_msg = ""
             for k, eff in self._CONSUMABLE_EFFECTS.items():
                 if k in item.lower():
-                    eff_msg = f" ({eff.get('msg', 'Verbrauchen')})"
+                    eff_msg = f" ({eff.get('msg', 'Consume')})"
                     break
-            btn.setToolTip(f"{self.translations.get('tooltip_use_item', 'Benutzen: {item}').replace('{item}', item)}{eff_msg}")
+            btn.setToolTip(f"{self.translations.get('tooltip_use_item', 'Use: {item}').replace('{item}', item)}{eff_msg}")
             btn.setStyleSheet("""
                 QPushButton {
                     background: rgba(255,255,255,0.03);
@@ -2980,6 +2983,178 @@ class PlayerStatusHUD(QFrame):
                 self.status_layout.addWidget(badge)
 
         self.status_layout.addStretch()
+
+
+class CombatBar(QFrame):
+    """
+    Lightweight tactical HUD (Phase 5): initiative order, enemy HP bars, and
+    quick-action buttons (Attack/Dodge/Item/Flee). Hidden outside of combat.
+    """
+    quick_action = pyqtSignal(str)
+    open_inventory = pyqtSignal()
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setObjectName("combat_bar")
+        self.translations = _load_translations()
+
+        self.setStyleSheet("""
+            QFrame#combat_bar {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 rgba(40, 14, 14, 0.94),
+                    stop:1 rgba(22, 10, 10, 0.97));
+                border: 1px solid rgba(255, 90, 90, 0.20);
+                border-top: 1px solid rgba(255, 120, 120, 0.30);
+                border-radius: 14px;
+            }
+        """)
+        shadow = QtWidgets.QGraphicsDropShadowEffect(self)
+        shadow.setBlurRadius(16)
+        shadow.setOffset(0, 3)
+        shadow.setColor(QColor(0, 0, 0, 150))
+        self.setGraphicsEffect(shadow)
+
+        root = QVBoxLayout(self)
+        root.setContentsMargins(14, 8, 14, 8)
+        root.setSpacing(6)
+
+        hdr = QHBoxLayout()
+        hdr.setSpacing(8)
+        self._round_lbl = QLabel("⚔ ROUND 1")
+        self._round_lbl.setFont(_font("Inter Tight SemiBold", 10, bold=True))
+        self._round_lbl.setStyleSheet("color: #FF8A80; letter-spacing: 1px;")
+        hdr.addWidget(self._round_lbl)
+        self._initiative_row = QHBoxLayout()
+        self._initiative_row.setSpacing(4)
+        hdr.addLayout(self._initiative_row)
+        hdr.addStretch()
+        root.addLayout(hdr)
+
+        self._enemies_col = QVBoxLayout()
+        self._enemies_col.setSpacing(4)
+        root.addLayout(self._enemies_col)
+
+        actions_row = QHBoxLayout()
+        actions_row.setSpacing(6)
+        self._btn_attack = self._make_action_btn(
+            "⚔", self.translations.get("ss_combat_attack", "Attack"), "255, 90, 90")
+        self._btn_dodge = self._make_action_btn(
+            "🛡", self.translations.get("ss_combat_dodge", "Dodge"), "90, 180, 255")
+        self._btn_item = self._make_action_btn(
+            "🎒", self.translations.get("ss_combat_item", "Item"), "90, 220, 140")
+        self._btn_flee = self._make_action_btn(
+            "🏃", self.translations.get("ss_combat_flee", "Flee"), "255, 200, 90")
+        for b in (self._btn_attack, self._btn_dodge, self._btn_item, self._btn_flee):
+            actions_row.addWidget(b)
+        root.addLayout(actions_row)
+
+        self._btn_attack.clicked.connect(lambda: self.quick_action.emit(
+            f"[{self.translations.get('ss_combat_attack_tag', 'Attack')}] *I attack!*"))
+        self._btn_dodge.clicked.connect(lambda: self.quick_action.emit(
+            f"[{self.translations.get('ss_combat_dodge_tag', 'Dodge')}] *I duck and weave, avoiding the attack.*"))
+        self._btn_item.clicked.connect(self.open_inventory.emit)
+        self._btn_flee.clicked.connect(lambda: self.quick_action.emit(
+            f"[{self.translations.get('ss_combat_flee_tag', 'Flee')}] *I break away and try to retreat from the fight!*"))
+
+        self.hide()
+
+    @staticmethod
+    def _make_action_btn(icon: str, label: str, rgb: str) -> QPushButton:
+        btn = QPushButton(f"{icon}  {label}")
+        btn.setFont(_font("Inter Tight SemiBold", 10, bold=True))
+        btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        btn.setMinimumHeight(30)
+        btn.setStyleSheet(f"""
+            QPushButton {{
+                background: rgba({rgb}, 0.12);
+                border: 1px solid rgba({rgb}, 0.35);
+                border-radius: 8px;
+                color: rgba(255, 255, 255, 0.92);
+                padding: 4px 12px;
+            }}
+            QPushButton:hover {{ background: rgba({rgb}, 0.24); }}
+        """)
+        return btn
+
+    def update_combat(self, combat_data: dict):
+        combat_data = combat_data or {}
+        if not combat_data.get("active"):
+            self.hide()
+            return
+
+        self._round_lbl.setText(f"⚔ {self.translations.get('ss_combat_round', 'ROUND')} {combat_data.get('round', 1)}")
+
+        while self._initiative_row.count():
+            child = self._initiative_row.takeAt(0)
+            if child.widget():
+                child.widget().deleteLater()
+        order = combat_data.get("initiative_order", [])
+        enemy_names = {e.get("name") for e in combat_data.get("enemies", [])}
+        current_idx = combat_data.get("turn_index", 0)
+        current = order[current_idx % len(order)] if order else None
+        for name in order:
+            is_current = name == current
+            is_enemy = name in enemy_names
+            chip = QLabel(name)
+            chip.setFont(_font("Inter Tight SemiBold", 9, bold=is_current))
+            base_color = "rgba(255, 130, 130, 0.85)" if is_enemy else "rgba(130, 200, 255, 0.85)"
+            border = "rgba(255, 210, 90, 0.85)" if is_current else "rgba(255, 255, 255, 0.12)"
+            bg = "rgba(255, 210, 90, 0.16)" if is_current else "rgba(255, 255, 255, 0.05)"
+            chip.setStyleSheet(f"""
+                QLabel {{
+                    color: {base_color if not is_current else '#FFE082'};
+                    background: {bg};
+                    border: 1px solid {border};
+                    border-radius: 6px;
+                    padding: 2px 7px;
+                }}
+            """)
+            self._initiative_row.addWidget(chip)
+
+        while self._enemies_col.count():
+            child = self._enemies_col.takeAt(0)
+            if child.widget():
+                child.widget().deleteLater()
+        for enemy in combat_data.get("enemies", []):
+            row = QHBoxLayout()
+            row.setSpacing(6)
+            name_lbl = QLabel(enemy.get("name", "?"))
+            name_lbl.setFont(_font("Inter Tight Medium", 9))
+            name_lbl.setFixedWidth(110)
+            defeated = enemy.get("defeated")
+            name_lbl.setStyleSheet(
+                "color: rgba(255,255,255,0.35); text-decoration: line-through;" if defeated
+                else "color: rgba(255,255,255,0.85);"
+            )
+            row.addWidget(name_lbl)
+            hp = enemy.get("hp", 0)
+            hp_max = max(1, enemy.get("max_hp", 1))
+            bar = QtWidgets.QProgressBar()
+            bar.setFixedSize(120, 7)
+            bar.setTextVisible(False)
+            bar.setRange(0, hp_max)
+            bar.setValue(hp)
+            ratio = hp / float(hp_max)
+            color = "rgba(255, 75, 75, 0.55)" if defeated else (
+                "rgba(72, 199, 116, 0.90)" if ratio > 0.5 else
+                "rgba(255, 180, 50, 0.90)" if ratio > 0.25 else "rgba(255, 75, 75, 0.95)"
+            )
+            bar.setStyleSheet(f"""
+                QProgressBar {{ border: none; border-radius: 3px; background-color: rgba(255,255,255,0.08); }}
+                QProgressBar::chunk {{ border-radius: 3px; background-color: {color}; }}
+            """)
+            row.addWidget(bar)
+            hp_lbl = QLabel(self.translations.get("ss_combat_defeated", "Defeated") if defeated else f"{hp}/{hp_max}")
+            hp_lbl.setFont(_font("Inter Tight Medium", 9))
+            hp_lbl.setStyleSheet("color: rgba(255,255,255,0.55);")
+            row.addWidget(hp_lbl)
+            row.addStretch()
+            row_w = QWidget()
+            row_w.setLayout(row)
+            self._enemies_col.addWidget(row_w)
+
+        self.show()
 
 
 class SoulStageClockTracker(QWidget):
@@ -3736,11 +3911,11 @@ class ManualDiceDialog(QtWidgets.QDialog):
 
     def __init__(self, player_skills: Optional[dict] = None, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("🎲 Würfelwurf & Fertigkeitsprobe")
+        self.translations = _load_translations()
+        self.setWindowTitle(self.translations.get("ss_dice_dialog_title", "🎲 Dice Roll & Skill Check"))
         self.setFixedSize(440, 480)
         self.setModal(True)
         self.player_skills = player_skills or {}
-        self.translations = _load_translations()
 
         self.setStyleSheet("""
             QDialog {
@@ -3786,10 +3961,10 @@ class ManualDiceDialog(QtWidgets.QDialog):
         hdr_icon.setStyleSheet("font-size: 24px; background: transparent;")
         hdr.addWidget(hdr_icon)
         hdr_text_l = QVBoxLayout()
-        t_lbl = QLabel("FERTIGKEITSPROBE & WÜRFEL")
+        t_lbl = QLabel(self.translations.get("ss_dice_header", "SKILL CHECK & DICE"))
         t_lbl.setFont(_font("Inter Tight SemiBold", 12, bold=True))
         t_lbl.setStyleSheet("color: #FFE082; letter-spacing: 1px;")
-        sub_lbl = QLabel("Führe eine aktive Probe aus und bestimme dein Schicksal.")
+        sub_lbl = QLabel(self.translations.get("ss_dice_subheader", "Make an active check and decide your fate."))
         sub_lbl.setFont(_font("Inter Tight Medium", 10))
         sub_lbl.setStyleSheet("color: rgba(255, 255, 255, 0.50);")
         hdr_text_l.addWidget(t_lbl)
@@ -3803,34 +3978,34 @@ class ManualDiceDialog(QtWidgets.QDialog):
         layout.addWidget(sep)
 
         die_row = QHBoxLayout()
-        die_lbl = QLabel("Würfel:")
+        die_lbl = QLabel(self.translations.get("ss_dice_die_label", "Die:"))
         die_lbl.setFont(_font("Inter Tight SemiBold", 11, bold=True))
         die_row.addWidget(die_lbl)
         self.combo_die = QtWidgets.QComboBox()
-        self.combo_die.addItem("W20 (Standard Tabletop)", 20)
-        self.combo_die.addItem("W100 (Prozentual)", 100)
-        self.combo_die.addItem("W6 (Einfach)", 6)
-        self.combo_die.addItem("2W6 (PbtA / 2 Würfel)", "2d6")
-        self.combo_die.addItem("W12 (Zwölfflächner)", 12)
+        self.combo_die.addItem(self.translations.get("ss_dice_d20", "d20 (Standard Tabletop)"), 20)
+        self.combo_die.addItem(self.translations.get("ss_dice_d100", "d100 (Percentile)"), 100)
+        self.combo_die.addItem(self.translations.get("ss_dice_d6", "d6 (Simple)"), 6)
+        self.combo_die.addItem(self.translations.get("ss_dice_2d6", "2d6 (PbtA / two dice)"), "2d6")
+        self.combo_die.addItem(self.translations.get("ss_dice_d12", "d12 (Twelve-sided)"), 12)
         die_row.addWidget(self.combo_die, 1)
         layout.addLayout(die_row)
 
         skill_row = QHBoxLayout()
-        skill_lbl = QLabel("Fertigkeit:")
+        skill_lbl = QLabel(self.translations.get("ss_dice_skill_label", "Skill:"))
         skill_lbl.setFont(_font("Inter Tight SemiBold", 11, bold=True))
         skill_row.addWidget(skill_lbl)
         self.combo_skill = QtWidgets.QComboBox()
-        self.combo_skill.addItem("Ohne Modifikator (+0)", 0)
+        self.combo_skill.addItem(self.translations.get("ss_dice_no_modifier", "No modifier (+0)"), 0)
         for s_name, s_val in self.player_skills.items():
             mod_sign = "+" if s_val >= 0 else ""
             self.combo_skill.addItem(f"{s_name.capitalize()} ({mod_sign}{s_val})", s_val)
-        self.combo_skill.addItem("Benutzerdefiniert...", "custom")
+        self.combo_skill.addItem(self.translations.get("ss_dice_custom", "Custom..."), "custom")
         self.combo_skill.currentIndexChanged.connect(self._on_skill_changed)
         skill_row.addWidget(self.combo_skill, 1)
         layout.addLayout(skill_row)
 
         self.mod_row = QHBoxLayout()
-        self.mod_lbl = QLabel("Bonus / Malus:")
+        self.mod_lbl = QLabel(self.translations.get("ss_dice_modifier_label", "Bonus / Malus:"))
         self.mod_lbl.setFont(_font("Inter Tight SemiBold", 11, bold=True))
         self.mod_spin = QtWidgets.QSpinBox()
         self.mod_spin.setRange(-10, 20)
@@ -3843,7 +4018,7 @@ class ManualDiceDialog(QtWidgets.QDialog):
         layout.addWidget(self.mod_row_w)
 
         dc_row = QHBoxLayout()
-        self.check_dc = QtWidgets.QCheckBox("Gegen Schwierigkeitsgrad (DC) würfeln:")
+        self.check_dc = QtWidgets.QCheckBox(self.translations.get("ss_dice_dc_check", "Roll against a Difficulty Class (DC):"))
         self.check_dc.setChecked(True)
         self.dc_spin = QtWidgets.QSpinBox()
         self.dc_spin.setRange(1, 35)
@@ -3853,17 +4028,17 @@ class ManualDiceDialog(QtWidgets.QDialog):
         dc_row.addWidget(self.dc_spin)
         layout.addLayout(dc_row)
 
-        intent_lbl = QLabel("Aktion / Vorhaben (optional):")
+        intent_lbl = QLabel(self.translations.get("ss_dice_intent_label", "Action / Intent (optional):"))
         intent_lbl.setFont(_font("Inter Tight SemiBold", 10, bold=True))
         layout.addWidget(intent_lbl)
         self.edit_intent = QtWidgets.QLineEdit()
-        self.edit_intent.setPlaceholderText("z. B. Ich schleiche lautlos an der Wache vorbei...")
+        self.edit_intent.setPlaceholderText(self.translations.get("ss_dice_intent_placeholder", "e.g. I sneak silently past the guard..."))
         layout.addWidget(self.edit_intent)
 
         layout.addStretch()
 
         btn_box = QHBoxLayout()
-        btn_cancel = QPushButton("Abbrechen")
+        btn_cancel = QPushButton(self.translations.get("ss_dice_cancel", "Cancel"))
         btn_cancel.setFont(_font("Inter Tight Medium", 11))
         btn_cancel.setStyleSheet("""
             QPushButton {
@@ -3878,7 +4053,7 @@ class ManualDiceDialog(QtWidgets.QDialog):
         btn_cancel.clicked.connect(self.reject)
         btn_box.addWidget(btn_cancel)
 
-        btn_roll = QPushButton("🎲 Jetzt würfeln!")
+        btn_roll = QPushButton(self.translations.get("ss_dice_roll_now", "🎲 Roll now!"))
         btn_roll.setFont(_font("Inter Tight SemiBold", 11, bold=True))
         btn_roll.setStyleSheet("""
             QPushButton {
@@ -3911,7 +4086,7 @@ class ManualDiceDialog(QtWidgets.QDialog):
         skill_val = self.combo_skill.currentData()
         if skill_val == "custom":
             mod = self.mod_spin.value()
-            skill_name = "Probe"
+            skill_name = "Check"
         else:
             mod = int(skill_val or 0)
             skill_name = self.combo_skill.currentText().split("(")[0].strip()
@@ -3948,11 +4123,11 @@ class ManualDiceDialog(QtWidgets.QDialog):
         mod_str = f"{'+' if mod >= 0 else ''}{mod}" if mod != 0 else ""
         desc = f"{skill_name} ({notation}{mod_str}) = {total}"
         if natural == 20:
-            desc += " [Kritischer Erfolg! 🌟]"
+            desc += " [Critical Success! 🌟]"
         elif natural == 1:
-            desc += " [Kritischer Patzer! 💥]"
+            desc += " [Critical Failure! 💥]"
         elif has_dc:
-            outcome = "Erfolg" if success else "Fehlschlag"
+            outcome = "Success" if success else "Failure"
             desc += f" vs DC {dc} — {outcome}"
 
         result = {
@@ -3977,10 +4152,10 @@ class SoulStageCampDialog(QtWidgets.QDialog):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("🏕️ Rast & Lagerfeuer")
+        self.translations = _load_translations()
+        self.setWindowTitle(self.translations.get("ss_camp_dialog_title", "🏕️ Rest & Campfire"))
         self.setFixedSize(460, 520)
         self.setModal(True)
-        self.translations = _load_translations()
 
         self.setStyleSheet("""
             QDialog {
@@ -4015,10 +4190,10 @@ class SoulStageCampDialog(QtWidgets.QDialog):
         hdr_icon.setStyleSheet("font-size: 28px; background: transparent;")
         hdr.addWidget(hdr_icon)
         hdr_text_l = QVBoxLayout()
-        t_lbl = QLabel("LAGERFEUER & RAST")
+        t_lbl = QLabel(self.translations.get("ss_camp_header", "CAMPFIRE & REST"))
         t_lbl.setFont(_font("Inter Tight SemiBold", 13, bold=True))
         t_lbl.setStyleSheet("color: #FFB74D; letter-spacing: 1.5px;")
-        sub_lbl = QLabel("Schlagt das Lager auf, erholt eure Kräfte und sprecht mit euren Gefährten.")
+        sub_lbl = QLabel(self.translations.get("ss_camp_subheader", "Make camp, recover your strength, and talk to your companions."))
         sub_lbl.setFont(_font("Inter Tight Medium", 10))
         sub_lbl.setWordWrap(True)
         sub_lbl.setStyleSheet("color: rgba(255, 255, 255, 0.55);")
@@ -4043,10 +4218,13 @@ class SoulStageCampDialog(QtWidgets.QDialog):
             }
         """)
         s_lyt = QVBoxLayout(short_card)
-        self.radio_short = QtWidgets.QRadioButton("🍵  Kurze Rast (1 Stunde)")
+        self.radio_short = QtWidgets.QRadioButton(self.translations.get("ss_camp_short_radio", "🍵  Short Rest (1 hour)"))
         self.radio_short.setFont(_font("Inter Tight SemiBold", 12, bold=True))
         s_lyt.addWidget(self.radio_short)
-        s_desc = QLabel("• Stellt +3 Energie wieder her\n• Heilt +2 Lebenspunkte (HP)\n• Schnelles Durchatmen vor der nächsten Herausforderung")
+        s_desc = QLabel(self.translations.get(
+            "ss_camp_short_bullets",
+            "• Restores +3 Energy\n• Heals +2 HP\n• A quick breather before the next challenge",
+        ))
         s_desc.setFont(_font("Inter Tight Medium", 10))
         s_desc.setStyleSheet("color: rgba(255, 255, 255, 0.60); padding-left: 24px;")
         s_lyt.addWidget(s_desc)
@@ -4063,27 +4241,33 @@ class SoulStageCampDialog(QtWidgets.QDialog):
             }
         """)
         l_lyt = QVBoxLayout(long_card)
-        self.radio_long = QtWidgets.QRadioButton("⛺  Lange Rast (8 Stunden)")
+        self.radio_long = QtWidgets.QRadioButton(self.translations.get("ss_camp_long_radio", "⛺  Long Rest (8 hours)"))
         self.radio_long.setFont(_font("Inter Tight SemiBold", 12, bold=True))
         self.radio_long.setChecked(True)
         l_lyt.addWidget(self.radio_long)
-        l_desc = QLabel("• Volle Lebenspunkte (HP 10/10) wiederhergestellt\n• Volle Energie (6/6) regeneriert\n• Stress komplett abgebaut (0/6)\n• Heilt Erschöpfung und temporäre Statuseffekte aus")
+        l_desc = QLabel(self.translations.get(
+            "ss_camp_long_bullets",
+            "• Full HP restored\n• Full Energy regenerated\n• Stress fully cleared\n• Cures exhaustion and temporary status effects",
+        ))
         l_desc.setFont(_font("Inter Tight Medium", 10))
         l_desc.setStyleSheet("color: rgba(255, 210, 160, 0.75); padding-left: 24px;")
         l_lyt.addWidget(l_desc)
         self.btn_group.addButton(self.radio_long)
         layout.addWidget(long_card)
 
-        self.check_interlude = QtWidgets.QCheckBox("🔥  Lagerfeuer-Gespräch einleiten (Campfire Banter)")
+        self.check_interlude = QtWidgets.QCheckBox(self.translations.get("ss_camp_interlude_check", "🔥  Start Campfire Banter"))
         self.check_interlude.setFont(_font("Inter Tight SemiBold", 11, bold=True))
         self.check_interlude.setChecked(True)
-        self.check_interlude.setToolTip("Startet eine atmosphärische Lagerfeuer-Szene, in der die Gefährten intim über Erlebnisse und Geheimnisse plaudern.")
+        self.check_interlude.setToolTip(self.translations.get(
+            "ss_camp_interlude_tooltip",
+            "Starts an atmospheric campfire scene where the companions talk intimately about experiences and secrets.",
+        ))
         layout.addWidget(self.check_interlude)
 
         layout.addStretch()
 
         btn_box = QHBoxLayout()
-        btn_cancel = QPushButton("Abbrechen")
+        btn_cancel = QPushButton(self.translations.get("ss_dice_cancel", "Cancel"))
         btn_cancel.setFont(_font("Inter Tight Medium", 11))
         btn_cancel.setStyleSheet("""
             QPushButton {
@@ -4098,7 +4282,7 @@ class SoulStageCampDialog(QtWidgets.QDialog):
         btn_cancel.clicked.connect(self.reject)
         btn_box.addWidget(btn_cancel)
 
-        btn_camp = QPushButton("🏕️  Lager aufschlagen")
+        btn_camp = QPushButton(self.translations.get("ss_camp_confirm_btn", "🏕️  Make Camp"))
         btn_camp.setFont(_font("Inter Tight SemiBold", 11, bold=True))
         btn_camp.setStyleSheet("""
             QPushButton {
@@ -5569,7 +5753,7 @@ class SoulStageChatView(QFrame):
 
         self.btn_audio = _icon_btn(
             "app/gui/icons/voice.png",
-            self.translations.get("ss_audio_tooltip", "RPG Audio & Sprachausgabe (SFX & TTS) an/aus"),
+            self.translations.get("ss_audio_tooltip", "RPG Audio & Voice Readout (SFX & TTS) on/off"),
             "100,200,255"
         )
         self.btn_audio.setCheckable(True)
@@ -5579,7 +5763,7 @@ class SoulStageChatView(QFrame):
 
         self.btn_camp = _icon_btn(
             "app/gui/icons/soul_stage/torch.svg",
-            self.translations.get("ss_camp_tooltip", "Rast & Campfire (Erholung & Gruppen-Banter)"),
+            self.translations.get("ss_camp_tooltip", "Rest & Campfire (recovery & group banter)"),
             "255,140,50"
         )
         self.btn_camp.clicked.connect(self._open_camp_dialog)
@@ -5735,7 +5919,7 @@ class SoulStageChatView(QFrame):
         self.btn_manual_dice.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.btn_manual_dice.setIcon(QIcon("app/gui/icons/d20.png"))
         self.btn_manual_dice.setIconSize(QtCore.QSize(18, 18))
-        self.btn_manual_dice.setToolTip(self.translations.get("manual_dice_tooltip", "Würfelwurf & Fertigkeitsprobe (d20, d100, 2d6...)"))
+        self.btn_manual_dice.setToolTip(self.translations.get("manual_dice_tooltip", "Dice Roll & Skill Check (d20, d100, 2d6...)"))
         self.btn_manual_dice.setStyleSheet("""
             QPushButton {
                 background-color: transparent;
@@ -5765,6 +5949,19 @@ class SoulStageChatView(QFrame):
         self.choices_bar = ChoicesBar()
         self.choices_bar.choice_selected.connect(self._on_choice_selected)
         root.addWidget(self.choices_bar)
+
+        self.combat_bar_container = QFrame()
+        self.combat_bar_container.setStyleSheet("background: transparent; border: none;")
+        combat_l = QHBoxLayout(self.combat_bar_container)
+        combat_l.setContentsMargins(0, 2, 0, 2)
+        combat_l.setSpacing(0)
+        combat_l.addStretch()
+        self.combat_bar = CombatBar()
+        self.combat_bar.setMaximumWidth(681)
+        self.combat_bar.quick_action.connect(self._on_choice_selected)
+        combat_l.addWidget(self.combat_bar)
+        combat_l.addStretch()
+        root.addWidget(self.combat_bar_container)
 
         self.hud_container = QFrame()
         self.hud_container.setObjectName("hud_container")
@@ -5802,6 +5999,7 @@ class SoulStageChatView(QFrame):
         )
         self.inventory_hud.item_consumed.connect(self.item_consumed_signal.emit)
         self.inventory_hud.hide()
+        self.combat_bar.open_inventory.connect(self.inventory_hud.open_full_requested.emit)
 
         self.clock_tracker = SoulStageClockTracker(
             parent=self.chat_page,
@@ -5998,6 +6196,10 @@ class SoulStageChatView(QFrame):
     def update_player_hud(self, resources: dict, player_status: list, status_durations: dict):
         if hasattr(self, "player_status_hud"):
             self.player_status_hud.update_status(resources, player_status, status_durations)
+
+    def update_combat_bar(self, combat_data: dict):
+        if hasattr(self, "combat_bar"):
+            self.combat_bar.update_combat(combat_data)
 
     def update_campaign_tracker(self, board_data: dict):
         if hasattr(self, "clock_tracker"):

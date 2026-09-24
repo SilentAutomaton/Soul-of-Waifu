@@ -56,6 +56,13 @@ CHECKS=(
     "Answer budget follows max tokens|app/utils/ai_clients/prompt_engine.py|def _get_response_reserve"
     "Server stops with the app|app/utils/ai_clients/local_server_manager.py|def shutdown_sync"
     "VRM view survives a character switch|app/gui/custom_widgets.py|def run_webview_js"
+
+    "Procedural SFX synthesizer|app/utils/sfx_manager.py|class SFXManager"
+    "Soul Stage RPG Evolution (Phases 1-4)|app/gui/soul_stage_page.py|class PlayerStatusHUD"
+    "Rest/Camp and item-use HUD updates use the real API|app/gui/interface_signals.py|update_player_hud(ws.resources, ws.player_status"
+    "Dice/Camp dialogs and RPG event text are translated|app/gui/soul_stage_page.py|ss_dice_dialog_title"
+    "Soul Stage RPG Evolution (Phase 5): Tactical Encounter Mode|app/utils/ai_clients/soul_stage_engine.py|class CombatEncounter"
+    "Combat initiative & enemy-HP HUD|app/gui/soul_stage_page.py|class CombatBar"
 )
 
 echo "${BOLD}Soul of Waifu - fork report${RESET}"

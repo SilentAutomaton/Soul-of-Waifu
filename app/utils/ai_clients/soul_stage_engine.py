@@ -332,6 +332,101 @@ class CampaignBoard:
         return "\n".join(lines)
 
 
+class CombatEncounter:
+    """Lightweight tactical layer: initiative order + enemy HP for Phase 5 (no grid, no full ruleset)."""
+    MAX_ENEMIES = 8
+
+    def __init__(self, data: Optional[dict] = None):
+        data = data or {}
+        self.active: bool = bool(data.get("active", False))
+        self.round: int = max(1, int(data.get("round", 1) or 1))
+        self.enemies: list[dict] = [self._normalise_enemy(e) for e in list(data.get("enemies", []))[:self.MAX_ENEMIES] if isinstance(e, dict)]
+        self.initiative_order: list[str] = [str(n) for n in data.get("initiative_order", [])]
+        self.turn_index: int = max(0, int(data.get("turn_index", 0) or 0))
+
+    def to_dict(self) -> dict:
+        return {
+            "active": self.active, "round": self.round,
+            "enemies": list(self.enemies),
+            "initiative_order": list(self.initiative_order),
+            "turn_index": self.turn_index,
+        }
+
+    @staticmethod
+    def _normalise_enemy(entry: dict) -> dict:
+        name = str(entry.get("name", "Enemy")).strip()[:60] or "Enemy"
+        max_hp = max(1, min(300, int(entry.get("max_hp", entry.get("hp", 10)) or 10)))
+        hp = max(0, min(max_hp, int(entry.get("hp", max_hp) or 0)))
+        return {
+            "id": str(entry.get("id") or uuid.uuid4().hex[:10]),
+            "name": name,
+            "hp": hp, "max_hp": max_hp,
+            "description": str(entry.get("description", "")).strip()[:200],
+            "defeated": hp <= 0,
+        }
+
+    def start(self, enemies: list[dict], party_names: list[str]) -> None:
+        self.active = True
+        self.round = 1
+        self.turn_index = 0
+        self.enemies = [self._normalise_enemy(e) for e in (enemies or [])[:self.MAX_ENEMIES] if isinstance(e, dict)]
+        combatants = list(dict.fromkeys(list(party_names) + [e["name"] for e in self.enemies]))
+        rolled = [(name, random.randint(1, 20)) for name in combatants]
+        rolled.sort(key=lambda x: x[1], reverse=True)
+        self.initiative_order = [name for name, _ in rolled]
+
+    def add_enemies(self, enemies: list[dict]) -> list[dict]:
+        added = []
+        for raw in enemies or []:
+            if not isinstance(raw, dict) or len(self.enemies) >= self.MAX_ENEMIES:
+                continue
+            norm = self._normalise_enemy(raw)
+            if any(x["name"].casefold() == norm["name"].casefold() for x in self.enemies):
+                continue
+            self.enemies.append(norm)
+            added.append(norm)
+            if norm["name"] not in self.initiative_order:
+                self.initiative_order.append(norm["name"])
+        return added
+
+    def apply_damage(self, name: str, delta: int) -> Optional[dict]:
+        target = str(name).strip().casefold()
+        for enemy in self.enemies:
+            if enemy["name"].casefold() == target:
+                enemy["hp"] = max(0, min(enemy["max_hp"], enemy["hp"] + int(delta)))
+                enemy["defeated"] = enemy["hp"] <= 0
+                return enemy
+        return None
+
+    def all_enemies_defeated(self) -> bool:
+        return bool(self.enemies) and all(e.get("defeated") for e in self.enemies)
+
+    def end(self) -> None:
+        self.active = False
+        self.enemies = []
+        self.initiative_order = []
+        self.turn_index = 0
+        self.round = 1
+
+    def current_actor(self) -> Optional[str]:
+        if not self.active or not self.initiative_order:
+            return None
+        return self.initiative_order[self.turn_index % len(self.initiative_order)]
+
+    def prompt_block(self) -> str:
+        if not self.active:
+            return ""
+        lines = [f"[ACTIVE COMBAT — Round {self.round}]"]
+        current = self.current_actor()
+        order_str = " -> ".join(f"*{n}*" if n == current else n for n in self.initiative_order)
+        lines.append(f"Initiative order: {order_str}")
+        for e in self.enemies:
+            status = "DEFEATED" if e.get("defeated") else f"{e['hp']}/{e['max_hp']} HP"
+            desc = f" — {e['description']}" if e.get("description") else ""
+            lines.append(f"- {e['name']}: {status}{desc}")
+        return "\n".join(lines)
+
+
 @dataclass
 class StoryArc:
     id: str
@@ -750,6 +845,7 @@ class WorldState:
         self.status_durations: dict[str, int] = {}
         self.lore_registry = LoreRegistry()
         self.campaign_board = CampaignBoard()
+        self.combat = CombatEncounter()
         self.arc_registry = ArcRegistry()
         self.relationship_graph = RelationshipGraph()
         self.overlay_registry = OverlayRegistry()
@@ -973,6 +1069,7 @@ class WorldState:
             "pending_summarization": list(self.pending_summarization),
             "events": [{"actor": e.actor, "action": e.action, "outcome": e.outcome} for e in self.events],
             "lore_cards": self.lore_registry.to_dict(), "campaign_board": self.campaign_board.to_dict(),
+            "combat": self.combat.to_dict(),
             "story_arcs": self.arc_registry.to_dict(), "relationships": self.relationship_graph.to_dict(),
             "character_overlays": self.overlay_registry.to_dict(),
             "private_knowledge": copy.deepcopy(self.private_knowledge),
@@ -1050,6 +1147,10 @@ class WorldState:
         campaign = self.campaign_board.prompt_block()
         if campaign:
             lines.append(campaign)
+
+        combat = self.combat.prompt_block()
+        if combat:
+            lines.append(combat)
 
         if viewer:
             overlay_line = self.overlay_registry.view_block(viewer)
@@ -1852,6 +1953,9 @@ fields you already wrote (location, key_facts, etc). When in doubt, write less.
   "status_clear":     ["<condition that was healed, resolved, or expired>"],
   "plot_event_type":  "<encounter | discovery | visitor | twist | romance | none>",
   "lasting_consequence": "<one sentence describing a PERMANENT consequence of this turn's key decision (a betrayal, a debt, a promise, a death, a revealed secret), or null if nothing lasting happened. These are remembered forever and will echo in later sessions.>",
+  "combat_start":     {{"enemies": [{{"name": "...", "hp": <int>, "max_hp": <int>, "description": "<brief threat description>"}}]}},
+  "enemy_damage":     [{{"name": "<exact enemy name from ACTIVE COMBAT>", "delta": <int, negative = damage, positive = heal>}}],
+  "combat_end":       <true only when the fight is fully over — all enemies defeated/fled/yielded, or the party disengaged>,
   "player_choices":   ["<choice A>", "<choice B>", "<choice C>"],
   {dice_check_field}
   "resource_delta":   {{"health": <int -10..10>, "energy": <int -10..10>, "stress": <int -10..10>}},
@@ -2014,6 +2118,33 @@ Classify conservatively. Most turns are "none". Use the others only when somethi
                  NOT: friendly banter. NOT: a compliment. Requires genuine emotional weight.
   "none"       — Everything else. Calm conversation, exploration, routine events, small talk.
                  This should be the answer for the majority of turns.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+RULES — TACTICAL COMBAT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+This is a LIGHTWEIGHT tactical layer — initiative order and enemy HP bars, not a full grid combat
+simulator. Use it only for a genuine physical fight with named, damageable opposition.
+
+- "combat_start": Set this when "plot_event_type" is "encounter" AND the threat is something with
+  HP that can be fought (bandits, a beast, a guard) — not a chase, a trap, or a one-sided ambush
+  with no opponent to strike back at. List every distinct hostile with a short "name", a fair "hp"/
+  "max_hp" (5-30 for a normal foe, higher for a boss), and a one-line "description". Leave it null
+  on every other turn, including turns that continue an already-active fight.
+- If ACTIVE COMBAT is already shown in the world state, do NOT send "combat_start" again — the fight
+  is already running. Reinforcements arriving mid-fight also use "combat_start" with just the new
+  enemies (existing ones are kept automatically).
+- "enemy_damage": Whenever the player, a party member, or another enemy meaningfully hits/heals a
+  named enemy from ACTIVE COMBAT this turn, report it here with a negative delta for damage. Use
+  the player's roll (if a dice_check was made) and the fiction to judge a fair amount — a solid hit
+  is roughly 2-6 damage, a critical or powerful blow more. Only ever target enemies currently listed
+  in ACTIVE COMBAT, by their exact name.
+- "combat_end": Set true the turn the fight genuinely concludes — every enemy defeated, the party
+  flees successfully, or a truce/surrender ends the violence. The scene must narrate that ending in
+  the same turn. Never leave a fight lingering once its outcome is narratively decided.
+- While ACTIVE COMBAT is ongoing, keep "narration_plan" and "player_choices" tactically grounded —
+  the initiative order in the world state tells you whose turn it naturally is next. The player
+  appears there under their persona name; set "next_actor" to exactly "PLAYER" (per RULES — ROUTING)
+  when the initiative order shows it is their turn.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 RULES — PLAYER CHOICES
@@ -2423,6 +2554,9 @@ class PlannerParser:
         "relationship_updates":       [],
         "character_overlay_updates":  [],
         "lasting_consequence": None,
+        "combat_start":     None,
+        "enemy_damage":     [],
+        "combat_end":       False,
     }
 
     @classmethod
@@ -2525,7 +2659,8 @@ class PlannerParser:
         for key in ["spawns", "despawns", "inventory_add", "inventory_remove", "status_clear",
                     "player_choices", "status_effects", "lore_updates",
                     "campaign_objective_updates", "campaign_clock_updates",
-                    "arc_stage_updates", "relationship_updates", "character_overlay_updates"]:
+                    "arc_stage_updates", "relationship_updates", "character_overlay_updates",
+                    "enemy_damage"]:
             if not isinstance(result.get(key), list): result[key] = []
         result["status_effects"] = [s for s in result["status_effects"] if isinstance(s, dict)]
         result["lore_updates"] = [s for s in result["lore_updates"] if isinstance(s, dict)]
@@ -2534,10 +2669,14 @@ class PlannerParser:
         result["arc_stage_updates"] = [s for s in result["arc_stage_updates"] if isinstance(s, dict)]
         result["relationship_updates"] = [s for s in result["relationship_updates"] if isinstance(s, dict)]
         result["character_overlay_updates"] = [s for s in result["character_overlay_updates"] if isinstance(s, dict)]
+        result["enemy_damage"] = [s for s in result["enemy_damage"] if isinstance(s, dict)]
         result["resource_delta"] = {
             str(k): v for k, v in result["resource_delta"].items()
             if isinstance(k, str) and isinstance(v, (int, float))
         }
+        if not isinstance(result.get("combat_start"), dict):
+            result["combat_start"] = None
+        result["combat_end"] = bool(result.get("combat_end", False))
             
         if not result.get("next_actor"):
             result["next_actor"] = "PLAYER"
@@ -3467,11 +3606,47 @@ class SoulStageOrchestrator:
                         if updated_clk and updated_clk.get("current", 0) >= updated_clk.get("max", 4):
                             if on_narrative_event is not None:
                                 try:
-                                    await on_narrative_event("clock", f"Uhr vollendet: {updated_clk.get('title')}", updated_clk.get("description", ""))
+                                    await on_narrative_event("clock", f"Clock completed: {updated_clk.get('title')}", updated_clk.get("description", ""))
                                 except Exception as ne_err:
                                     logger.debug(f"[SoulStage] on_narrative_event clock failed: {ne_err}")
                     except Exception as e:
                         logger.warning(f"[SoulStage] Failed to upsert campaign clock: {e}")
+                try:
+                    combat = self.world_state.combat
+                    combat_start = plan.get("combat_start")
+                    if isinstance(combat_start, dict) and isinstance(combat_start.get("enemies"), list) and combat_start["enemies"]:
+                        if combat.active:
+                            added = combat.add_enemies(combat_start["enemies"])
+                            if added and on_narrative_event is not None:
+                                names = ", ".join(e["name"] for e in added)
+                                await on_narrative_event("combat", "Reinforcements arrive!", f"Joining the fight: {names}")
+                        else:
+                            combat.start(combat_start["enemies"], [user_name] + list(party_names))
+                            if on_narrative_event is not None:
+                                names = ", ".join(e["name"] for e in combat.enemies)
+                                await on_narrative_event("combat", "Combat begins!", f"Facing: {names}")
+
+                    for dmg_data in plan.get("enemy_damage", []):
+                        name = str(dmg_data.get("name", "")).strip()
+                        if not name:
+                            continue
+                        try:
+                            delta = int(dmg_data.get("delta", 0) or 0)
+                        except (TypeError, ValueError):
+                            continue
+                        delta = max(-100, min(100, delta))
+                        enemy = combat.apply_damage(name, delta)
+                        if enemy and enemy["defeated"] and delta < 0 and on_narrative_event is not None:
+                            await on_narrative_event("combat", f"{enemy['name']} defeated!", "")
+
+                    if combat.active and (plan.get("combat_end") or combat.all_enemies_defeated()):
+                        victory = combat.all_enemies_defeated()
+                        combat.end()
+                        if on_narrative_event is not None:
+                            title = "Victory!" if victory else "Combat ends"
+                            await on_narrative_event("combat", title, "")
+                except Exception as e:
+                    logger.warning(f"[SoulStage] Failed to update combat encounter: {e}")
                 for arc_data in plan.get("arc_stage_updates", []):
                     try:
                         ref = str(arc_data.get("id") or arc_data.get("title") or "").strip()
@@ -3606,7 +3781,7 @@ class SoulStageOrchestrator:
                         ws_ledger.add_consequence("arc", f"Story arc \"{title}\" advanced to stage '{stage}'.")
                         if on_narrative_event is not None:
                             try:
-                                await on_narrative_event("arc", f"Story Arc: {title}", f"Neuer Abschnitt: {stage}")
+                                await on_narrative_event("arc", f"Story Arc: {title}", f"New stage: {stage}")
                             except Exception as ne_err:
                                 logger.debug(f"[SoulStage] on_narrative_event arc failed: {ne_err}")
                 for rel_data in plan.get("relationship_updates", []):
@@ -3629,7 +3804,7 @@ class SoulStageOrchestrator:
                 if isinstance(lasting, str) and lasting.strip():
                     if on_narrative_event is not None:
                         try:
-                            await on_narrative_event("consequence", "Dauerhafte Konsequenz verzeichnet", lasting.strip())
+                            await on_narrative_event("consequence", "Lasting consequence recorded", lasting.strip())
                         except Exception as ne_err:
                             logger.debug(f"[SoulStage] on_narrative_event consequence failed: {ne_err}")
             except Exception as e:
@@ -3908,6 +4083,7 @@ class SoulStageOrchestrator:
             self.world_state.resources[name] = {"current": current, "max": max_value}
         self.world_state.lore_registry = LoreRegistry(ws.get("lore_cards", scene_dict.get("lore_cards", [])))
         self.world_state.campaign_board = CampaignBoard(ws.get("campaign_board", scene_dict.get("campaign_board", {})))
+        self.world_state.combat = CombatEncounter(ws.get("combat", scene_dict.get("combat", {})))
         self.world_state.arc_registry = ArcRegistry(ws.get("story_arcs", scene_dict.get("story_arcs", [])))
         self.world_state.relationship_graph = RelationshipGraph(ws.get("relationships", scene_dict.get("relationships", [])))
         self.world_state.overlay_registry = OverlayRegistry(ws.get("character_overlays", scene_dict.get("character_overlays", [])))

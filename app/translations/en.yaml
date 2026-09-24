@@ -1943,6 +1943,78 @@ ss_setup_dialog_title: Soul Stage — Party Setup
 ss_setup_header: ⬡ Soul Stage
 ss_setup_sub: Select characters for the party. <b>{name}</b> is added automatically.
 ss_whisper_to: whisper to
+manual_dice_tooltip: Dice Roll & Skill Check (d20, d100, 2d6...)
+ss_audio_tooltip: RPG Audio & Voice Readout (SFX & TTS) on/off
+ss_camp_tooltip: Rest & Campfire (recovery & group banter)
+ss_default_player_name: Player
+ss_default_companion_role: Companion
+ss_item_used_text: '**{user}** uses **{item}**.'
+ss_item_cures_label: Cures
+ss_camp_dialog_title: 🏕️ Rest & Campfire
+ss_camp_header: CAMPFIRE & REST
+ss_camp_subheader: Make camp, recover your strength, and talk to your companions.
+ss_camp_short_radio: 🍵  Short Rest (1 hour)
+ss_camp_short_bullets: '• Restores +3 Energy
+
+  • Heals +2 HP
+
+  • A quick breather before the next challenge'
+ss_camp_long_radio: ⛺  Long Rest (8 hours)
+ss_camp_long_bullets: '• Full HP restored
+
+  • Full Energy regenerated
+
+  • Stress fully cleared
+
+  • Cures exhaustion and temporary status effects'
+ss_camp_interlude_check: 🔥  Start Campfire Banter
+ss_camp_interlude_tooltip: Starts an atmospheric campfire scene where the companions talk intimately about experiences and secrets.
+ss_camp_confirm_btn: 🏕️  Make Camp
+ss_camp_long_title: ⛺ Long Rest complete (8 hours)
+ss_camp_long_desc: 'The group makes camp for the night. The flames crackle quietly as everyone sleeps deep and sound.
+
+  • Full HP ({hp}/{hp_max}) & full Energy ({en}/{en_max})
+
+  • Stress fully cleared (0/{stress_max})
+
+  • All exhaustion and status effects are cured.'
+ss_camp_short_title: 🍵 Short Rest complete (1 hour)
+ss_camp_short_desc: 'A brief respite by the campfire. The companions tend their wounds and drink hot water.
+
+  • +3 Energy ({en}/{en_max})
+
+  • +2 HP ({hp}/{hp_max})'
+ss_bond_milestone_msg: '⭐ **Bond Milestone reached!** {companion} now considers {user} a **{title}** (Affinity: {affinity})!'
+ss_bond_title_25: Confidant
+ss_bond_title_50: Close Friend & Ally
+ss_bond_title_75: Soulbound & Loyal
+ss_dice_dialog_title: 🎲 Dice Roll & Skill Check
+ss_dice_header: SKILL CHECK & DICE
+ss_dice_subheader: Make an active check and decide your fate.
+ss_dice_die_label: 'Die:'
+ss_dice_d20: d20 (Standard Tabletop)
+ss_dice_d100: d100 (Percentile)
+ss_dice_d6: d6 (Simple)
+ss_dice_2d6: 2d6 (PbtA / two dice)
+ss_dice_d12: d12 (Twelve-sided)
+ss_dice_skill_label: 'Skill:'
+ss_dice_no_modifier: No modifier (+0)
+ss_dice_custom: Custom...
+ss_dice_modifier_label: 'Bonus / Malus:'
+ss_dice_dc_check: 'Roll against a Difficulty Class (DC):'
+ss_dice_intent_label: 'Action / Intent (optional):'
+ss_dice_intent_placeholder: e.g. I sneak silently past the guard...
+ss_dice_cancel: Cancel
+ss_dice_roll_now: 🎲 Roll now!
+ss_combat_attack: Attack
+ss_combat_dodge: Dodge
+ss_combat_item: Item
+ss_combat_flee: Flee
+ss_combat_attack_tag: Attack
+ss_combat_dodge_tag: Dodge
+ss_combat_flee_tag: Flee
+ss_combat_round: ROUND
+ss_combat_defeated: Defeated
 starting_ambient: Starting Ambient
 starting_ambient_hint: Background audio for this scene. The Planner can switch it dynamically.
 starting_background: Starting Background

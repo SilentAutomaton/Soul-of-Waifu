@@ -1951,6 +1951,78 @@ ss_setup_dialog_title: Soul Stage — Gruppen-Setup
 ss_setup_header: ⬡ Soul Stage
 ss_setup_sub: Wähle Charaktere für die Gruppe aus. <b>{name}</b> wird automatisch hinzugefügt.
 ss_whisper_to: flüstert zu
+manual_dice_tooltip: Würfelwurf & Fertigkeitsprobe (d20, d100, 2W6...)
+ss_audio_tooltip: RPG-Audio & Sprachausgabe (SFX & TTS) an/aus
+ss_camp_tooltip: Rast & Lagerfeuer (Erholung & Gruppen-Banter)
+ss_default_player_name: Spieler
+ss_default_companion_role: Gefährte
+ss_item_used_text: '**{user}** verwendet **{item}**.'
+ss_item_cures_label: Heilt
+ss_camp_dialog_title: 🏕️ Rast & Lagerfeuer
+ss_camp_header: LAGERFEUER & RAST
+ss_camp_subheader: Schlagt das Lager auf, erholt eure Kräfte und sprecht mit euren Gefährten.
+ss_camp_short_radio: 🍵  Kurze Rast (1 Stunde)
+ss_camp_short_bullets: '• Stellt +3 Energie wieder her
+
+  • Heilt +2 Lebenspunkte (HP)
+
+  • Schnelles Durchatmen vor der nächsten Herausforderung'
+ss_camp_long_radio: ⛺  Lange Rast (8 Stunden)
+ss_camp_long_bullets: '• Volle Lebenspunkte wiederhergestellt
+
+  • Volle Energie regeneriert
+
+  • Stress komplett abgebaut
+
+  • Heilt Erschöpfung und temporäre Statuseffekte aus'
+ss_camp_interlude_check: 🔥  Lagerfeuer-Gespräch einleiten
+ss_camp_interlude_tooltip: Startet eine atmosphärische Lagerfeuer-Szene, in der die Gefährten intim über Erlebnisse und Geheimnisse plaudern.
+ss_camp_confirm_btn: 🏕️  Lager aufschlagen
+ss_camp_long_title: ⛺ Lange Rast abgeschlossen (8 Stunden)
+ss_camp_long_desc: 'Die Gruppe schlägt ihr Nachtlager auf. Die Flammen knistern leise, während alle tief und fest schlafen.
+
+  • Volle Lebenspunkte ({hp}/{hp_max}) & volle Energie ({en}/{en_max})
+
+  • Stress vollständig abgebaut (0/{stress_max})
+
+  • Alle Erschöpfungs- und Statuseffekte sind auskuriert.'
+ss_camp_short_title: 🍵 Kurze Rast abgeschlossen (1 Stunde)
+ss_camp_short_desc: 'Eine kurze Atempause am Lagerfeuer. Die Gefährten pflegen ihre Wunden und trinken heißes Wasser.
+
+  • +3 Energie ({en}/{en_max})
+
+  • +2 Lebenspunkte ({hp}/{hp_max})'
+ss_bond_milestone_msg: '⭐ **Bond Milestone erreicht!** {companion} betrachtet {user} nun als **{title}** (Affinität: {affinity})!'
+ss_bond_title_25: Vertraute(r)
+ss_bond_title_50: Enger Freund & Verbündete(r)
+ss_bond_title_75: Seelenbande & Treue
+ss_dice_dialog_title: 🎲 Würfelwurf & Fertigkeitsprobe
+ss_dice_header: FERTIGKEITSPROBE & WÜRFEL
+ss_dice_subheader: Führe eine aktive Probe aus und bestimme dein Schicksal.
+ss_dice_die_label: 'Würfel:'
+ss_dice_d20: W20 (Standard Tabletop)
+ss_dice_d100: W100 (Prozentual)
+ss_dice_d6: W6 (Einfach)
+ss_dice_2d6: 2W6 (PbtA / 2 Würfel)
+ss_dice_d12: W12 (Zwölfflächner)
+ss_dice_skill_label: 'Fertigkeit:'
+ss_dice_no_modifier: Ohne Modifikator (+0)
+ss_dice_custom: Benutzerdefiniert...
+ss_dice_modifier_label: 'Bonus / Malus:'
+ss_dice_dc_check: 'Gegen Schwierigkeitsgrad (DC) würfeln:'
+ss_dice_intent_label: 'Aktion / Vorhaben (optional):'
+ss_dice_intent_placeholder: z. B. Ich schleiche lautlos an der Wache vorbei...
+ss_dice_cancel: Abbrechen
+ss_dice_roll_now: 🎲 Jetzt würfeln!
+ss_combat_attack: Angriff
+ss_combat_dodge: Ausweichen
+ss_combat_item: Gegenstand
+ss_combat_flee: Flucht
+ss_combat_attack_tag: Angriff
+ss_combat_dodge_tag: Ausweichen
+ss_combat_flee_tag: Flucht
+ss_combat_round: RUNDE
+ss_combat_defeated: Besiegt
 starting_ambient: Start-Ambiente
 starting_ambient_hint: Hintergrundaudio für diese Szene. Der Planer kann es dynamisch wechseln.
 starting_background: Starthintergrund
