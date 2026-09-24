@@ -65,6 +65,7 @@ CHECKS=(
     "Combat initiative & enemy-HP HUD|app/gui/soul_stage_page.py|class CombatBar"
     "Gateway registries point at this fork's sow-data|app/gui/interface_signals.py|SnowwhiteOakheart/sow-data"
     "Curated models list points at this fork's sow-data|app/utils/models_hub.py|SnowwhiteOakheart/sow-data"
+    "Character cards support portrait avatars|app/gui/interface_signals.py|character_card_height = 300"
 )
 
 echo "${BOLD}Soul of Waifu - fork report${RESET}"

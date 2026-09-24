@@ -2496,7 +2496,7 @@ def _cached_avatar_pixmap(path: str) -> QtGui.QPixmap:
 class CharacterCardList(QtWidgets.QFrame):
     def __init__(self, character_name, image_path, icon_api_path, method, parent=None):
         super().__init__(parent)
-        self.setFixedSize(210, 270)
+        self.setFixedSize(210, 300)
         self.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
         self.setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground)
 
@@ -2534,7 +2534,7 @@ class CharacterCardList(QtWidgets.QFrame):
         
         self.action_panel = QtWidgets.QFrame(self)
         self.action_panel.setStyleSheet("background-color: rgba(15, 15, 15, 0.9); border-radius: 15px;")
-        self.action_panel.setGeometry(10, 280, 190, 45) 
+        self.action_panel.setGeometry(10, 310, 190, 45)
         self.action_panel_layout = QtWidgets.QHBoxLayout(self.action_panel)
         self.action_panel_layout.setContentsMargins(5, 0, 5, 0)
         self.action_panel_layout.setSpacing(5)
@@ -2574,8 +2574,8 @@ class CharacterCardList(QtWidgets.QFrame):
         self.anim_scale.setEndValue(1.05)
         self.anim_dark.setEndValue(0.0)
         self.anim_info.setEndValue(0.0)
-        self.panel_anim.setEndValue(QtCore.QPoint(10, 215))
-        
+        self.panel_anim.setEndValue(QtCore.QPoint(10, 245))
+
         self.anim_scale.start()
         self.anim_dark.start()
         self.anim_info.start()
@@ -2584,7 +2584,7 @@ class CharacterCardList(QtWidgets.QFrame):
         if hasattr(self, 'more_btn_anim'):
             self.more_btn_anim.setEndValue(QtCore.QPoint(self.width() - 40, 10))
             self.more_btn_anim.start()
-        
+
         self.shadow_effect.setOffset(0, 8)
         self.shadow_effect.setBlurRadius(25)
         super().enterEvent(event)
@@ -2593,7 +2593,7 @@ class CharacterCardList(QtWidgets.QFrame):
         self.anim_scale.setEndValue(1.0)
         self.anim_dark.setEndValue(100.0)
         self.anim_info.setEndValue(255.0)
-        self.panel_anim.setEndValue(QtCore.QPoint(10, 280))
+        self.panel_anim.setEndValue(QtCore.QPoint(10, 310))
         
         self.anim_scale.start()
         self.anim_dark.start()

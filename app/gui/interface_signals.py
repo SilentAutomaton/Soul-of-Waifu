@@ -6863,7 +6863,14 @@ class InterfaceSignals():
         viewport_width = scroll_area.viewport().width()
         current_margins = self.grid_layout.contentsMargins()
         spacing = 10
-        card_height = 270
+        folder_card_height = 270
+        # CharacterCardList is taller than CharacterFolderCard so portrait-oriented avatars
+        # (e.g. book-cover-style character art) show with far less top/bottom cropping;
+        # CharacterFolderCard keeps its own pre-composed 210x270 preview bitmap untouched.
+        character_card_height = 300
+
+        def _card_height(card):
+            return character_card_height if isinstance(card, CharacterCardList) else folder_card_height
 
         self.grid_layout.setHorizontalSpacing(spacing)
         self.grid_layout.setVerticalSpacing(0)
@@ -6884,11 +6891,14 @@ class InterfaceSignals():
             self.grid_layout.setColumnStretch(col, 0)
 
         row, col = 0, 0
+        row_heights = {}
         for card in visible_cards:
             try:
                 if card.parent() != self.container:
                     card.setParent(self.container)
-                card.setFixedSize(card_width, card_height)
+                h = _card_height(card)
+                card.setFixedSize(card_width, h)
+                row_heights[row] = max(row_heights.get(row, 0), h)
                 self.grid_layout.addWidget(card, row, col, Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
                 col += 1
                 if col >= n_cols:
@@ -6899,7 +6909,7 @@ class InterfaceSignals():
 
         vertical_spacing = 10
         row_count = row + 1 if col > 0 else row
-        total_height = (row_count * card_height) + (max(0, row_count - 1) * vertical_spacing)
+        total_height = sum(row_heights.get(r, folder_card_height) for r in range(row_count)) + (max(0, row_count - 1) * vertical_spacing)
 
         margins = self.grid_layout.contentsMargins()
         self.container.setFixedSize(
