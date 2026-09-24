@@ -98,8 +98,14 @@ Everything at once - characters, persona, lorebooks and scenes:
 app/data/envs/sow/bin/python tools/import_character_cards.py presets/no-game-no-life \
     --persona presets/no-game-no-life/persona_haru.json \
     --lorebooks presets/no-game-no-life/lorebooks \
-    --scenes presets/no-game-no-life/scenes
+    --scenes presets/no-game-no-life/scenes \
+    --scene-group "No Game No Life"
 ```
+
+`--scene-group` puts all 12 chapters into one **Scene Folder** named "No Game No Life" in the Soul Stage
+lobby - a single clickable campaign tile (with a 4-up preview of the chapter backgrounds) instead of 12 loose
+scene cards; clicking it opens a view with just these 12 chapters. Safe to omit or re-run - it only adds
+scenes to the folder, never creates duplicates.
 
 Import the characters before the scenes: a scene names its party by character name, and the tool warns about
 every name it cannot find. Characters that already exist are left alone; `--update-avatars` refreshes only

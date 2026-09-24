@@ -184,7 +184,8 @@ def import_lorebooks(paths, settings, replace: bool) -> int:
     return added
 
 
-def import_scenes(paths, replace: bool, known_characters, known_lorebooks, update_scenes: bool = False) -> int:
+def import_scenes(paths, replace: bool, known_characters, known_lorebooks, update_scenes: bool = False,
+                   scene_group: str = None) -> int:
     """Soul Stage stores its scenes in .soul_stage/scenes.json, keyed by a uuid."""
     data = {"scenes": {}, "scene_groups": {}}
     if SCENES_FILE.exists():
@@ -195,6 +196,7 @@ def import_scenes(paths, replace: bool, known_characters, known_lorebooks, updat
     by_title = {v.get("title"): k for k, v in data["scenes"].items()}
     now = datetime.datetime.now().isoformat()
     added = 0
+    group_sids = []
 
     for path in json_files(paths):
         scene = json.loads(path.read_text(encoding="utf-8"))
@@ -216,8 +218,10 @@ def import_scenes(paths, replace: bool, known_characters, known_lorebooks, updat
                 bg_info = f", bg: {existing_scene.get('starting_bg')}" if existing_scene.get("starting_bg") else ""
                 print(f"  updated scene: {title}  ({existing_scene.get('gm_tone', '?')}{bg_info})")
                 added += 1
+                group_sids.append(sid)
                 continue
             print(f"  scene already there, kept: {title}")
+            group_sids.append(by_title[title])
             continue
 
         for member in scene.get("party", []):
@@ -234,8 +238,16 @@ def import_scenes(paths, replace: bool, known_characters, known_lorebooks, updat
         data["scenes"][sid] = scene
         print(f"  scene: {title}  ({scene.get('gm_tone', '?')}, party: {', '.join(scene.get('party', [])) or 'solo'})")
         added += 1
+        group_sids.append(sid)
 
-    if added:
+    if scene_group and group_sids:
+        members = data["scene_groups"].setdefault(scene_group, [])
+        for sid in group_sids:
+            if sid not in members:
+                members.append(sid)
+        print(f"  scene folder: {scene_group}  ({len(members)} scene(s))")
+
+    if added or (scene_group and group_sids):
         SCENES_FILE.parent.mkdir(parents=True, exist_ok=True)
         SCENES_FILE.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
     return added
@@ -248,6 +260,9 @@ def main() -> int:
                         help="lorebook files, or folders holding them")
     parser.add_argument("--scenes", nargs="+", metavar="PATH", default=[],
                         help="Soul Stage scene files, or folders holding them")
+    parser.add_argument("--scene-group", metavar="NAME",
+                        help="add every scene from --scenes to this Scene Folder in the Soul Stage lobby "
+                             "(creates it if it doesn't exist yet)")
     parser.add_argument("--persona", metavar="FILE", help="persona file to import as well")
     parser.add_argument("--persona-name", metavar="NAME",
                         help="preselect this persona for every imported character")
@@ -402,6 +417,7 @@ def main() -> int:
             set(characters.load_configuration().get("character_list", {})),
             set(settings.get_user_data("lorebooks") or {}),
             update_scenes=args.update_scenes,
+            scene_group=args.scene_group,
         )
 
     summary = f"{len(cards)} character(s) imported"
