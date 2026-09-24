@@ -78,10 +78,17 @@ The world/premise entry is `always_on`, everything else is keyword-triggered.
 
 ## Avatars
 
-Every card currently ships with a simple placeholder image (flat color + initial letter) instead of real
-artwork - this session's assistant cannot generate images. **[AVATAR-PROMPTS.md](AVATAR-PROMPTS.md)** has a
-ready-to-use generation prompt and the exact save path for each of the 8 portraits; generate them with
-whatever image model you prefer and drop them in at the given paths to replace the placeholders.
+All 8 portraits are done - AI-generated original interpretations of each character's canonical design (see
+"About the pictures" below), resized to 700px wide to keep the repo lean. **[AVATAR-PROMPTS.md](AVATAR-PROMPTS.md)**
+has the generation prompt and save path used for each, if you want to regenerate one.
+
+## Backgrounds
+
+Not done yet: each scene's `starting_bg` field already points at a filename (e.g.
+`Horizontal Elkia Throne Room.png` for Chapter 1), but none of the 12 images exist yet.
+**[BACKGROUND-PROMPTS.md](BACKGROUND-PROMPTS.md)** has a ready-to-use 16:9 generation prompt and the exact
+save path (`presets/no-game-no-life/backgrounds/`) for each - once they're there, `tools/import_character_cards.py`
+deploys them to `assets/backgrounds/` automatically, no further wiring needed.
 
 ## Importing
 
@@ -103,9 +110,9 @@ lorebook editor, scenes in the Soul Stage lobby.
 
 ## About the pictures
 
-Placeholders only for now (see "Avatars" above); once replaced, the portraits should be original AI-generated
-interpretations of each character's canonical design, not copies of official art or screenshots - see
-[AVATAR-PROMPTS.md](AVATAR-PROMPTS.md).
+The portraits are original AI-generated interpretations of each character's canonical design, not copies of
+official art or screenshots - see [AVATAR-PROMPTS.md](AVATAR-PROMPTS.md). The 12 scene backgrounds are
+planned the same way but not generated yet - see [BACKGROUND-PROMPTS.md](BACKGROUND-PROMPTS.md).
 
 License of the cards and lorebook text: same as the rest of this repository (GPL-3.0). *No Game No Life* is a
 trademark of its respective copyright holders (Yuu Kamiya / Media Factory / MADHOUSE); this is unofficial fan
