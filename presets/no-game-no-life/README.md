@@ -84,11 +84,11 @@ has the generation prompt and save path used for each, if you want to regenerate
 
 ## Backgrounds
 
-Not done yet: each scene's `starting_bg` field already points at a filename (e.g.
-`Horizontal Elkia Throne Room.png` for Chapter 1), but none of the 12 images exist yet.
-**[BACKGROUND-PROMPTS.md](BACKGROUND-PROMPTS.md)** has a ready-to-use 16:9 generation prompt and the exact
-save path (`presets/no-game-no-life/backgrounds/`) for each - once they're there, `tools/import_character_cards.py`
-deploys them to `assets/backgrounds/` automatically, no further wiring needed.
+All 12 are done - one per chapter, matching each scene's `starting_bg` field (e.g.
+`Horizontal Elkia Throne Room.png` for Chapter 1), resized to 1376x768 (same convention as
+`presets/sakura-succubus-3/backgrounds/`) to keep the repo lean. `tools/import_character_cards.py` deploys
+them to `assets/backgrounds/` automatically. **[BACKGROUND-PROMPTS.md](BACKGROUND-PROMPTS.md)** has the
+generation prompt and save path used for each, if you want to regenerate one.
 
 ## Importing
 
@@ -110,9 +110,9 @@ lorebook editor, scenes in the Soul Stage lobby.
 
 ## About the pictures
 
-The portraits are original AI-generated interpretations of each character's canonical design, not copies of
-official art or screenshots - see [AVATAR-PROMPTS.md](AVATAR-PROMPTS.md). The 12 scene backgrounds are
-planned the same way but not generated yet - see [BACKGROUND-PROMPTS.md](BACKGROUND-PROMPTS.md).
+The portraits and the 12 scene backgrounds are original AI-generated art in the setting's style, not copies
+of official art or screenshots - see [AVATAR-PROMPTS.md](AVATAR-PROMPTS.md) and
+[BACKGROUND-PROMPTS.md](BACKGROUND-PROMPTS.md) for the prompts used.
 
 License of the cards and lorebook text: same as the rest of this repository (GPL-3.0). *No Game No Life* is a
 trademark of its respective copyright holders (Yuu Kamiya / Media Factory / MADHOUSE); this is unofficial fan
