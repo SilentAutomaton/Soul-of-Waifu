@@ -15041,7 +15041,7 @@ class InterfaceSignals():
 
                 self._show_gateway_loading(self.ui.scrollArea_soul_gateway)
 
-                REGISTRY_URL = "https://raw.githubusercontent.com/jofizcd/sow-data/main/soul_registry.json"
+                REGISTRY_URL = "https://raw.githubusercontent.com/SnowwhiteOakheart/sow-data/main/soul_registry.json"
 
                 try:
                     def fetch_registry():
@@ -15532,7 +15532,7 @@ class InterfaceSignals():
                 self.soul_gateway_grid_layout.setSpacing(10)
                 self.ui.scrollArea_soul_gateway.setWidget(self.soul_gateway_container)
 
-                REGISTRY_URL = "https://raw.githubusercontent.com/jofizcd/sow-data/main/soul_registry.json"
+                REGISTRY_URL = "https://raw.githubusercontent.com/SnowwhiteOakheart/sow-data/main/soul_registry.json"
                 try:
                     def fetch_registry():
                         context = ssl._create_unverified_context()
@@ -16079,7 +16079,7 @@ class InterfaceSignals():
 
         self._show_gateway_loading(self.ui.scrollArea_lorebooks)
 
-        REGISTRY_URL = "https://raw.githubusercontent.com/jofizcd/sow-data/main/lorebooks_registry.json"
+        REGISTRY_URL = "https://raw.githubusercontent.com/SnowwhiteOakheart/sow-data/main/lorebooks_registry.json"
         try:
             def fetch_registry():
                 context = ssl._create_unverified_context()
@@ -16173,7 +16173,7 @@ class InterfaceSignals():
 
         self._show_gateway_loading(self.ui.scrollArea_scenes)
 
-        REGISTRY_URL = "https://raw.githubusercontent.com/jofizcd/sow-data/main/stages_registry.json"
+        REGISTRY_URL = "https://raw.githubusercontent.com/SnowwhiteOakheart/sow-data/main/stages_registry.json"
         try:
             def fetch_registry():
                 context = ssl._create_unverified_context()

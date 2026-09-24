@@ -126,9 +126,9 @@ class ModelSearch(QThread):
 class ModelRecommendations(QThread):
     """
     A thread-based class for showing model recommendations from GitHub JSON.
-    Downloads recommended_models.json from https://github.com/jofizcd/sow-data/raw/main/recommended_models.json
+    Downloads recommended_models.json from https://github.com/SnowwhiteOakheart/sow-data/raw/main/recommended_models.json
     and caches it locally for offline use.
-    
+
     Signals:
         progress (str, str, int, str, bool): Emits model_id, author, downloads, compatibility_text, is_compatible
         finished (list): Emits the final list of model IDs when complete.
@@ -138,7 +138,7 @@ class ModelRecommendations(QThread):
     finished = pyqtSignal(list)
     error = pyqtSignal(str)
 
-    CURATED_MODELS_URL = "https://github.com/jofizcd/sow-data/raw/main/recommended_models.json"
+    CURATED_MODELS_URL = "https://github.com/SnowwhiteOakheart/sow-data/raw/main/recommended_models.json"
     CACHE_FILE = "app/utils/ai_clients/backend/_temp/recommended_models_cache.json"
     CACHE_EXPIRY_HOURS = 24
 

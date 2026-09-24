@@ -63,6 +63,8 @@ CHECKS=(
     "Dice/Camp dialogs and RPG event text are translated|app/gui/soul_stage_page.py|ss_dice_dialog_title"
     "Soul Stage RPG Evolution (Phase 5): Tactical Encounter Mode|app/utils/ai_clients/soul_stage_engine.py|class CombatEncounter"
     "Combat initiative & enemy-HP HUD|app/gui/soul_stage_page.py|class CombatBar"
+    "Gateway registries point at this fork's sow-data|app/gui/interface_signals.py|SnowwhiteOakheart/sow-data"
+    "Curated models list points at this fork's sow-data|app/utils/models_hub.py|SnowwhiteOakheart/sow-data"
 )
 
 echo "${BOLD}Soul of Waifu - fork report${RESET}"
