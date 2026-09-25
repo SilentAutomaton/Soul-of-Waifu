@@ -3210,7 +3210,10 @@ class TurnIndicator(QFrame):
         self._text_lbl = QLabel()
         self._text_lbl.setFont(_font("Inter Tight SemiBold", 10, bold=True))
         self._text_lbl.setStyleSheet("color: rgba(255, 224, 170, 0.95); background: transparent;")
+        self._text_lbl.setMaximumWidth(110)
         root.addWidget(self._text_lbl)
+
+        self.setMaximumWidth(160)
 
         self._pulse_on = True
         self._pulse_timer = QtCore.QTimer(self)
@@ -3230,24 +3233,28 @@ class TurnIndicator(QFrame):
         else:
             self._avatar_lbl.hide()
 
+    def _set_text(self, full_text: str):
+        metrics = self._text_lbl.fontMetrics()
+        elided = metrics.elidedText(full_text, Qt.TextElideMode.ElideRight, self._text_lbl.maximumWidth())
+        self._text_lbl.setText(elided)
+        self.setToolTip(full_text)
+
     def show_party_turn(self, name: str):
         self._set_avatar(_get_char_avatar_pixmap(name))
-        text = self.translations.get("ss_turn_party", "🎙 {name} is speaking").replace("{name}", name)
-        self._text_lbl.setText(text)
+        self._set_text(self.translations.get("ss_turn_party", "🎙 {name}").replace("{name}", name))
         self._pulse_timer.start(500)
         self._pulse_on = True
 
     def show_npc_turn(self, name: str, avatar_path: str = ""):
         px = QPixmap(avatar_path) if avatar_path else None
         self._set_avatar(px if px and not px.isNull() else None)
-        text = self.translations.get("ss_turn_npc", "🎭 {name} chimes in").replace("{name}", name)
-        self._text_lbl.setText(text)
+        self._set_text(self.translations.get("ss_turn_npc", "🎭 {name}").replace("{name}", name))
         self._pulse_timer.start(500)
         self._pulse_on = True
 
     def show_narrator_turn(self):
         self._set_avatar(None)
-        self._text_lbl.setText(self.translations.get("ss_turn_narrator", "📖 The narrator is describing the scene"))
+        self._set_text(self.translations.get("ss_turn_narrator", "📖 Narrator"))
         self._pulse_timer.start(500)
         self._pulse_on = True
 
@@ -3255,7 +3262,7 @@ class TurnIndicator(QFrame):
         self._pulse_timer.stop()
         self._dot_lbl.setStyleSheet("color: rgba(255, 210, 90, 0.20); font-size: 8px; background: transparent;")
         self._set_avatar(None)
-        self._text_lbl.setText(self.translations.get("ss_turn_idle", "⏸ Waiting for your input"))
+        self._set_text(self.translations.get("ss_turn_idle", "⏸ Idle"))
 
 
 class SoulStageClockTracker(QWidget):
@@ -5815,29 +5822,12 @@ class SoulStageChatView(QFrame):
             """)
             return btn
 
-        self.btn_memory = _icon_btn("app/gui/icons/soulMemory.png", "Soul Memory", "120,160,255")
-        self.btn_memory.clicked.connect(self.open_memory.emit)
-        tl.addWidget(self.btn_memory)
-
-        self.btn_world_info = _icon_btn("app/gui/icons/map.png", "World State", "60,200,140")
-        self.btn_world_info.clicked.connect(self.world_info_clicked.emit)
-        tl.addWidget(self.btn_world_info)
-
-        self.btn_clocks = _icon_btn(
-            "app/gui/icons/soul_stage/stats.svg",
-            self.translations.get("ss_clocks_tooltip", "Campaign Clocks & Objectives"),
-            "255,160,80"
-        )
-        self.btn_clocks.clicked.connect(self._toggle_clock_tracker)
-        tl.addWidget(self.btn_clocks)
-
+        # Only the most frequently used actions get a dedicated toolbar button - the rest
+        # (Memory/World State/Clocks/Export/Chronicle) live in the "More" overflow menu below,
+        # so the bar keeps fitting at narrower window widths instead of overlapping.
         self.btn_continue_plot = _icon_btn("app/gui/icons/play.png", "Continue Plot", "180,80,220")
         self.btn_continue_plot.clicked.connect(self.continue_plot.emit)
         tl.addWidget(self.btn_continue_plot)
-
-        self.btn_export = _icon_btn("app/gui/icons/export.png", "Export to Markdown", "255,210,90")
-        self.btn_export.clicked.connect(self.export_clicked.emit)
-        tl.addWidget(self.btn_export)   
 
         self.btn_interrupt = _icon_btn("app/gui/icons/stop.png", "Intervene (stop AI turn)", "255,180,50")
         self.btn_interrupt.clicked.connect(self.interrupted)
@@ -5851,14 +5841,6 @@ class SoulStageChatView(QFrame):
         self.btn_auto_play.setCheckable(True)
         self.btn_auto_play.clicked.connect(self.auto_play_clicked.emit)
         tl.addWidget(self.btn_auto_play)
-
-        self.btn_chronicle = _icon_btn(
-            "app/gui/icons/author_notes.png",
-            self.translations.get("ss_chronicle_tooltip", "Chronicle of lasting consequences"),
-            "200,200,220"
-        )
-        self.btn_chronicle.clicked.connect(self.chronicle_clicked.emit)
-        tl.addWidget(self.btn_chronicle)
 
         self.btn_audio = _icon_btn(
             "app/gui/icons/voice.png",
@@ -5877,6 +5859,47 @@ class SoulStageChatView(QFrame):
         )
         self.btn_camp.clicked.connect(self._open_camp_dialog)
         tl.addWidget(self.btn_camp)
+
+        self.btn_more = _icon_btn("app/gui/icons/more.png", self.translations.get("ss_more_tooltip", "More"), "255,255,255")
+        self._more_menu = QMenu(self.btn_more)
+        self._more_menu.setStyleSheet("""
+            QMenu { background-color: #14141a; color: #E0E0E0; border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; padding: 4px; }
+            QMenu::item { padding: 7px 24px; border-radius: 6px; }
+            QMenu::item:selected { background-color: rgba(255,255,255,0.10); color: white; }
+        """)
+
+        def _menu_action(icon_path: str, tooltip: str) -> QtGui.QAction:
+            action = QtGui.QAction(QIcon(icon_path), tooltip, self.btn_more)
+            action.setToolTip(tooltip)
+            self._more_menu.addAction(action)
+            return action
+
+        self.btn_memory = _menu_action("app/gui/icons/soulMemory.png", "Soul Memory")
+        self.btn_memory.triggered.connect(self.open_memory.emit)
+
+        self.btn_world_info = _menu_action("app/gui/icons/map.png", "World State")
+        self.btn_world_info.triggered.connect(self.world_info_clicked.emit)
+
+        self.btn_clocks = _menu_action(
+            "app/gui/icons/soul_stage/stats.svg",
+            self.translations.get("ss_clocks_tooltip", "Campaign Clocks & Objectives"),
+        )
+        self.btn_clocks.triggered.connect(self._toggle_clock_tracker)
+
+        self.btn_export = _menu_action("app/gui/icons/export.png", "Export to Markdown")
+        self.btn_export.triggered.connect(self.export_clicked.emit)
+
+        self.btn_chronicle = _menu_action(
+            "app/gui/icons/author_notes.png",
+            self.translations.get("ss_chronicle_tooltip", "Chronicle of lasting consequences"),
+        )
+        self.btn_chronicle.triggered.connect(self.chronicle_clicked.emit)
+
+        self.btn_more.clicked.connect(
+            lambda: self._more_menu.exec(self.btn_more.mapToGlobal(self.btn_more.rect().bottomRight()
+                                                                     - QtCore.QPoint(self._more_menu.sizeHint().width(), 0)))
+        )
+        tl.addWidget(self.btn_more)
 
         root.addWidget(self.top_bar)
 

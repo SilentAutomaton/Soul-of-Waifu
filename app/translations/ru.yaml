@@ -2021,10 +2021,10 @@ ss_combat_dodge_tag: Уклонение
 ss_combat_flee_tag: Бегство
 ss_combat_round: РАУНД
 ss_combat_defeated: Повержен
-ss_turn_party: 🎙 {name} говорит
-ss_turn_npc: 🎭 {name} вставляет реплику
-ss_turn_narrator: 📖 Рассказчик описывает сцену
-ss_turn_idle: ⏸ Ожидание вашего ввода
+ss_turn_party: 🎙 {name}
+ss_turn_npc: 🎭 {name}
+ss_turn_narrator: 📖 Рассказчик
+ss_turn_idle: ⏸ Ожидание
 ss_combat_delay: Отложить
 ss_combat_delay_tooltip: Позволяет следующему по инициативе действовать раньше вас - но не позже конца этого раунда.
 ss_combat_delay_denied: Вы больше не можете откладывать ход в этом раунде - все остальные уже походили.

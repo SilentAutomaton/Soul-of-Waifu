@@ -2015,10 +2015,10 @@ ss_combat_dodge_tag: Dodge
 ss_combat_flee_tag: Flee
 ss_combat_round: ROUND
 ss_combat_defeated: Defeated
-ss_turn_party: 🎙 {name} is speaking
-ss_turn_npc: 🎭 {name} chimes in
-ss_turn_narrator: 📖 The narrator is describing the scene
-ss_turn_idle: ⏸ Waiting for your input
+ss_turn_party: 🎙 {name}
+ss_turn_npc: 🎭 {name}
+ss_turn_narrator: 📖 Narrator
+ss_turn_idle: ⏸ Idle
 ss_combat_delay: Delay
 ss_combat_delay_tooltip: Let the next person in the initiative order act before you - up to the end of this round.
 ss_combat_delay_denied: You can't delay any further this round - everyone else has already acted.

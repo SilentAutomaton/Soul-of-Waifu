@@ -2023,10 +2023,10 @@ ss_combat_dodge_tag: Ausweichen
 ss_combat_flee_tag: Flucht
 ss_combat_round: RUNDE
 ss_combat_defeated: Besiegt
-ss_turn_party: 🎙 {name} spricht gerade
-ss_turn_npc: 🎭 {name} mischt sich ein
-ss_turn_narrator: 📖 Der Erzähler beschreibt die Szene
-ss_turn_idle: ⏸ Wartet auf deine Eingabe
+ss_turn_party: 🎙 {name}
+ss_turn_npc: 🎭 {name}
+ss_turn_narrator: 📖 Erzähler
+ss_turn_idle: ⏸ Bereit
 ss_combat_delay: Verschieben
 ss_combat_delay_tooltip: Lässt die nächste Person in der Initiative-Reihenfolge vor dir handeln - höchstens bis zum Ende dieser Runde.
 ss_combat_delay_denied: Du kannst diese Runde nicht weiter verschieben - alle anderen haben bereits gehandelt.
