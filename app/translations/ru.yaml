@@ -2445,3 +2445,5 @@ theme_font_default: Шрифт приложения (Inter Tight)
 social_github_tooltip: GitHub
 social_discord_tooltip: Discord
 social_youtube_tooltip: YouTube
+audio_system_default: Системное по умолчанию
+audio_refresh_tooltip: Обновить список устройств

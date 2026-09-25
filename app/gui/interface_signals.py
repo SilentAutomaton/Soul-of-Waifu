@@ -46,6 +46,7 @@ from PyQt6.QtWidgets import (
 )
 
 from app.gui.character_ai_assistant import CharacterAIAssistantDialog
+from app.utils import platform_compat
 from app.utils.discord_rpc import DiscordRPCManager
 from app.utils.ai_clients.local_server_manager import LocalServerManager
 from app.utils.ai_clients.prompt_engine import (
@@ -66,7 +67,7 @@ from app.utils.vrm_server import VRMServerThread
 from app.gui.custom_widgets import PersonasEditorDialog, SystemPromptEditorDialog, DiscordGatewayDialog, LorebookEditorDialog, AuthorNotesEditorDialog, SummaryEditorDialog, ImageGenSettingsDialog
 from app.gui.custom_widgets import SLIDER_STYLE_DARK, run_webview_js
 from app.gui.custom_widgets import (
-    Live2DWidget, AnimatedHoverButton, TextEditUserMessage, SmoothMessageFrame, TypingIndicatorWidget,
+    Live2DWidget, hover_icon_button, TextEditUserMessage, SmoothMessageFrame, TypingIndicatorWidget,
     CharacterCardCharactersGateway, SceneGatewayCard, LorebookGatewayCard, CharacterCardList, CharacterFolderCard, MethodCard, ModelListItemWidget,
     EditorCharacterItemWidget, BackgroundChangerWindow, SoulMemoryViewer, AboutDialog,
     ResponsiveEmotionLabel, MultiSelectDialog, UpdaterDialog, sow_toast, SowConfirmDialog, Live2DMotionLinkerDialog, SowInputDialog, SowSelectDialog, CallModeDialog,
@@ -350,14 +351,9 @@ class InterfaceSignals():
                 self.load_translation("de")
 
         self.ui.toggle_sidebar_btn.clicked.connect(self.toggle_sidebar)
-        s = self.get_chat_appearance()
-        wt = self.get_window_theme()
-        u = self.get_ui_appearance()
-        self.ui.appearance_settings_tab.set_data(s, wt, u)
+        self.ui.appearance_settings_tab.set_data(self.get_chat_appearance())
         
         self.ui.appearance_settings_tab.chatAppearanceChanged.connect(self.on_chat_appearance_changed)
-        self.ui.appearance_settings_tab.windowThemeChanged.connect(self.on_window_theme_changed)
-        self.ui.appearance_settings_tab.uiAppearanceChanged.connect(self.on_ui_appearance_changed)
         self.ui.appearance_settings_tab.requestChatPreviewUpdate.connect(self.on_request_chat_preview_update)
         self.ui.appearance_settings_tab.resetAppearanceRequested.connect(self.on_reset_appearance)
         self.ui.appearance_settings_tab.saveChatAppearanceRequested.connect(self.on_save_chat_appearance)
@@ -1964,27 +1960,13 @@ class InterfaceSignals():
     def on_chat_appearance_changed(self, s):
         self.apply_chat_appearance_to_all(s)
 
-    def on_window_theme_changed(self, wt):
-        self.apply_window_theme(wt)
-        self.apply_gui_theme(wt["theme_name"])
-        self.apply_sidebar_styles(self.ui.appearance_settings_tab.u, wt)
-        self.configuration_settings.update_main_setting("window_theme", dict(wt))
-        self.configuration_settings.update_main_setting("ui_appearance", dict(self.ui.appearance_settings_tab.u))
-
-    def on_ui_appearance_changed(self, u):
-        wt = self.ui.appearance_settings_tab.wt
-        self.apply_sidebar_styles(u, wt)
-        self.configuration_settings.update_main_setting("ui_appearance", dict(u))
-        
     def on_request_chat_preview_update(self):
         self.ui.appearance_settings_tab.update_preview()
         
     def on_reset_appearance(self):
         self.configuration_settings.update_main_setting("chat_appearance", {})
         s = self.get_chat_appearance()
-        wt = self.get_window_theme()
-        u = self.get_ui_appearance()
-        self.ui.appearance_settings_tab.set_data(s, wt, u)
+        self.ui.appearance_settings_tab.set_data(s)
         self.apply_chat_appearance_to_all(s)
         
     def on_save_chat_appearance(self, s):
@@ -2152,9 +2134,6 @@ class InterfaceSignals():
                 background: none;
             }}
 
-            QFrame#frame_main_button {{
-                background-color: rgb({bg2});
-            }}
             QTabWidget::pane {{
                 background-color: rgb({bg2});
                 border: 1px solid rgb({border});
@@ -2181,26 +2160,12 @@ class InterfaceSignals():
 
         self.configuration_settings.update_main_setting("gui_theme", theme_name)
 
-    def get_ui_appearance(self):
-        defaults = {
-            "sidebar_accent":    "#A0A0A0",
-            "sidebar_hover":     "#1B1B1B",
-            "sidebar_opacity":   100,
-            "sidebar_text":      "#D2D2D2",
-        }
-        saved = self.configuration_settings.get_main_setting("ui_appearance") or {}
-        return {**defaults, **saved}
-
-    def apply_sidebar_styles(self, u=None, wt=None):
-        if u is None:
-            u = self.get_ui_appearance()
-            
-        ac = u["sidebar_accent"]
-        hv = u["sidebar_hover"]
-        op = u["sidebar_opacity"]
-        alpha = int(op * 2.55)
-
-        tc = u.get("sidebar_text", "#D2D2D2")
+    def apply_sidebar_styles(self, wt=None):
+        # Default-palette colors; the active theme maps them onto its tokens.
+        ac = "#4BB8FF"
+        hv = "#1B1B1B"
+        alpha = 255
+        tc = "#D2D2D2"
         btn_style = f"""
             QPushButton {{
                 color: {tc};
@@ -6693,11 +6658,11 @@ class InterfaceSignals():
         base_col = themed_color(0, 0, 0, 100)
         hover_col = themed_color(0, 0, 0, 200)
 
-        call_btn = AnimatedHoverButton("app/gui/icons/phone.png", "#2E7D32", self.translations.get("call_btn_text", "Call"))
-        voice_btn = AnimatedHoverButton("app/gui/icons/voice.png", "#1976D2", self.translations.get("voice_btn_text", "Voice Settings"))
-        expr_btn = AnimatedHoverButton("app/gui/icons/expressions.png", "#F57C00", self.translations.get("expressions_btn_text", "Expressions"))
-        del_btn = AnimatedHoverButton("app/gui/icons/bin.png", "#D32F2F", self.translations.get("delete_btn_text", "Delete"))
-        folder_btn = AnimatedHoverButton("app/gui/icons/folder.png", hover_col, self.translations.get("move_to_folder_btn", "Move to folder"), base_color=base_col)
+        call_btn = hover_icon_button("app/gui/icons/phone.png", "#2E7D32", self.translations.get("call_btn_text", "Call"))
+        voice_btn = hover_icon_button("app/gui/icons/voice.png", "#1976D2", self.translations.get("voice_btn_text", "Voice Settings"))
+        expr_btn = hover_icon_button("app/gui/icons/expressions.png", "#F57C00", self.translations.get("expressions_btn_text", "Expressions"))
+        del_btn = hover_icon_button("app/gui/icons/bin.png", "#D32F2F", self.translations.get("delete_btn_text", "Delete"))
+        folder_btn = hover_icon_button("app/gui/icons/folder.png", hover_col, self.translations.get("move_to_folder_btn", "Move to folder"), base_color=base_col)
         
         def _move_to_folder():
             groups = self._get_groups()
@@ -6798,7 +6763,7 @@ class InterfaceSignals():
 
         card_widget.action_panel_layout.addWidget(del_btn)
 
-        more_button = AnimatedHoverButton(
+        more_button = hover_icon_button(
             icon_path="app/gui/icons/more.png", 
             hover_color=hover_col, 
             tooltip_text=self.translations.get("more_btn_tooltip", "Settings"),
@@ -9245,48 +9210,63 @@ class InterfaceSignals():
             self.ui.lineEdit_api_token_options.setPlaceholderText(self.translations.get("placeholder_api_value", "Write API value"))
 
     def load_audio_devices(self):
-        input_device_index = self.configuration_settings.get_main_setting("input_device")
-        output_device_index = self.configuration_settings.get_main_setting("output_device_combo_index")
-
-        self.ui.comboBox_input_devices.clear()
-        self.ui.comboBox_output_devices.clear()
-        self.input_device_list = []
-        self.output_device_list = []
-
+        """
+        Fill the device lists. Each entry carries (PortAudio index, PipeWire node or None).
+        With PipeWire the list shows its real devices: they are all reached through the
+        ALSA "pipewire" device, and PIPEWIRE_NODE picks the target when a stream opens.
+        """
         devices = sd.query_devices()
         host_apis = sd.query_hostapis()
+        cfg = self.configuration_settings
 
+        for combo, kind, direction, index_key, real_key, node_key in (
+            (self.ui.comboBox_input_devices, "input", "max_input_channels", "input_device", "input_device_real_index", "input_pw_node"),
+            (self.ui.comboBox_output_devices, "output", "max_output_channels", "output_device_combo_index", "output_device_real_index", "output_pw_node"),
+        ):
+            combo.blockSignals(True)
+            combo.clear()
+            entries = self._audio_device_entries(devices, host_apis, kind, direction)
+            for label, data in entries:
+                combo.addItem(label, data)
+
+            saved_node = cfg.get_main_setting(node_key)
+            saved_index = cfg.get_main_setting(index_key)
+            by_node = next((i for i, (_, data) in enumerate(entries) if saved_node and data[1] == saved_node), None)
+            if by_node is not None:
+                row = by_node
+            elif isinstance(saved_index, int) and 0 <= saved_index < len(entries) and not saved_node:
+                row = saved_index
+            else:
+                row = 0
+            combo.setCurrentIndex(row)
+            combo.blockSignals(False)
+            self._store_audio_device(combo, index_key, real_key, node_key)
+
+    def _audio_device_entries(self, devices, host_apis, kind, direction):
+        entries = []
+        if sys.platform.startswith("linux"):
+            by_name = {d["name"]: d["index"] for d in devices if d[direction] > 0}
+            nodes = platform_compat.pipewire_nodes(kind) if "pipewire" in by_name else []
+            if nodes:
+                default_index = by_name.get("default", by_name["pipewire"])
+                entries.append((self.translations.get("audio_system_default", "System default"), (default_index, None)))
+                entries += [(description, (by_name["pipewire"], node)) for node, description in nodes]
+                return entries
         for dev in self._selectable_audio_devices(devices):
-            if dev["max_input_channels"] > 0:
-                host_api_name = host_apis[dev["hostapi"]]["name"]
-                full_name = f"{dev['name']} ({host_api_name})"
-                self.ui.comboBox_input_devices.addItem(full_name)
-                self.input_device_list.append(dev["index"])
+            if dev[direction] > 0:
+                entries.append((f"{dev['name']} ({host_apis[dev['hostapi']]['name']})", (dev["index"], None)))
+        return entries
 
-        self.set_combobox_to_device(self.ui.comboBox_input_devices, input_device_index)
-
-        if input_device_index >= 0 and input_device_index < self.ui.comboBox_input_devices.count():
-            real_input_index = self.input_device_list[input_device_index]
-            self.configuration_settings.update_main_setting("input_device_real_index", real_input_index)
-        elif self.input_device_list:
-             self.configuration_settings.update_main_setting("input_device_real_index", self.input_device_list[0])
-
-        for dev in self._selectable_audio_devices(devices):
-            if dev["max_output_channels"] > 0:
-                host_api_name = host_apis[dev["hostapi"]]["name"]
-                full_name = f"{dev['name']} ({host_api_name})"
-                self.ui.comboBox_output_devices.addItem(full_name)
-                self.output_device_list.append(dev["index"])
-
-        if output_device_index >= 0 and output_device_index < self.ui.comboBox_output_devices.count():
-            self.ui.comboBox_output_devices.setCurrentIndex(output_device_index)
-            real_index = self.output_device_list[output_device_index]
-            self.configuration_settings.update_main_setting("output_device_real_index", real_index)
-        else:
-            self.ui.comboBox_output_devices.setCurrentIndex(0)
-            real_index = self.output_device_list[0] if self.output_device_list else None
-            self.configuration_settings.update_main_setting("output_device_real_index", real_index)
-            self.configuration_settings.update_main_setting("output_device_combo_index", 0)
+    def _store_audio_device(self, combo, index_key, real_key, node_key):
+        data = combo.currentData()
+        real_index, node = data if data else (None, None)
+        cfg = self.configuration_settings
+        cfg.update_main_setting(index_key, max(0, combo.currentIndex()))
+        cfg.update_main_setting(real_key, real_index)
+        cfg.update_main_setting(node_key, node)
+        if node_key == "output_pw_node":
+            platform_compat.set_pipewire_output(node)
+        return real_index
 
     @staticmethod
     def _selectable_audio_devices(devices):
@@ -9306,24 +9286,11 @@ class InterfaceSignals():
             combobox.setCurrentIndex(index)
 
     def on_comboBox_input_devices_changed(self, index):
-        self.configuration_settings.update_main_setting("input_device", index)
-        if index >= 0 and index < len(self.input_device_list):
-            real_index = self.input_device_list[index]
-            self.configuration_settings.update_main_setting("input_device_real_index", real_index)
+        self._store_audio_device(self.ui.comboBox_input_devices, "input_device", "input_device_real_index", "input_pw_node")
 
     def on_comboBox_output_devices_changed(self, index):
-        if index >= 0 and index < len(self.output_device_list):
-            real_index = self.output_device_list[index]
-            self.configuration_settings.update_main_setting("output_device_combo_index", index)
-            self.configuration_settings.update_main_setting("output_device_real_index", real_index)
-        else:
-            if self.output_device_list:
-                real_index = self.output_device_list[0]
-                self.configuration_settings.update_main_setting("output_device_combo_index", 0)
-                self.configuration_settings.update_main_setting("output_device_real_index", real_index)
-            else:
-                real_index = None
-                self.configuration_settings.update_main_setting("output_device_real_index", None)
+        real_index = self._store_audio_device(
+            self.ui.comboBox_output_devices, "output_device_combo_index", "output_device_real_index", "output_pw_node")
 
         if hasattr(self, 'ambient_player'):
             self.ambient_player.set_device(real_index)

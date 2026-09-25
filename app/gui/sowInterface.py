@@ -5,8 +5,8 @@ from pathlib import Path
 from app.gui.theme import qcolor as themed_color
 from PyQt6 import QtCore, QtGui, QtWidgets
 from PyQt6.QtWidgets import QPushButton, QVBoxLayout, QLabel, QGraphicsDropShadowEffect, QListWidget
-from PyQt6.QtCore import Qt, QPointF, QTimer, QPropertyAnimation, QEasingCurve, pyqtProperty, QRectF, QPoint
-from PyQt6.QtGui import QColor, QPainter, QRadialGradient, QCursor, QFont, QPixmap, QPen, QBrush
+from PyQt6.QtCore import Qt, QTimer, QPropertyAnimation, QEasingCurve, pyqtProperty, QRectF, QPoint
+from PyQt6.QtGui import QColor, QPainter, QCursor, QFont, QPixmap, QPen, QBrush
 
 from app.gui.custom_widgets import (
     LocalModelStatusWidget, SowConfirmDialog, SowInputDialog, sow_toast, safe_paint,
@@ -300,22 +300,15 @@ class Ui_MainWindow(object):
         self.main_no_characters_page.setObjectName("main_no_characters_page")
         self.gridLayout_7 = QtWidgets.QGridLayout(self.main_no_characters_page)
         self.gridLayout_7.setObjectName("gridLayout_7")
-        self.frame_main_button = QtWidgets.QFrame(parent=self.main_no_characters_page)
-        self.frame_main_button.setMinimumSize(QtCore.QSize(500, 65))
-        self.frame_main_button.setStyleSheet("background-color: transparent;\n"
-"color: rgb(227, 227, 227);\n"
-"border: none;")
-        self.frame_main_button.setFrameShape(QtWidgets.QFrame.Shape.StyledPanel)
-        self.frame_main_button.setFrameShadow(QtWidgets.QFrame.Shadow.Raised)
-        self.frame_main_button.setObjectName("frame_main_button")
-        self.gridLayout_8 = QtWidgets.QGridLayout(self.frame_main_button)
-        self.gridLayout_8.setObjectName("gridLayout_8")
-        spacerItem1 = QtWidgets.QSpacerItem(388, 20, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)
-        self.gridLayout_8.addItem(spacerItem1, 0, 0, 1, 1)
-
-        self.pushButton_create_character_2 = GlassPortalButton(parent=self.frame_main_button)
-        
-        self.pushButton_create_character_2.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.pushButton_create_character_2 = QtWidgets.QPushButton(parent=self.main_no_characters_page)
+        self.pushButton_create_character_2.setStyleSheet(
+            "QPushButton { background-color: rgba(10, 10, 10, 200); color: rgb(148, 163, 184);"
+            " border: 1px solid rgba(255, 255, 255, 20); border-radius: 25px; padding: 0 20px; }"
+            "QPushButton:hover { background-color: rgba(75, 184, 255, 40); color: #FFFFFF;"
+            " border: 1px solid rgba(75, 184, 255, 220); }"
+            "QPushButton:pressed { background-color: rgba(0, 0, 0, 140); }"
+            "QPushButton:focus { border: 1px solid #4BB8FF; }"
+        )
         self.pushButton_create_character_2.setEnabled(True)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Preferred)
         sizePolicy.setHorizontalStretch(0)
@@ -341,10 +334,6 @@ class Ui_MainWindow(object):
         self.pushButton_create_character_2.setAutoExclusive(True)
         self.pushButton_create_character_2.setObjectName("pushButton_create_character_2")
         
-        self.gridLayout_8.addWidget(self.pushButton_create_character_2, 0, 1, 1, 1)
-
-        spacerItem2 = QtWidgets.QSpacerItem(399, 20, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)
-        self.gridLayout_8.addItem(spacerItem2, 0, 2, 1, 1)
         spacerItem_top = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Expanding)
         self.gridLayout_7.addItem(spacerItem_top, 0, 0, 1, 1)
 
@@ -393,7 +382,7 @@ class Ui_MainWindow(object):
         spacerItem5 = QtWidgets.QSpacerItem(20, 32, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed)
         self.gridLayout_7.addItem(spacerItem5, 4, 0, 1, 1)
 
-        self.gridLayout_7.addWidget(self.frame_main_button, 5, 0, 1, 1, QtCore.Qt.AlignmentFlag.AlignVCenter)
+        self.gridLayout_7.addWidget(self.pushButton_create_character_2, 5, 0, 1, 1, QtCore.Qt.AlignmentFlag.AlignCenter)
 
         spacerItem3 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Expanding)
         self.gridLayout_7.addItem(spacerItem3, 6, 0, 1, 1)
@@ -534,20 +523,7 @@ class Ui_MainWindow(object):
         spacerItem_spacer = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)
         self.gridLayout_6.addItem(spacerItem_spacer, 0, 1, 1, 1)
 
-        self.control_capsule = QtWidgets.QFrame(parent=self.frame_welcome_to)
-        self.control_capsule.setObjectName("control_capsule")
-        self.control_capsule.setMinimumSize(QtCore.QSize(148, 44))
-        self.control_capsule.setMaximumSize(QtCore.QSize(148, 44))
-        
-        self.control_capsule.setStyleSheet("""
-            QFrame#control_capsule {
-                background-color: rgba(255, 255, 255, 0.015);
-                border: 1px solid rgba(255, 255, 255, 0.05);
-                border-radius: 22px;
-            }
-        """)
-        
-        self.capsule_layout = QtWidgets.QHBoxLayout(self.control_capsule)
+        self.capsule_layout = QtWidgets.QHBoxLayout()
         self.capsule_layout.setContentsMargins(6, 0, 6, 0)
         self.capsule_layout.setSpacing(3)
         self.capsule_layout.setObjectName("capsule_layout")
@@ -566,7 +542,7 @@ class Ui_MainWindow(object):
             }
         """
 
-        self.btn_create_character_menu = CenteredTooltipButton(parent=self.control_capsule)
+        self.btn_create_character_menu = CenteredTooltipButton(parent=self.frame_welcome_to)
         self.btn_create_character_menu.setObjectName("btn_create_character_menu")
         self.btn_create_character_menu.setFocusPolicy(QtCore.Qt.FocusPolicy.NoFocus)
         self.btn_create_character_menu.setFixedSize(QtCore.QSize(34, 34))
@@ -578,7 +554,7 @@ class Ui_MainWindow(object):
         self.btn_create_character_menu.setToolTip(self.translations.get("tooltip_create_character", "Create New Character"))
         self.capsule_layout.addWidget(self.btn_create_character_menu)
 
-        self.btn_import_character_menu = CenteredTooltipButton(parent=self.control_capsule)
+        self.btn_import_character_menu = CenteredTooltipButton(parent=self.frame_welcome_to)
         self.btn_import_character_menu.setObjectName("btn_import_character_menu")
         self.btn_import_character_menu.setFocusPolicy(QtCore.Qt.FocusPolicy.NoFocus)
         self.btn_import_character_menu.setFixedSize(QtCore.QSize(34, 34))
@@ -590,7 +566,7 @@ class Ui_MainWindow(object):
         self.btn_import_character_menu.setToolTip(self.translations.get("tooltip_import_character", "Import Character Card"))
         self.capsule_layout.addWidget(self.btn_import_character_menu)
 
-        self.btn_new_folder_menu = CenteredTooltipButton(parent=self.control_capsule)
+        self.btn_new_folder_menu = CenteredTooltipButton(parent=self.frame_welcome_to)
         self.btn_new_folder_menu.setObjectName("btn_new_folder_menu")
         self.btn_new_folder_menu.setFocusPolicy(QtCore.Qt.FocusPolicy.NoFocus)
         self.btn_new_folder_menu.setFixedSize(QtCore.QSize(34, 34))
@@ -602,7 +578,7 @@ class Ui_MainWindow(object):
         self.btn_new_folder_menu.setToolTip(self.translations.get("tooltip_new_folder", "Create New Folder"))
         self.capsule_layout.addWidget(self.btn_new_folder_menu)
 
-        self.gridLayout_6.addWidget(self.control_capsule, 0, 2, 1, 1)
+        self.gridLayout_6.addLayout(self.capsule_layout, 0, 2, 1, 1)
 
         self.search_bar_menu = ModernSearchBar(parent=self.frame_welcome_to)
         self.search_bar_menu.setMinimumSize(QtCore.QSize(140, 44))
@@ -2156,7 +2132,17 @@ class Ui_MainWindow(object):
         self.comboBox_output_devices.setFixedHeight(40)
         self.comboBox_output_devices.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.comboBox_output_devices.setObjectName("comboBox_output_devices")
-        form_audio.addRow(self.output_device_label, self.comboBox_output_devices)
+        self.pushButton_reload_audio_devices = QtWidgets.QPushButton()
+        self.pushButton_reload_audio_devices.setFixedSize(40, 40)
+        self.pushButton_reload_audio_devices.setIcon(QtGui.QIcon("app/gui/icons/reload.png"))
+        self.pushButton_reload_audio_devices.setObjectName("pushButton_reload_audio_devices")
+        self.pushButton_reload_audio_devices.setToolTip(self.translations.get("audio_refresh_tooltip", "Refresh the device list"))
+        self.pushButton_reload_audio_devices.setAccessibleName(self.pushButton_reload_audio_devices.toolTip())
+        output_row = QtWidgets.QHBoxLayout()
+        output_row.setSpacing(8)
+        output_row.addWidget(self.comboBox_output_devices, 1)
+        output_row.addWidget(self.pushButton_reload_audio_devices)
+        form_audio.addRow(self.output_device_label, output_row)
 
         l_audio.addLayout(form_audio)
         sys_layout.addWidget(card_audio)
@@ -4119,7 +4105,7 @@ class Ui_MainWindow(object):
         self.chat_audio_hud.setObjectName("chat_audio_hud")
         self.horizontalLayout_2.addWidget(self.chat_audio_hud)
         
-        self.pushButton_change_chat_background = PushButton("app/gui/icons/background_icon.png")
+        self.pushButton_change_chat_background = QtWidgets.QPushButton()
         self.pushButton_change_chat_background.setMinimumSize(QtCore.QSize(40, 40))
         self.pushButton_change_chat_background.setMaximumSize(QtCore.QSize(40, 40))
         self.pushButton_change_chat_background.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
@@ -4146,7 +4132,7 @@ class Ui_MainWindow(object):
         self.pushButton_change_chat_background.setObjectName("pushButton_change_chat_background")
         self.pushButton_change_chat_background.setToolTip(self.translations.get("change_chat_background_tooltip", "Change chat background"))
         self.horizontalLayout_2.addWidget(self.pushButton_change_chat_background)
-        self.pushButton_author_notes = PushButton("app/gui/icons/author_notes.png")
+        self.pushButton_author_notes = QtWidgets.QPushButton()
         self.pushButton_author_notes.setMinimumSize(QtCore.QSize(40, 40))
         self.pushButton_author_notes.setMaximumSize(QtCore.QSize(40, 40))
         self.pushButton_author_notes.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
@@ -4174,7 +4160,7 @@ class Ui_MainWindow(object):
         self.pushButton_author_notes.setToolTip(self.translations.get("author_notes_tooltip", "Author's notes"))
         self.pushButton_author_notes.hide()
         self.horizontalLayout_2.addWidget(self.pushButton_author_notes)
-        self.pushButton_summary = PushButton("app/gui/icons/summary.png")
+        self.pushButton_summary = QtWidgets.QPushButton()
         self.pushButton_summary.setMinimumSize(QtCore.QSize(40, 40))
         self.pushButton_summary.setMaximumSize(QtCore.QSize(40, 40))
         self.pushButton_summary.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
@@ -4202,14 +4188,17 @@ class Ui_MainWindow(object):
         self.pushButton_summary.setToolTip(self.translations.get("summary_tooltip", "Edit conversation summary"))
         self.pushButton_summary.hide()
         self.horizontalLayout_2.addWidget(self.pushButton_summary)
-        self.pushButton_soul_memory = PushButton("app/gui/icons/soulMemory.png")
+        self.pushButton_soul_memory = QtWidgets.QPushButton()
         self.pushButton_soul_memory.setMinimumSize(QtCore.QSize(40, 40))
         self.pushButton_soul_memory.setMaximumSize(QtCore.QSize(40, 40))
         self.pushButton_soul_memory.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
         self.pushButton_soul_memory.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.pushButton_soul_memory.setObjectName("pushButton_soul_memory")
+        self.pushButton_soul_memory.setIcon(QtGui.QIcon("app/gui/icons/soulMemory.png"))
+        self.pushButton_soul_memory.setIconSize(QtCore.QSize(18, 18))
+        self.pushButton_soul_memory.setStyleSheet(self.pushButton_change_chat_background.styleSheet())
         self.horizontalLayout_2.addWidget(self.pushButton_soul_memory)
-        self.pushButton_more = PushButton("app/gui/icons/more.png")
+        self.pushButton_more = QtWidgets.QPushButton()
         self.pushButton_more.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.pushButton_more.setMinimumSize(QtCore.QSize(40, 40))
         self.pushButton_more.setMaximumSize(QtCore.QSize(40, 40))
@@ -4424,7 +4413,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_3.setSpacing(6)
         self.horizontalLayout_3.setObjectName("horizontalLayout_3")
 
-        self.pushButton_attach_file = PushButton_2(parent=self.frame_send_message)
+        self.pushButton_attach_file = QtWidgets.QPushButton(parent=self.frame_send_message)
         self.pushButton_attach_file.setMinimumSize(QtCore.QSize(30, 30))
         self.pushButton_attach_file.setMaximumSize(QtCore.QSize(30, 30))
         self.pushButton_attach_file.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
@@ -4471,7 +4460,7 @@ class Ui_MainWindow(object):
         self.textEdit_write_user_message.setObjectName("textEdit_write_user_message")
         self.horizontalLayout_3.addWidget(self.textEdit_write_user_message, 1)
         
-        self.pushButton_send_message = PushButton_2(parent=self.frame_send_message)
+        self.pushButton_send_message = QtWidgets.QPushButton(parent=self.frame_send_message)
         self.pushButton_send_message.setMinimumSize(QtCore.QSize(30, 30))
         self.pushButton_send_message.setMaximumSize(QtCore.QSize(30, 30))
         self.pushButton_send_message.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
@@ -4482,7 +4471,7 @@ class Ui_MainWindow(object):
         self.pushButton_send_message.setObjectName("pushButton_send_message")
         self.horizontalLayout_3.addWidget(self.pushButton_send_message, 0, QtCore.Qt.AlignmentFlag.AlignBottom)
 
-        self.pushButton_stop_generation = PushButton_2(parent=self.frame_send_message)
+        self.pushButton_stop_generation = QtWidgets.QPushButton(parent=self.frame_send_message)
         self.pushButton_stop_generation.setMinimumSize(QtCore.QSize(30, 30))
         self.pushButton_stop_generation.setMaximumSize(QtCore.QSize(30, 30))
         self.pushButton_stop_generation.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
@@ -5111,7 +5100,7 @@ class Ui_MainWindow(object):
         spacerItem29 = QtWidgets.QSpacerItem(20, 10, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed)
         self.verticalLayout.addItem(spacerItem29)
         
-        self.pushButton_main = RippleButton(parent=self.SideBar_Left)
+        self.pushButton_main = QtWidgets.QPushButton(parent=self.SideBar_Left)
         self.pushButton_main.setEnabled(True)
         self.pushButton_main.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed)
@@ -5170,7 +5159,7 @@ class Ui_MainWindow(object):
         self.pushButton_main.setObjectName("pushButton_main")
         self.verticalLayout.addWidget(self.pushButton_main)
 
-        self.pushButton_soul_stage = RippleButton(parent=self.SideBar_Left)
+        self.pushButton_soul_stage = QtWidgets.QPushButton(parent=self.SideBar_Left)
         self.pushButton_soul_stage.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed)
         sizePolicy.setHorizontalStretch(0)
@@ -5222,7 +5211,7 @@ class Ui_MainWindow(object):
         self.pushButton_soul_stage.setObjectName("pushButton_soul_stage")
         self.verticalLayout.addWidget(self.pushButton_soul_stage)
 
-        self.pushButton_rp_editors = RippleButton(parent=self.SideBar_Left)
+        self.pushButton_rp_editors = QtWidgets.QPushButton(parent=self.SideBar_Left)
         self.pushButton_rp_editors.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed)
         sizePolicy.setHorizontalStretch(0)
@@ -5273,7 +5262,7 @@ class Ui_MainWindow(object):
         self.pushButton_rp_editors.setObjectName("pushButton_rp_editors")
         self.verticalLayout.addWidget(self.pushButton_rp_editors)
         
-        self.pushButton_characters_gateway = RippleButton(parent=self.SideBar_Left)
+        self.pushButton_characters_gateway = QtWidgets.QPushButton(parent=self.SideBar_Left)
         self.pushButton_characters_gateway.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         font = QtGui.QFont()
         font.setFamily("Comfortaa")
@@ -5321,7 +5310,7 @@ class Ui_MainWindow(object):
         self.pushButton_characters_gateway.setObjectName("pushButton_characters_gateway")
         self.verticalLayout.addWidget(self.pushButton_characters_gateway)
 
-        self.pushButton_models_hub = RippleButton(parent=self.SideBar_Left)
+        self.pushButton_models_hub = QtWidgets.QPushButton(parent=self.SideBar_Left)
         self.pushButton_models_hub.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed)
         sizePolicy.setHorizontalStretch(0)
@@ -5379,7 +5368,7 @@ class Ui_MainWindow(object):
         self.pushButton_models_hub.setObjectName("pushButton_models_hub")
         self.verticalLayout.addWidget(self.pushButton_models_hub)
         
-        self.pushButton_options = RippleButton(parent=self.SideBar_Left)
+        self.pushButton_options = QtWidgets.QPushButton(parent=self.SideBar_Left)
         self.pushButton_options.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         font = QtGui.QFont()
         font.setFamily("Comfortaa")
@@ -6359,207 +6348,6 @@ class Ui_MainWindow(object):
             frame.deleteLater()
         self.active_variable_widgets.clear()
 
-class RippleButton(QPushButton):
-    def __init__(self, *args, ripple_color=themed_color(50, 50, 50, 100), **kwargs):
-        super().__init__(*args, **kwargs)
-        self._ripple_radius = 0
-        self._ripple_pos = None
-        self._animation_timer = QTimer(self)
-        self._animation_timer.timeout.connect(self.update_ripple)
-        self._max_radius = 0
-        self._ripple_color = ripple_color
-        self._opacity = 1.0
-        self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-
-    def mousePressEvent(self, event):
-        if not self.isChecked():
-            self._ripple_pos = event.pos()
-            self._ripple_radius = 0
-            self._opacity = 1.0
-            self._max_radius = max(self.width(), self.height())
-            self._animation_timer.start(10)
-        super().mousePressEvent(event)
-
-    def update_ripple(self):
-        if self._ripple_radius < self._max_radius:
-            self._ripple_radius += 7
-        else:
-            self._opacity -= 0.07
-            if self._opacity <= 0:
-                self._animation_timer.stop()
-                self._ripple_pos = None
-                self._ripple_radius = 0
-                self._opacity = 1.0
-                return
-
-        self.update()
-
-    @safe_paint
-    def paintEvent(self, event):
-        super().paintEvent(event)
-
-        if self._ripple_pos and self._ripple_radius > 0:
-            painter = QPainter(self)
-            gradient = QRadialGradient(
-                QPointF(self._ripple_pos),
-                self._ripple_radius
-            )
-            gradient.setColorAt(0, QColor(self._ripple_color.red(), self._ripple_color.green(), self._ripple_color.blue(), int(255 * self._opacity)))
-            gradient.setColorAt(1, QColor(self._ripple_color.red(), self._ripple_color.green(), self._ripple_color.blue(), 0))
-            painter.setBrush(gradient)
-            painter.setPen(Qt.PenStyle.NoPen)
-            painter.drawEllipse(self._ripple_pos, self._ripple_radius, self._ripple_radius)
-
-    def isChecked(self):
-        return self.property("checked") or False
-
-    def setChecked(self, checked):
-        self.setProperty("checked", checked)
-        self.style().unpolish(self)
-        self.style().polish(self)
-        self.update()
-
-class PushButton(QtWidgets.QPushButton):
-    def __init__(self, icon_path, parent=None):
-        super().__init__(parent)
-        self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-        self.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
-
-        self.icon_pixmap = QtGui.QPixmap(icon_path)
-        
-        self._color_normal = themed_color(255, 255, 255, 10)
-        self._color_hover = themed_color(255, 255, 255, 40)
-        self._color_pressed = themed_color(255, 255, 255, 60)
-
-        self._current_bg_color = self._color_normal
-        
-        self._animation = QtCore.QVariantAnimation(self)
-        self._animation.setDuration(300)
-        self._animation.setEasingCurve(QEasingCurve.Type.OutQuad)
-        self._animation.valueChanged.connect(self._update_bg_color)
-
-    def _update_bg_color(self, color):
-        self._current_bg_color = color
-        self.update()
-
-    def enterEvent(self, event):
-        self._animation.stop()
-        self._animation.setStartValue(self._current_bg_color)
-        self._animation.setEndValue(self._color_hover)
-        self._animation.start()
-        super().enterEvent(event)
-
-    def leaveEvent(self, event):
-        self._animation.stop()
-        self._animation.setStartValue(self._current_bg_color)
-        self._animation.setEndValue(self._color_normal)
-        self._animation.start()
-        super().leaveEvent(event)
-
-    def mousePressEvent(self, event):
-        self._animation.stop()
-        self._current_bg_color = self._color_pressed
-        self.update()
-        super().mousePressEvent(event)
-
-    def mouseReleaseEvent(self, event):
-        self._animation.setStartValue(self._current_bg_color)
-        self._animation.setEndValue(self._color_hover)
-        self._animation.start()
-        super().mouseReleaseEvent(event)
-
-    @safe_paint
-    def paintEvent(self, event):
-        painter = QPainter(self)
-        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-
-        rect = self.rect()
-        draw_rect = QRectF(rect).adjusted(1, 1, -1, -1)
-        radius = 20
-
-        painter.setBrush(QBrush(self._current_bg_color))
-        painter.setPen(QPen(themed_color(255, 255, 255, 30), 1)) 
-        painter.drawRoundedRect(draw_rect, radius, radius)
-
-        if not self.icon_pixmap.isNull():
-            icon_size = 20
-            x = (self.width() - icon_size) // 2
-            y = (self.height() - icon_size) // 2
-            painter.drawPixmap(x, y, icon_size, icon_size, 
-                               self.icon_pixmap.scaled(
-                                   icon_size, icon_size, 
-                                   Qt.AspectRatioMode.KeepAspectRatio, 
-                                   Qt.TransformationMode.SmoothTransformation
-                               ))
-
-class PushButton_2(QtWidgets.QPushButton):
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-        self.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
-
-        self._color_normal = themed_color(67, 68, 70, 180) 
-        self._color_hover = themed_color(90, 93, 96, 220)
-        self._color_pressed = themed_color(120, 123, 126, 240)
-
-        self._current_bg_color = self._color_normal
-
-        self._animation = QtCore.QVariantAnimation(self)
-        self._animation.setDuration(200)
-        self._animation.setEasingCurve(QEasingCurve.Type.OutQuad)
-        self._animation.valueChanged.connect(self._update_bg_color)
-
-    def _update_bg_color(self, color):
-        self._current_bg_color = color
-        self.update()
-
-    def enterEvent(self, event):
-        self._animation.stop()
-        self._animation.setStartValue(self._current_bg_color)
-        self._animation.setEndValue(self._color_hover)
-        self._animation.start()
-        super().enterEvent(event)
-
-    def leaveEvent(self, event):
-        self._animation.stop()
-        self._animation.setStartValue(self._current_bg_color)
-        self._animation.setEndValue(self._color_normal)
-        self._animation.start()
-        super().leaveEvent(event)
-
-    def mousePressEvent(self, event):
-        self._animation.stop()
-        self._current_bg_color = self._color_pressed
-        self.update()
-        super().mousePressEvent(event)
-
-    def mouseReleaseEvent(self, event):
-        self._animation.setStartValue(self._current_bg_color)
-        self._animation.setEndValue(self._color_hover)
-        self._animation.start()
-        super().mouseReleaseEvent(event)
-
-    @safe_paint
-    def paintEvent(self, event):
-        painter = QPainter(self)
-        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-        painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
-
-        rect = self.rect()
-        draw_rect = QRectF(rect).adjusted(1, 1, -1, -1)
-        radius = 15
-
-        painter.setBrush(QBrush(self._current_bg_color))
-        painter.setPen(QPen(themed_color(255, 255, 255, 30), 1)) 
-        painter.drawRoundedRect(draw_rect, radius, radius)
-
-        if not self.icon().isNull():
-            icon_size = 16
-            x = int((self.width() - icon_size) / 2)
-            y = int((self.height() - icon_size) / 2)
-            
-            self.icon().paint(painter, x, y, icon_size, icon_size)
-
 class _ResizeRelay(QtCore.QObject):
     resized = QtCore.pyqtSignal()
 
@@ -6877,8 +6665,6 @@ class RPGlassCard(QtWidgets.QFrame):
 
 class AppearanceSettingsTab(QtWidgets.QWidget):
     chatAppearanceChanged = QtCore.pyqtSignal(dict)
-    windowThemeChanged = QtCore.pyqtSignal(dict)
-    uiAppearanceChanged = QtCore.pyqtSignal(dict)
     requestChatPreviewUpdate = QtCore.pyqtSignal()
     resetAppearanceRequested = QtCore.pyqtSignal()
     saveChatAppearanceRequested = QtCore.pyqtSignal(dict)
@@ -6887,8 +6673,6 @@ class AppearanceSettingsTab(QtWidgets.QWidget):
         super().__init__()
         self.translations = translations
         self.s = {}
-        self.wt = {}
-        self.u = {}
         
         self.setObjectName("appearance_tab")
         self.setStyleSheet("background-color: transparent;")
@@ -6897,10 +6681,8 @@ class AppearanceSettingsTab(QtWidgets.QWidget):
         self.main_layout.setContentsMargins(0, 0, 0, 0)
         self.main_layout.setSpacing(0)
 
-    def set_data(self, s, wt, u):
+    def set_data(self, s):
         self.s = s
-        self.wt = wt
-        self.u = u
         self.rebuild_ui()
 
     def _hex_to_rgba(self, hex_color, alpha_pct):
@@ -6993,8 +6775,6 @@ class AppearanceSettingsTab(QtWidgets.QWidget):
 
     def setup_ui(self):
         s = self.s
-        wt = self.wt
-        u = self.u
 
         FULL_PRESETS = [
             {"name": self.tr("appearance_preset_default", "Default"),   "user": "#292929", "char": "#222222", "text": "#E8E8E8", "quote": "#E8A040", "italic": "#A0A0A0"},
@@ -7443,163 +7223,12 @@ class AppearanceSettingsTab(QtWidgets.QWidget):
         TH.addWidget(ThemeEditor(theme.manager, self.translations))
         RL.addWidget(theme_card)
 
-        ui_lbl = create_section_lbl(self.tr("appearance_header_ui", "Interface (Sidebar and Buttons)"))
-        ui_lbl.setStyleSheet(SECTION_LBL_STYLE + " padding-left: 5px;")
-        RL.addWidget(ui_lbl)
-
-        ui_card = QtWidgets.QFrame()
-        ui_card.setStyleSheet(CARD_STYLE)
-        UI = QtWidgets.QVBoxLayout(ui_card)
-        UI.setContentsMargins(20, 20, 20, 20)
-        UI.setSpacing(20)
-        
-        def ui_update_only_buttons():
-            self.uiAppearanceChanged.emit(u)
-
-        UI_ACCENT_COLORS = [
-            {"name": self.tr_col("Gray", "gray"), "color": "#A0A0A0"}, {"name": self.tr_col("Blue", "blue"), "color": "#5090C8"}, 
-            {"name": self.tr_col("Lavender", "lavender"), "color": "#9080C8"}, {"name": self.tr_col("Green", "green"), "color": "#70B870"}, 
-            {"name": self.tr_col("Amber", "amber"), "color": "#E8A040"}, {"name": self.tr_col("Rose", "rose"), "color": "#C87090"}
-        ]
-        UI_HOVER_COLORS = [
-            {"name": self.tr_col("Dark", "dark"), "color": "#1B1B1B"}, {"name": self.tr_col("Darker", "darker"), "color": "#141414"}, 
-            {"name": self.tr_col("Slate", "slate"), "color": "#1A202A"}, {"name": self.tr_col("Forest", "forest"), "color": "#162018"}, 
-            {"name": self.tr_col("Warm", "warm"), "color": "#201A14"}
-        ]
-        NAV_TEXT_COLORS = [
-            {"name": self.tr_col("Standard", "standard"), "color": "#D2D2D2"}, {"name": self.tr_col("Bright", "bright"), "color": "#F0F0F0"}, 
-            {"name": self.tr_col("Dimmed", "dimmed"), "color": "#A0A0A0"}, {"name": self.tr_col("Warm", "warm"), "color": "#D8C8B0"}, 
-            {"name": self.tr_col("Cool", "cool"), "color": "#A8B8C8"}, {"name": self.tr_col("Accent", "accent"), "color": "#B0C0D8"}
-        ]
-
-        UI.addWidget(create_section_lbl(self.tr("appearance_header_ui_accent", "Accent (The Active Menu Item)")))
-        UI.addLayout(create_swatch_grid(UI_ACCENT_COLORS, "sidebar_accent", u, ui_update_only_buttons))
-        UI.addWidget(create_h_sep())
-
-        UI.addWidget(create_section_lbl(self.tr("appearance_header_ui_hover", "Hover (Active Button Background)")))
-        UI.addLayout(create_swatch_grid(UI_HOVER_COLORS, "sidebar_hover", u, ui_update_only_buttons))
-        UI.addWidget(create_h_sep())
-
-        UI.addWidget(create_section_lbl(self.tr("appearance_header_ui_text", "Button Text Color")))
-        UI.addLayout(create_swatch_grid(NAV_TEXT_COLORS, "sidebar_text", u, ui_update_only_buttons))
-
-        RL.addWidget(ui_card)
         RL.addStretch()
         
         right_scroll.setWidget(right_content)
         self.main_layout.addWidget(right_scroll)
 
         self.update_preview()
-
-class GlassPortalButton(QPushButton):
-    def __init__(self, text="", parent=None):
-        super().__init__(text, parent)
-        self._hover_progress = 0.0
-        self._is_pressed = False
-        
-        self._animation = QPropertyAnimation(self, b"hover_progress", self)
-        self._animation.setDuration(350)
-        self._animation.setStartValue(0.0)
-        self._animation.setEndValue(1.0)
-        self._animation.setEasingCurve(QEasingCurve.Type.OutCubic)
-
-        self.setAttribute(Qt.WidgetAttribute.WA_Hover, True)
-        self.setMinimumHeight(50)
-
-    @pyqtProperty(float)
-    def hover_progress(self) -> float:
-        return self._hover_progress
-
-    @hover_progress.setter
-    def hover_progress(self, val: float):
-        self._hover_progress = val
-        self.update()
-
-    def enterEvent(self, event):
-        self._animation.setDirection(QPropertyAnimation.Direction.Forward)
-        if self._animation.state() == QPropertyAnimation.State.Stopped:
-            self._animation.start()
-        super().enterEvent(event)
-
-    def leaveEvent(self, event):
-        self._animation.setDirection(QPropertyAnimation.Direction.Backward)
-        if self._animation.state() == QPropertyAnimation.State.Stopped:
-            self._animation.start()
-        super().leaveEvent(event)
-
-    def mousePressEvent(self, event):
-        if event.button() == Qt.MouseButton.LeftButton:
-            self._is_pressed = True
-            self.update()
-        super().mousePressEvent(event)
-
-    def mouseReleaseEvent(self, event):
-        if event.button() == Qt.MouseButton.LeftButton:
-            self._is_pressed = False
-            self.update()
-        super().mouseReleaseEvent(event)
-
-    @safe_paint
-    def paintEvent(self, event):
-        painter = QPainter(self)
-        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-
-        rect = QRectF(self.rect())
-        rect.adjust(0.7, 0.7, -0.7, -0.7)
-        
-        rx = ry = self.height() / 2.0
-        p = self._hover_progress
-
-        painter.setPen(Qt.PenStyle.NoPen)
-        base_glass_color = themed_color(10, 10, 10, 200) 
-        painter.setBrush(QBrush(base_glass_color))
-        painter.drawRoundedRect(rect, rx, ry)
-
-        if p > 0.0:
-            glow_gradient = QtGui.QLinearGradient(rect.topLeft(), rect.bottomRight())
-            
-            alpha = int(80 * p) 
-            glow_gradient.setColorAt(0.0, QColor(168, 85, 247, alpha))
-            glow_gradient.setColorAt(1.0, QColor(0, 245, 255, alpha))
-            
-            painter.setBrush(QBrush(glow_gradient))
-            painter.drawRoundedRect(rect, rx, ry)
-
-        if self._is_pressed:
-            painter.setBrush(QBrush(themed_color(0, 0, 0, 140)))
-            painter.drawRoundedRect(rect, rx, ry)
-
-        border_gradient = QtGui.QLinearGradient(rect.topLeft(), rect.bottomRight())
-        
-        c1 = QColor(
-            int(255 * (1 - p) + 168 * p),
-            int(255 * (1 - p) + 85 * p),
-            int(255 * (1 - p) + 247 * p),
-            int(20 + 215 * p)
-        )
-        c2 = QColor(
-            int(255 * (1 - p) + 0 * p),
-            int(255 * (1 - p) + 245 * p),
-            int(255 * (1 - p) + 255 * p),
-            int(20 + 215 * p)
-        )
-        border_gradient.setColorAt(0.0, c1)
-        border_gradient.setColorAt(1.0, c2)
-
-        pen = QPen(border_gradient, 1.5) 
-        painter.setPen(pen)
-        painter.setBrush(Qt.BrushStyle.NoBrush)
-        painter.drawRoundedRect(rect, rx, ry)
-
-        text_color = QColor(
-            int(148 * (1 - p) + 255 * p),
-            int(163 * (1 - p) + 255 * p),
-            int(184 * (1 - p) + 255 * p),
-            255
-        )
-        painter.setPen(text_color)
-        painter.setFont(self.font())
-        painter.drawText(rect, Qt.AlignmentFlag.AlignCenter, self.text())
 
 class ArrowTooltip(QtWidgets.QWidget):
     def __init__(self, text, parent=None):

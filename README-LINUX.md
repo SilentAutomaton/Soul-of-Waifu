@@ -105,6 +105,21 @@ executable (KDE) and marked as trusted (GNOME). To create them without running t
 ./installer.sh --shortcuts-only
 ```
 
+### Installing a copy for everyday use
+
+The checkout is a development tree. To run the program from its own place instead, copy the prepared
+checkout with:
+
+```bash
+./installer.sh --install            # to ~/.local/share/soul-of-waifu
+./installer.sh --install /opt/sow   # or any directory you can write to
+```
+
+This adds the `soul-of-waifu` command to `~/.local/bin` and points the menu entry and the desktop shortcut
+at it. On btrfs and XFS the copy shares its blocks with the checkout and takes no extra space. Run the same
+command again after `git pull` to update the code: chats, characters, settings and the Python environment
+in the installed copy stay as they are.
+
 ## Starting
 
 ```bash
@@ -168,12 +183,13 @@ To use CUDA, pick one of these:
 | TTS (Edge, ElevenLabs, XTTSv2, Qwen3, Kokoro, Silero) / STT (Faster-Whisper) | ✅ |
 | RVC voice conversion | ✅ `tools/patch_venv.py` makes fairseq 0.12.2 importable on Python 3.11; the app also starts without it |
 | Local LLMs (llama.cpp) | ✅ the installer fetches the Vulkan build (CPU/ROCm/SYCL available); no official CUDA build for Linux |
-| Audio output | ✅ the device list offers the sound-server PCMs (`default`, `pipewire`, `pulse`) |
+| Audio devices | ✅ with PipeWire the lists show every output and input by name (headphones, speakers, Easy Effects, …), picked through PortAudio's `pipewire` device and `PIPEWIRE_NODE`; ⟳ re-reads them. Without PipeWire: `default`, `pulse` |
 | Live2D / VRM avatars | ✅ |
 | Open files, folders, apps (`.desktop` launchers, localized XDG folders) | ✅ |
-| Media keys, clipboard, window title/focus | ✅ with the optional tools above |
-| Idle detection (sleep/drowsy) | ⚠️ X11 (`xprintidle`) and GNOME only. Disabled on KDE Wayland. |
-| Screenshots / mouse and keyboard automation (`mss`, `pyautogui`) | ⚠️ X11 only. On Wayland they reach XWayland windows only. |
+| Media keys, clipboard, window title/focus | ✅ with the optional tools above; on Hyprland the window title and focus use `hyprctl` (classic and Lua configs) |
+| Idle detection (sleep/drowsy) | ⚠️ X11 (`xprintidle`) and GNOME only. Disabled on KDE Wayland and Hyprland (no query API). |
+| Screenshots for the companion | ✅ X11 (`mss`); Hyprland and Sway through `grim` |
+| Mouse automation (`pyautogui`) | ⚠️ X11 only. On Wayland it reaches XWayland windows only. |
 | Code execution tool | ✅ Python and **Bash** (PowerShell on Windows) |
 | Program language | ✅ English, Russian and **German** (`app/translations/de.yaml`, added in this fork) |
 | Reply language of the AI | ✅ Options -> App Interface -> Reply Language (follows the app language by default) |

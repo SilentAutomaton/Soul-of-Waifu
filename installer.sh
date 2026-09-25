@@ -7,6 +7,9 @@
 #   --skip-assets             Do not fetch icons/assets from the release archive
 #   --no-shortcuts            Do not create the menu entry and desktop shortcut
 #   --shortcuts-only          Only create the menu entry and desktop shortcut, then exit
+#   --install [DIR]           Copy this prepared checkout to DIR (default ~/.local/share/soul-of-waifu),
+#                             add the soul-of-waifu command and point the shortcuts at it, then exit.
+#                             Run again to update the code; chats, characters and settings in DIR stay.
 #   -y, --yes                 Non-interactive, accept all defaults
 
 set -euo pipefail
@@ -33,6 +36,7 @@ fail() { echo "${RED}ERROR:${RESET} $*" >&2; exit 1; }
 have() { command -v "$1" >/dev/null 2>&1; }
 
 TORCH_VARIANT=""; RELEASE_ARCHIVE=""; SKIP_ASSETS=0; SHORTCUTS=1; SHORTCUTS_ONLY=0; ASSUME_YES=0
+INSTALL_DIR=""
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --torch) TORCH_VARIANT="${2:-}"; shift 2 ;;
@@ -41,8 +45,12 @@ while [[ $# -gt 0 ]]; do
         --desktop-entry) SHORTCUTS=1; shift ;;
         --no-shortcuts) SHORTCUTS=0; shift ;;
         --shortcuts-only) SHORTCUTS_ONLY=1; shift ;;
+        --install)
+            INSTALL_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/soul-of-waifu"
+            if [[ -n ${2:-} && ${2:0:1} != - ]]; then INSTALL_DIR="$2"; shift; fi
+            shift ;;
         -y|--yes) ASSUME_YES=1; shift ;;
-        -h|--help) sed -n '2,10p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+        -h|--help) sed -n '2,13p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
         *) fail "Unknown option: $1 (see --help)" ;;
     esac
 done
@@ -60,7 +68,8 @@ ask() {  # ask "question" y|n  -> returns 0 for yes
 echo "${GREEN}${BOLD}Soul of Waifu v${SOW_VERSION} - Linux installer${RESET}"
 echo
 
-install_shortcuts() {
+install_shortcuts() {  # install_shortcuts [APP_DIR] [COMMAND]
+    local app_dir="${1:-$PWD}" command="${2:-$PWD/start.sh}"
     local data_home="${XDG_DATA_HOME:-$HOME/.local/share}"
     local apps_dir="$data_home/applications"
     local icon_dir="$data_home/icons/hicolor/256x256/apps"
@@ -97,8 +106,8 @@ PYICON
 Type=Application
 Name=Soul of Waifu
 Comment=AI roleplay companion with Live2D/VRM avatars
-Exec="$PWD/start.sh"
-Path=$PWD
+Exec="$command"
+Path=$app_dir
 Icon=$icon_ref
 Terminal=false
 Categories=Game;RolePlaying;
@@ -128,6 +137,41 @@ EOF
 if [[ $SHORTCUTS_ONLY -eq 1 ]]; then
     info "Creating shortcuts..."
     install_shortcuts
+    exit 0
+fi
+
+install_copy() {
+    local target="$1" bin_dir="$HOME/.local/bin"
+    [[ -x $VENV_DIR/bin/python && -f app/gui/icons/resources.py ]] \
+        || fail "Run ./installer.sh first - the environment and the program assets are missing."
+    [[ $(readlink -f "$target") != "$PWD" ]] || fail "The target is this checkout."
+
+    if [[ -e $target ]]; then
+        info "Updating $target (chats, characters and settings stay)..."
+        have git || fail "Updating needs git."
+        # Tracked files only: the user data in the target (app/data, settings, logs) is not tracked.
+        git ls-files -z | while IFS= read -r -d '' f; do
+            [[ $f == app/configuration/settings.json ]] && continue
+            mkdir -p "$target/$(dirname "$f")"
+            cp -a --reflink=auto "$f" "$target/$f"
+        done
+    else
+        info "Copying to $target (on btrfs/XFS the copy shares blocks and takes no space)..."
+        mkdir -p "$(dirname "$target")"
+        cp -a --reflink=auto "$PWD" "$target"
+        rm -rf "$target/.git" "$target/logs"
+        find "$target" -name __pycache__ -type d -prune -exec rm -rf {} +
+    fi
+
+    mkdir -p "$bin_dir"
+    printf '#!/bin/sh\nexec "%s/start.sh" "$@"\n' "$target" > "$bin_dir/soul-of-waifu"
+    chmod 755 "$bin_dir/soul-of-waifu"
+    echo "   Command:          $bin_dir/soul-of-waifu"
+    (cd "$target" && install_shortcuts "$target" "$bin_dir/soul-of-waifu")
+}
+
+if [[ -n $INSTALL_DIR ]]; then
+    install_copy "$INSTALL_DIR"
     exit 0
 fi
 

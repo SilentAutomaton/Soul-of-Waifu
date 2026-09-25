@@ -7,6 +7,8 @@ import logging
 import numpy as np
 
 from PyQt6.QtCore import QThread, pyqtSignal
+
+from app.utils.platform_compat import pipewire_input
 from faster_whisper import WhisperModel
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -32,9 +34,10 @@ class AudioInputWorker(QThread):
     silence_detected_signal = pyqtSignal()
     audio_packet_ready = pyqtSignal(bytes)
 
-    def __init__(self, input_device_index=None, vad_device="auto"):
+    def __init__(self, input_device_index=None, vad_device="auto", input_node=None):
         super().__init__()
         self.input_device_index = input_device_index
+        self.input_node = input_node
         self.is_running = True
 
         self.SAMPLE_RATE = 16000
@@ -96,12 +99,13 @@ class AudioInputWorker(QThread):
 
         stream = None
         try:
-            stream = p.open(format=pyaudio.paInt16,
-                            channels=1,
-                            rate=self.SAMPLE_RATE,
-                            input=True,
-                            input_device_index=self.input_device_index,
-                            frames_per_buffer=self.CHUNK_SIZE)
+            with pipewire_input(self.input_node):
+                stream = p.open(format=pyaudio.paInt16,
+                                channels=1,
+                                rate=self.SAMPLE_RATE,
+                                input=True,
+                                input_device_index=self.input_device_index,
+                                frames_per_buffer=self.CHUNK_SIZE)
             logger.info(f"Microphone stream opened successfully! (Device ID: {self.input_device_index if self.input_device_index is not None else 'Default'})")
         except Exception as e:
             logger.error(f"Failed to open microphone: {e}")

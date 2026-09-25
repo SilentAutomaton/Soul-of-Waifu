@@ -181,7 +181,7 @@ class WaveformWidget(QtWidgets.QWidget):
             x  = gap + i*(bw+gap)
             bh = max(3.0, v*(h-6))
             y  = (h-bh)/2.0
-            c  = QColor(base)
+            c  = themed_color(base)
             c.setAlpha(min(255, int(100 + v*155)))
             p.setBrush(QBrush(c))
             p.drawRoundedRect(QtCore.QRectF(x, y, bw, bh), 1.4, 1.4)

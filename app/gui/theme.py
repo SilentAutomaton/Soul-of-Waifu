@@ -73,7 +73,14 @@ APP_FONT_FAMILIES = [
 
 GRAY_SPREAD = 24
 SHADOW_MAX = 8
-ACCENT_HUES = (185, 235)
+# Accent families of the default palette: (hue range, saturation range, reference color).
+# Every member takes the theme accent's hue; its lightness and saturation keep their
+# distance from the family's reference. Amber warnings (saturation above 0.8) stay amber.
+ACCENT_FAMILIES = [
+    ((185, 239), (0.35, 1.0), "#4BB8FF"),
+    ((240, 300), (0.35, 1.0), "#8B5CF6"),
+    ((34, 48), (0.45, 0.8), "#C49A38"),
+]
 
 COLOR_RE = re.compile(
     r"#(?P<hex>[0-9a-fA-F]{6}|[0-9a-fA-F]{3})\b"
@@ -113,8 +120,10 @@ class Theme:
         self._ramp = [(0, (0, 0, 0), (0, 0, 0))] + [
             (level, d, a) for (level, d), a in zip(default, active)
         ]
-        self._accent_default = colorsys.rgb_to_hls(*[c / 255 for c in _rgb(DEFAULT_TOKENS["accent"])])
         self._accent = colorsys.rgb_to_hls(*[c / 255 for c in _rgb(self.tokens["accent"])])
+        self._families = [
+            (hues, sats, colorsys.rgb_to_hls(*[c / 255 for c in _rgb(ref)])) for hues, sats, ref in ACCENT_FAMILIES
+        ]
         self.key = json.dumps([self.tokens, self.font_scale, self.density, self.radius, self.glass], sort_keys=True)
 
     def map_rgb(self, r, g, b):
@@ -129,13 +138,12 @@ class Theme:
                     return tuple(int(round(_clamp(c + s))) for c, s in zip((r, g, b), shift))
             return r, g, b
         h, l, s = colorsys.rgb_to_hls(r / 255, g / 255, b / 255)
-        if ACCENT_HUES[0] <= h * 360 <= ACCENT_HUES[1] and s >= 0.35:
-            dh, dl, ds = self._accent_default
-            ah, al, as_ = self._accent
-            h = (h + ah - dh) % 1.0
-            l = min(1.0, max(0.0, l + al - dl))
-            s = min(1.0, s * (as_ / ds if ds else 1))
-            return tuple(int(round(c * 255)) for c in colorsys.hls_to_rgb(h, l, s))
+        for (h0, h1), (s0, s1), (_rh, rl, rs) in self._families:
+            if h0 <= h * 360 <= h1 and s0 <= s <= s1:
+                ah, al, as_ = self._accent
+                l = min(1.0, max(0.0, l + al - rl))
+                s = min(1.0, s * as_ / rs)
+                return tuple(int(round(c * 255)) for c in colorsys.hls_to_rgb(ah, l, s))
         return r, g, b
 
     def map_alpha(self, alpha_text):
@@ -195,8 +203,8 @@ def resolve(qss):
 
 
 def qcolor(r, g=None, b=None, a=255):
-    """QColor for paint code: qcolor(r, g, b[, a]) or qcolor("#RRGGBB")."""
-    if isinstance(r, str):
+    """QColor for paint code: qcolor(r, g, b[, a]), qcolor("#RRGGBB") or qcolor(QColor)."""
+    if isinstance(r, (str, QColor)):
         c = QColor(r)
         r, g, b, a = c.red(), c.green(), c.blue(), c.alpha()
     mr, mg, mb = _theme.map_rgb(r, g, b)

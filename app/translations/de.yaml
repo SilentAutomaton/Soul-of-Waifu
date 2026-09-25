@@ -2444,3 +2444,5 @@ theme_font_default: App-Standard (Inter Tight)
 social_github_tooltip: GitHub
 social_discord_tooltip: Discord
 social_youtube_tooltip: YouTube
+audio_system_default: Systemstandard
+audio_refresh_tooltip: Geräteliste aktualisieren

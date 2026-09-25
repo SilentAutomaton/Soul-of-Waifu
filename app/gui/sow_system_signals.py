@@ -255,7 +255,10 @@ class Soul_Of_Waifu_System(QtCore.QObject):
             logger.info("Starting Voice Interaction Pipeline...")
             
             if self.audio_worker is None or not self.audio_worker.isRunning():
-                self.audio_worker = AudioInputWorker(input_device_index=self.input_device_index)
+                self.input_device_index = self.configuration_settings.get_main_setting("input_device_real_index")
+                self.audio_worker = AudioInputWorker(
+                    input_device_index=self.input_device_index,
+                    input_node=self.configuration_settings.get_main_setting("input_pw_node"))
                 self.audio_worker.audio_packet_ready.connect(self.stt_worker.add_audio)
                 self.audio_worker.voice_detected_signal.connect(self.interrupt_ai)
                 self.audio_worker.volume_signal.connect(self.ui.waveform_widget.push_volume)

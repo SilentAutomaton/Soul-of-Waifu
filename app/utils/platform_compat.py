@@ -9,10 +9,14 @@ All Linux helpers are best-effort: they rely on common desktop tools
 gracefully when those are missing.
 """
 
+import io
 import os
 import re
 import sys
+import json
 import time
+import threading
+from contextlib import contextmanager
 import shlex
 import shutil
 import logging
@@ -265,18 +269,27 @@ def send_media_key(action: str) -> None:
 _window_title_cache = ("", 0.0)
 
 
+def _is_hyprland() -> bool:
+    return bool(os.environ.get("HYPRLAND_INSTANCE_SIGNATURE")) and shutil.which("hyprctl") is not None
+
+
 def get_active_window_title() -> str:
-    """Title of the focused window (X11 via xdotool, KDE Wayland via kdotool)."""
+    """Title of the focused window (X11 via xdotool, Hyprland via hyprctl, KDE Wayland via kdotool)."""
     global _window_title_cache
     title, ts = _window_title_cache
     if time.monotonic() - ts < 2.0:
         return title
 
     title = ""
+    if _is_hyprland():
+        try:
+            title = json.loads(_run(["hyprctl", "activewindow", "-j"], timeout=1) or "{}").get("title", "")
+        except ValueError:
+            title = ""
     tools = []
     if is_x11():
         tools.append("xdotool")
-    if is_wayland():
+    if is_wayland() and not title:
         tools.append("kdotool")
     for tool in tools:
         out = _run([tool, "getactivewindow", "getwindowname"], timeout=1)
@@ -303,6 +316,20 @@ def focus_window(pids: set, names: set) -> bool:
         for name in names:
             if _run(["kdotool", "search", "--class", name, "windowactivate"]) is not None:
                 return True
+    if _is_hyprland():
+        for pid in pids:
+            if _hyprland_focus_pid(pid):
+                return True
+    return False
+
+
+def _hyprland_focus_pid(pid: int) -> bool:
+    """A Lua config rejects the classic dispatcher syntax, so try both."""
+    for command in (["hyprctl", "dispatch", "focuswindow", f"pid:{pid}"],
+                    ["hyprctl", "dispatch", f'hl.dsp.focus({{ window = "pid:{pid}" }})']):
+        out = (_run(command, timeout=2) or "").strip()
+        if out == "ok":
+            return True
     return False
 
 
@@ -453,6 +480,70 @@ def get_gpu_names() -> list:
         if re.search(r"VGA compatible controller|3D controller|Display controller", line):
             gpus.append(line.split(": ", 1)[-1].strip())
     return gpus
+
+
+# ---------------------------------------------------------------------------
+# Screenshots
+# ---------------------------------------------------------------------------
+
+def capture_screen():
+    """Screenshot of the whole desktop as a PIL image on wlroots compositors
+    (Hyprland, Sway) via grim; None elsewhere, so callers fall back to mss."""
+    if not is_wayland() or not shutil.which("grim"):
+        return None
+    try:
+        png = subprocess.run(["grim", "-"], capture_output=True, timeout=5, check=True).stdout
+    except (OSError, subprocess.SubprocessError):
+        return None
+    from PIL import Image
+    return Image.open(io.BytesIO(png)).convert("RGB")
+
+
+# ---------------------------------------------------------------------------
+# PipeWire audio devices
+# ---------------------------------------------------------------------------
+# PortAudio only sees PipeWire through its ALSA plugin, as one "pipewire"
+# device. That plugin sends a stream to the node named in PIPEWIRE_NODE,
+# read when the stream is opened.
+
+_pipewire_lock = threading.Lock()
+
+
+def pipewire_nodes(kind: str) -> list:
+    """[(node name, description)] of the PipeWire sinks ("output") or sources ("input")."""
+    media_class = "Audio/Sink" if kind == "output" else "Audio/Source"
+    try:
+        objects = json.loads(_run(["pw-dump"], timeout=3) or "[]")
+    except ValueError:
+        return []
+    nodes = []
+    for obj in objects:
+        props = (obj.get("info") or {}).get("props") or {}
+        if str(props.get("media.class", "")).startswith(media_class) and props.get("node.name"):
+            nodes.append((props["node.name"], props.get("node.description") or props["node.name"]))
+    return nodes
+
+
+def set_pipewire_output(node: Optional[str]) -> None:
+    """Route every playback stream opened from now on to this node (None: system default)."""
+    if node:
+        os.environ["PIPEWIRE_NODE"] = node
+    else:
+        os.environ.pop("PIPEWIRE_NODE", None)
+
+
+@contextmanager
+def pipewire_input(node: Optional[str]):
+    """Open a capture stream on this node, then restore the playback target."""
+    # ponytail: the variable is process-wide; a playback stream opened in the same
+    # instant would follow the microphone node. Per-stream targets need a native PipeWire client.
+    with _pipewire_lock:
+        previous = os.environ.get("PIPEWIRE_NODE")
+        set_pipewire_output(node or None)
+        try:
+            yield
+        finally:
+            set_pipewire_output(previous)
 
 
 # Folders an agent must never touch on Linux.

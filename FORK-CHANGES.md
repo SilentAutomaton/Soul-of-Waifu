@@ -102,6 +102,9 @@ Conflicts can only appear in the files under "Changed upstream files" below. Rul
 | `.gitignore` | runtime data and files copied from the release archive | `# --- Linux port` |
 | `start.sh`, `main.py`, `app/gui/sowInterface.py` | native Wayland: system window frame on Linux (no frameless window, no own _ □ × buttons or resize grips), file dialogs through the XDG portal (`QT_QPA_PLATFORMTHEME=xdgdesktopportal`) | `if not IS_LINUX:` |
 | `app/gui/interface_signals.py` | file dialogs that had no parent get the main window, so the portal keeps them on top of it | `QFileDialog.getOpenFileName(self.main_window,` |
+| `installer.sh` | `--install [DIR]` copies the prepared checkout (reflink), adds `~/.local/bin/soul-of-waifu` and points the shortcuts at it; a second run updates tracked files and keeps the user data | `install_copy()` |
+| `app/utils/platform_compat.py`, `app/gui/interface_signals.py`, `app/utils/speech_to_text.py`, `app/gui/sow_system_signals.py`, `app/gui/sowInterface.py` | PipeWire devices by name in Audio Devices (playback through `PIPEWIRE_NODE`, the microphone opens under a lock with its own node), stored by node name, ⟳ reloads | `def pipewire_nodes` |
+| `app/utils/platform_compat.py`, `app/utils/soul_companion/soul_companion.py` | Hyprland: active window title and focus via `hyprctl`; companion screenshots via `grim` on wlroots compositors | `_hyprland_focus_pid`, `def capture_screen` |
 | `installer.sh` | the menu entry's `StartupWMClass` is the Wayland app id `soul-of-waifu` (was `main.py`), so docks group the window under the entry | `StartupWMClass=soul-of-waifu` |
 
 ### Features on top of upstream
@@ -132,6 +135,8 @@ Conflicts can only appear in the files under "Changed upstream files" below. Rul
 | `main.py`, `app/gui/sowInterface.py`, `app/gui/custom_widgets.py`, `app/gui/soul_stage_page.py` | adaptive layout: minimum window 720x480 (was 1350x734), only the visible page limits the minimum size, the sidebar hides below 1000 px, long labels wrap, top bars and button rows wrap (`FlowLayout`), card grids drop columns (`AdaptiveGrid`) | `size_stack_to_current_page`, `SIDEBAR_AUTO_HIDE_WIDTH` |
 | `app/gui/sowInterface.py`, `app/gui/interface_signals.py`, `main.py` | the Window Theme presets in Appearance are replaced by the token theme editor; old `window_theme`/`gui_theme` settings migrate once to `theme` | `ThemeEditor(theme.manager`, `migrate_legacy` |
 | `app/gui/*.py` | literal `QColor(r, g, b)` in paint code goes through the theme | `themed_color(` |
+| `app/gui/theme.py`, `app/gui/interface_signals.py`, `app/gui/sowInterface.py` | one accent: the blue, violet and gold accent families all follow the theme accent; the separate sidebar accent/hover/text settings are gone | `ACCENT_FAMILIES` |
+| `app/gui/sowInterface.py`, `app/gui/custom_widgets.py`, `app/gui/interface_signals.py` | self-painted buttons (`RippleButton`, `PushButton`, `PushButton_2`, `GlassPortalButton`, `AnimatedHoverButton`) replaced by style-sheet buttons, so they follow the theme; the capsule and frame around the character-menu and Create Character buttons are gone | `def hover_icon_button` |
 | `app/gui/custom_widgets.py`, `app/gui/interface_signals.py` | the main character-list card (`CharacterCardList`) is taller (300px, was 270px) so portrait-oriented avatar art crops far less top-to-bottom; the character grid now sizes each row by its tallest card instead of one flat height, so `CharacterFolderCard` (still 210x270, its own pre-composed preview bitmap untouched) keeps working unchanged in the same grid | `character_card_height = 300` |
 
 ## Releases

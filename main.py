@@ -482,6 +482,7 @@ class MainWindow(QMainWindow):
         self.ui.comboBox_response_language.currentIndexChanged.connect(self.on_comboBox_response_language_changed)
         self.ui.comboBox_input_devices.currentIndexChanged.connect(self.interface_signals.on_comboBox_input_devices_changed)
         self.ui.comboBox_output_devices.currentIndexChanged.connect(self.interface_signals.on_comboBox_output_devices_changed)
+        self.ui.pushButton_reload_audio_devices.clicked.connect(self.interface_signals.load_audio_devices)
         self.ui.comboBox_translator.currentIndexChanged.connect(self.interface_signals.on_comboBox_translator_changed)
         self.ui.checkBox_auto_translate_new_messages.stateChanged.connect(self.interface_signals.on_checkBox_auto_translate_new_messages_stateChanged)
         self.ui.comboBox_target_language_translator.currentIndexChanged.connect(self.interface_signals.on_comboBox_target_language_translator_changed)

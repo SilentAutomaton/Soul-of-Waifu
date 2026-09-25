@@ -1315,7 +1315,7 @@ class GatewayPreviewDialog(QDialog):
         
         shadow = QGraphicsDropShadowEffect(self)
         shadow.setBlurRadius(32)
-        shadow.setColor(QColor(self.accent_color))
+        shadow.setColor(themed_color(self.accent_color))
         shadow.setOffset(0, 0)
         self.central_container.setGraphicsEffect(shadow)
 
@@ -2799,82 +2799,44 @@ class CharacterCardList(QtWidgets.QFrame):
             asyncio.create_task(self.open_chat(self.character_name)) 
         super().mousePressEvent(event)
 
-class AnimatedHoverButton(QtWidgets.QPushButton):
-    def __init__(self, icon_path, hover_color, tooltip_text, parent=None, base_color=None):
-        super().__init__(parent)
-        self.setFixedSize(32, 32)
-        self.setCursor(QtCore.Qt.CursorShape.PointingHandCursor)
-        self.setFocusPolicy(QtCore.Qt.FocusPolicy.NoFocus)
-        self.setToolTip(tooltip_text)
-        
-        self.setIcon(QtGui.QIcon(icon_path))
-        self.setIconSize(QtCore.QSize(18, 18))
+def hover_icon_button(icon_path, hover_color, tooltip_text, parent=None, base_color=None):
+    """A round 32x32 icon button whose background takes hover_color under the mouse."""
+    def css(color):
+        if color is None:
+            return "transparent"
+        if isinstance(color, QtGui.QColor):
+            return f"rgba({color.red()}, {color.green()}, {color.blue()}, {color.alpha()})"
+        return color
 
-        if base_color:
-            self._base_color = QtGui.QColor(base_color) if isinstance(base_color, (str, int)) else base_color
-        else:
-            self._base_color = themed_color(0, 0, 0, 0)
-            
-        self._hover_color = QtGui.QColor(hover_color) if isinstance(hover_color, (str, int)) else hover_color
-        
-        self._current_color = QtGui.QColor(self._base_color)
-
-        self.anim = QtCore.QVariantAnimation(self)
-        self.anim.setDuration(200)
-        self.anim.valueChanged.connect(self._update_color)
-
-        self.setStyleSheet("""
-            QPushButton {
-                background-color: transparent; 
-                border: none;
-            }
-            QToolTip { 
-                background-color: rgba(25, 25, 30, 0.95); 
-                color: #E0E0E0; 
-                border: 1px solid rgba(255, 255, 255, 0.15); 
-                border-radius: 6px; 
-                padding: 6px 10px; 
-                font-size: 12px; 
-                font-weight: 500; 
-            }
-        """)
-
-    def _update_color(self, color):
-        self._current_color = color
-        self.update()
-
-    def enterEvent(self, event):
-        self.anim.stop()
-        self.anim.setStartValue(self._current_color)
-        self.anim.setEndValue(self._hover_color)
-        self.anim.start()
-        super().enterEvent(event)
-
-    def leaveEvent(self, event):
-        self.anim.stop()
-        self.anim.setStartValue(self._current_color)
-        self.anim.setEndValue(self._base_color)
-        self.anim.start()
-        super().leaveEvent(event)
-
-    @safe_paint
-    def paintEvent(self, event):
-        painter = QtGui.QPainter(self)
-        painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
-        
-        painter.setBrush(self._current_color)
-        painter.setPen(QtCore.Qt.PenStyle.NoPen)
-        painter.drawEllipse(self.rect())
-        
-        painter.end()
-        super().paintEvent(event)
+    btn = QtWidgets.QPushButton(parent)
+    btn.setFixedSize(32, 32)
+    btn.setCursor(QtCore.Qt.CursorShape.PointingHandCursor)
+    btn.setFocusPolicy(QtCore.Qt.FocusPolicy.NoFocus)
+    btn.setToolTip(tooltip_text)
+    btn.setAccessibleName(tooltip_text)
+    btn.setIcon(QtGui.QIcon(icon_path))
+    btn.setIconSize(QtCore.QSize(18, 18))
+    btn.setStyleSheet(f"""
+        QPushButton {{ background-color: {css(base_color)}; border: none; border-radius: 16px; }}
+        QPushButton:hover {{ background-color: {css(hover_color)}; }}
+        QToolTip {{
+            background-color: rgba(25, 25, 30, 0.95);
+            color: #E0E0E0;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 6px;
+            padding: 6px 10px;
+            font-size: 12px;
+            font-weight: 500;
+        }}
+    """)
+    return btn
 
 class AnimatedDotsWidget(QWidget):
     def __init__(self, color_hex, parent=None):
         super().__init__(parent)
         self.setFixedSize(40, 20)
         
-        self.dot_color = QColor(color_hex)
+        self.dot_color = themed_color(color_hex)
         self.phase = 0.0
         
         self.timer = QtCore.QTimer(self)
@@ -4063,8 +4025,8 @@ class CharacterFolderCard(QtWidgets.QFrame):
         self.panel_anim.setDuration(350)
         self.panel_anim.setEasingCurve(QtCore.QEasingCurve.Type.OutCubic)
         
-        self.edit_btn = AnimatedHoverButton("app/gui/icons/more.png", "#1976D2", "Edit Folder")
-        self.delete_btn = AnimatedHoverButton("app/gui/icons/bin.png", "#D32F2F", "Delete Folder")
+        self.edit_btn = hover_icon_button("app/gui/icons/more.png", "#1976D2", "Edit Folder")
+        self.delete_btn = hover_icon_button("app/gui/icons/bin.png", "#D32F2F", "Delete Folder")
         
         self.edit_btn.clicked.connect(self._on_edit_clicked)
         self.delete_btn.clicked.connect(self._on_delete_clicked)
@@ -5605,7 +5567,7 @@ class SowToastManager:
 class _ProgressBar(QtWidgets.QWidget):
     def __init__(self, parent, color: str, duration_ms: int):
         super().__init__(parent)
-        self._color = QColor(color)
+        self._color = themed_color(color)
         self._progress = 1.0
         self._duration = duration_ms
         self._anim = QPropertyAnimation(self, b"progress")
@@ -5697,7 +5659,7 @@ class SowToast(QtWidgets.QWidget):
         self._duration = duration
         self._hovered = False
         icon_char, color = self.icons.get(msg_type, ("i", "#60A5FA"))
-        self._accent = QColor(color)
+        self._accent = themed_color(color)
  
         self._build_ui(title, text, icon_char, color, duration)
         self.setFixedWidth(360)
@@ -11645,8 +11607,8 @@ class SceneFolderCard(QtWidgets.QFrame):
         self.panel_anim.setDuration(300)
         self.panel_anim.setEasingCurve(QtCore.QEasingCurve.Type.OutCubic)
         
-        self.edit_btn = AnimatedHoverButton("app/gui/icons/edit.png", "#00E676", self.translations.get("folder_edit_btn", "Edit Folder"))
-        self.delete_btn = AnimatedHoverButton("app/gui/icons/bin.png", "#D32F2F", self.translations.get("folder_delete_btn", "Delete Folder"))
+        self.edit_btn = hover_icon_button("app/gui/icons/edit.png", "#00E676", self.translations.get("folder_edit_btn", "Edit Folder"))
+        self.delete_btn = hover_icon_button("app/gui/icons/bin.png", "#D32F2F", self.translations.get("folder_delete_btn", "Delete Folder"))
         
         self.edit_btn.clicked.connect(self._on_edit_clicked)
         self.delete_btn.clicked.connect(self._on_delete_clicked)

@@ -932,20 +932,23 @@ class TakeScreenshotTool(BaseTool):
         }
 
     def _capture_sync(self) -> str:
-        import mss, base64, io
+        import base64, io
         from PIL import Image
-        with mss.mss() as sct:
-            monitor = sct.monitors[1] if len(sct.monitors) > 1 else sct.monitors[0]
-            shot = sct.grab(monitor)
-            img = Image.frombytes("RGB", shot.size, shot.bgra, "raw", "BGRX")
-            
-            max_size = 1280
-            if img.width > max_size or img.height > max_size:
-                img.thumbnail((max_size, max_size), Image.Resampling.LANCZOS)
-            
-            buf = io.BytesIO()
-            img.save(buf, format="JPEG", quality=60)
-            return base64.b64encode(buf.getvalue()).decode()
+        from app.utils.platform_compat import capture_screen
+        img = capture_screen()
+        if img is None:
+            import mss
+            with mss.mss() as sct:
+                monitor = sct.monitors[1] if len(sct.monitors) > 1 else sct.monitors[0]
+                shot = sct.grab(monitor)
+                img = Image.frombytes("RGB", shot.size, shot.bgra, "raw", "BGRX")
+        max_size = 1280
+        if img.width > max_size or img.height > max_size:
+            img.thumbnail((max_size, max_size), Image.Resampling.LANCZOS)
+
+        buf = io.BytesIO()
+        img.save(buf, format="JPEG", quality=60)
+        return base64.b64encode(buf.getvalue()).decode()
 
     async def execute(self, args: dict, context: dict) -> dict:
         try:
