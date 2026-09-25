@@ -166,12 +166,6 @@ if [[ -f app/gui/icons/resources.py ]]; then
 elif [[ $SKIP_ASSETS -eq 1 ]]; then
     warn "Skipping assets - the app cannot start without app/gui/icons."
 else
-    extractor=""
-    for tool in unrar 7z 7zz bsdtar; do
-        if have "$tool"; then extractor="$tool"; break; fi
-    done
-    [[ -n $extractor ]] || fail "Need unrar, 7z or bsdtar to unpack the release archive."
-
     downloaded=0
     if [[ -z $RELEASE_ARCHIVE ]]; then
         RELEASE_ARCHIVE="$PWD/app/data/_download/Soul-of-Waifu-v${SOW_VERSION}.rar"
@@ -183,6 +177,21 @@ else
         downloaded=1
     fi
     [[ -f $RELEASE_ARCHIVE ]] || fail "Archive not found: $RELEASE_ARCHIVE"
+
+    # Pick a tool that actually understands this archive's format - a generic
+    # "whichever tool is installed first" pick silently extracts nothing if e.g.
+    # unrar is asked to open a .7z (unrar exits 0 having unpacked zero files).
+    case "${RELEASE_ARCHIVE,,}" in
+        *.7z)  candidates=(7z 7zz bsdtar) ;;
+        *.zip) candidates=(bsdtar 7z 7zz) ;;
+        *.rar) candidates=(unrar 7z 7zz bsdtar) ;;
+        *)     candidates=(unrar 7z 7zz bsdtar) ;;
+    esac
+    extractor=""
+    for tool in "${candidates[@]}"; do
+        if have "$tool"; then extractor="$tool"; break; fi
+    done
+    [[ -n $extractor ]] || fail "Need $(IFS=/; echo "${candidates[*]}") to unpack ${RELEASE_ARCHIVE##*/}."
 
     # Extract next to the checkout: /tmp is often a small RAM-backed tmpfs.
     mkdir -p app/data
