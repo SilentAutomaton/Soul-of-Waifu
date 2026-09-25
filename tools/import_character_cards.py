@@ -3,7 +3,7 @@
 Imports character cards (chara_card_v2 JSON), lorebooks and Soul Stage scenes into the
 app's configuration, without clicking through the UI - useful for a whole set at once.
 
-    app/data/envs/sow/bin/python tools/import_character_cards.py CARDS/ --persona CARDS/persona_hiroki.json
+    app/data/envs/sow-linux/bin/python tools/import_character_cards.py CARDS/ --persona CARDS/persona_hiroki.json
 
 It writes through the app's own ConfigurationCharacters/ConfigurationSettings, so the
 result is exactly what the character editor would have produced. Existing characters are

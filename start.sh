@@ -2,7 +2,7 @@
 # Soul of Waifu - Linux launcher
 cd "$(dirname "$(readlink -f "$0")")" || exit 1
 
-VENV_DIR="$PWD/app/data/envs/sow"
+VENV_DIR="$PWD/app/data/envs/sow-linux"
 pause() { if [[ -t 0 ]]; then read -r -p "Press Enter to exit..."; fi; }
 
 if [[ ! -x $VENV_DIR/bin/python ]]; then

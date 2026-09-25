@@ -97,7 +97,7 @@ generation prompt and save path used for each, if you want to regenerate one.
 Everything at once - characters, persona, lorebooks and scenes:
 
 ```bash
-app/data/envs/sow/bin/python tools/import_character_cards.py presets/no-game-no-life \
+app/data/envs/sow-linux/bin/python tools/import_character_cards.py presets/no-game-no-life \
     --persona presets/no-game-no-life/persona_haru.json \
     --lorebooks presets/no-game-no-life/lorebooks \
     --scenes presets/no-game-no-life/scenes \

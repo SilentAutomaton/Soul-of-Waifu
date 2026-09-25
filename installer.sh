@@ -14,7 +14,7 @@ cd "$(dirname "$(readlink -f "$0")")"
 
 SOW_VERSION="2.5.1"
 PYTHON_VERSION="${SOW_PYTHON_VERSION:-3.11}"
-VENV_DIR="app/data/envs/sow"
+VENV_DIR="app/data/envs/sow-linux"
 RELEASE_URL="https://github.com/jofizcd/Soul-of-Waifu/releases/download/v${SOW_VERSION}/Soul-of-Waifu-v${SOW_VERSION}.rar"
 TORCH_PKGS=(torch==2.10.0 torchvision==0.25.0 torchaudio==2.10.0)
 declare -A TORCH_INDEX=(

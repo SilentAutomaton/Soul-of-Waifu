@@ -3,9 +3,9 @@
 Downloads and installs Live2D Cubism models for Soul of Waifu into assets/emotions/live2d/.
 
 Usage:
-    app/data/envs/sow/bin/python tools/fetch_live2d_models.py --all
-    app/data/envs/sow/bin/python tools/fetch_live2d_models.py unitychan haru_greeter
-    app/data/envs/sow/bin/python tools/fetch_live2d_models.py --list
+    app/data/envs/sow-linux/bin/python tools/fetch_live2d_models.py --all
+    app/data/envs/sow-linux/bin/python tools/fetch_live2d_models.py unitychan haru_greeter
+    app/data/envs/sow-linux/bin/python tools/fetch_live2d_models.py --list
 """
 
 import argparse

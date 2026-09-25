@@ -57,7 +57,7 @@ nothing until they are needed.
 Everything at once - characters, persona, lorebooks and scenes:
 
 ```bash
-app/data/envs/sow/bin/python tools/import_character_cards.py presets/sakura-succubus-3 \
+app/data/envs/sow-linux/bin/python tools/import_character_cards.py presets/sakura-succubus-3 \
     --persona presets/sakura-succubus-3/persona_hiroki.json \
     --lorebooks presets/sakura-succubus-3/lorebooks \
     --scenes presets/sakura-succubus-3/scenes
@@ -68,7 +68,7 @@ about every name it cannot find.
 Fetch the matching Live2D models before or after importing:
 
 ```bash
-app/data/envs/sow/bin/python tools/fetch_live2d_models.py --all
+app/data/envs/sow-linux/bin/python tools/fetch_live2d_models.py --all
 ```
 
 Characters that already exist are left alone. `--update-avatars` refreshes only their picture,

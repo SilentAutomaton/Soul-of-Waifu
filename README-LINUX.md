@@ -127,7 +127,7 @@ distributions:
 | CUDA | **no official Linux build.** See below. |
 
 `installer.sh` downloads the Vulkan build (the CPU build for `--torch cpu`). To fetch another backend later, run
-`app/data/envs/sow/bin/python tools/fetch_llama_backend.py cpu|vulkan|hip|sycl`, or use the backend updater in the app.
+`app/data/envs/sow-linux/bin/python tools/fetch_llama_backend.py cpu|vulkan|hip|sycl`, or use the backend updater in the app.
 
 If you have **more than one GPU** (e.g. an NVIDIA card plus an integrated Radeon), llama.cpp splits the model across
 all Vulkan devices, and the slower one holds it back. Put `--device Vulkan0` into **Options -> LLM Settings ->

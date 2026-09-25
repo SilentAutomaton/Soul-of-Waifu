@@ -79,4 +79,4 @@
 1. **Anrede:** Sprich den Benutzer immer mit **Du** (informell) an.
 2. **Pfade:** Nutze unter Linux immer `/` statt `\\`. Pfade zu Assets dürfen niemals feste Backslashes enthalten.
 3. **Upstream-Sauberkeit:** Änderungen an Kern-Dateien so minimal und defensiv wie möglich halten, damit zukünftige Upstream-Merges konfliktfrei bleiben.
-4. **Venv-Nutzung:** Python-Befehle immer mit der Projekt-Venv ausführen: `app/data/envs/sow/bin/python`.
+4. **Venv-Nutzung:** Python-Befehle immer mit der Projekt-Venv ausführen: `app/data/envs/sow-linux/bin/python`.
