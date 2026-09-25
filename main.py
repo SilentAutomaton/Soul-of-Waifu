@@ -13,18 +13,17 @@ import requests
 from datetime import datetime
 from qasync import QEventLoop, asyncSlot
 
-from PyQt6.QtGui import QFontDatabase
 from PyQt6 import QtCore, QtGui, QtWidgets
 from PyQt6.QtWidgets import QApplication, QMainWindow, QMessageBox
 
 from app.configuration import configuration
 from app.gui.icons import resources
-from app.gui import interface_signals
+from app.gui import interface_signals, theme
 from app.utils.ai_clients.local_server_manager import LocalServerManager
 from app.utils.discord_rpc import DiscordRPCManager
 from app.gui.sowInterface import Ui_MainWindow
 
-from app.gui.custom_widgets import SowConfirmDialog
+from app.gui.custom_widgets import SowConfirmDialog, size_stack_to_current_page
 
 LOG_DIR = "logs"
 os.makedirs(LOG_DIR, exist_ok=True)
@@ -70,8 +69,10 @@ def global_exception_handler(exc_type, exc_value, exc_traceback):
 sys.excepthook = global_exception_handler
 
 from app.utils.discord_manager import DiscordBotManager
+from app.utils.platform_compat import IS_LINUX
 
 RESIZE_GRIP_SIZE = 8
+SIDEBAR_AUTO_HIDE_WIDTH = 1000
 
 class _EdgeResizeGrip(QtWidgets.QWidget):
     def __init__(self, window: QtWidgets.QMainWindow, edges: QtCore.Qt.Edge,
@@ -104,6 +105,7 @@ class MainWindow(QMainWindow):
 
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
+        size_stack_to_current_page(self.ui.stackedWidget)
         
         self.discord_manager = DiscordBotManager(self)
 
@@ -133,8 +135,12 @@ class MainWindow(QMainWindow):
         self.interface_signals = interface_signals.InterfaceSignals(self.ui, self)
         self.local_server_manager = LocalServerManager(self.ui)
 
-        self.create_size_grips()
-        QtCore.QTimer.singleShot(0, self.update_size_grip_positions)
+        if IS_LINUX:
+            for btn in (self.ui.minimize_btn, self.ui.maximize_btn, self.ui.close_app_btn):
+                btn.hide()
+        else:
+            self.create_size_grips()
+            QtCore.QTimer.singleShot(0, self.update_size_grip_positions)
 
         self.interface_signals.load_background_images_to_comboBox()
         self.interface_signals.load_ambient_sound_to_comboBox()
@@ -430,10 +436,10 @@ class MainWindow(QMainWindow):
         self.ui.pushButton_options.clicked.connect(self.interface_signals.on_pushButton_options_clicked)
         self.ui.pushButton_rp_editors.clicked.connect(self.on_rp_editors_clicked)
         self.ui.pushButton_soul_stage.clicked.connect(self.interface_signals._open_soul_stage_page)
-        self.ui.about_btn.clicked.connect(self.interface_signals.set_about_program_button)
         self.ui.pushButton_youtube.clicked.connect(self.interface_signals.on_youtube)
         self.ui.pushButton_discord.clicked.connect(self.interface_signals.on_discord)
         self.ui.pushButton_github.clicked.connect(self.interface_signals.on_github)
+        self.ui.about_btn.clicked.connect(self.interface_signals.set_about_program_button)
         self.ui.btn_new_folder_menu.clicked.connect(self.interface_signals._open_create_folder_dialog)
         self.ui.btn_import_character_menu.clicked.connect(self.interface_signals.import_character_card_from_menu)
         self.ui.pushButton_stop_generation.clicked.connect(self.interface_signals.stop_generation)
@@ -779,16 +785,6 @@ class MainWindow(QMainWindow):
 
         dialog.exec()
 
-    def load_fonts_from_folder(self, folder_path):
-        for font_file in os.listdir(folder_path):
-            font_path = os.path.join(folder_path, font_file)
-            if font_path.endswith(('.ttf', '.otf')):
-                font_id = QFontDatabase.addApplicationFont(font_path)
-                if font_id == -1:
-                    logger.error(f"Error loading font: {font_file}")
-                else:
-                    QFontDatabase.applicationFontFamilies(font_id)
-    
     def create_size_grips(self):
         mw = self.ui.main_widget
         Edge = QtCore.Qt.Edge
@@ -818,6 +814,8 @@ class MainWindow(QMainWindow):
         ]
 
     def update_size_grip_positions(self):
+        if IS_LINUX:
+            return
         mw = self.ui.main_widget
         w, h = mw.width(), mw.height()
         g = RESIZE_GRIP_SIZE
@@ -834,12 +832,27 @@ class MainWindow(QMainWindow):
 
         self._update_grips_visibility()
 
+    def _auto_hide_sidebar(self):
+        # Hide the sidebar when the window gets narrow and bring it back when it widens.
+        # A manual toggle holds until the window crosses the threshold again.
+        narrow = self.width() < SIDEBAR_AUTO_HIDE_WIDTH
+        if narrow == getattr(self, "_narrow", False) or not hasattr(self, "interface_signals"):
+            return
+        self._narrow = narrow
+        if (self.ui.SideBar_Left.width() > 0) == narrow:
+            self.interface_signals.toggle_sidebar()
+
     def _update_grips_visibility(self):
         visible = not (self.isMaximized() or self.isFullScreen())
         for grip in getattr(self, "_all_grips", []):
             grip.setVisible(visible)
 
     def resizeEvent(self, event):
+        self._auto_hide_sidebar()
+        self.relayout_current_page(event)
+        super().resizeEvent(event)
+
+    def relayout_current_page(self, event=None):
         current_widget = self.ui.stackedWidget.currentWidget()
 
         if current_widget == self.ui.main_characters_page:
@@ -848,13 +861,11 @@ class MainWindow(QMainWindow):
             self.interface_signals.handle_rp_editors_resize(event)
         elif current_widget == self.ui.charactersgateway_page:
             self.interface_signals.handle_gate_resize(event)
-        
-        super().resizeEvent(event)
 
         self.update_size_grip_positions()
 
     def mousePressEvent(self, event):
-        if event.button() == QtCore.Qt.MouseButton.LeftButton:
+        if not IS_LINUX and event.button() == QtCore.Qt.MouseButton.LeftButton:
             if event.pos().y() <= self.ui.frame_version.height():
                 self.draggable = True
                 self.offset = event.pos()
@@ -948,7 +959,18 @@ if __name__ == "__main__":
         app_id = "com.jofizcd.soul_of_waifu.v2"
         ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(app_id)
 
+    theme_config = configuration.ConfigurationSettings()
+    theme.migrate_legacy(theme_config)
+    theme_settings = theme.prepare_environment(theme_config)
+
     app = QApplication(sys.argv)
+    theme.install(theme_config)
+    if IS_LINUX:
+        theme.use_system_hinting()
+    if theme_settings["font_family"]:
+        theme.use_font_family(theme_settings["font_family"])
+    else:
+        theme.use_app_fonts("app/font")
     app.setApplicationName("Soul of Waifu")
     # Links the window to soul-of-waifu.desktop, so Linux task bars show the app icon.
     app.setDesktopFileName("soul-of-waifu")
@@ -958,8 +980,6 @@ if __name__ == "__main__":
     
     main_window = MainWindow()
     main_window.setWindowIcon(QtGui.QIcon("app/gui/icons/logotype.ico"))
-    fonts_folder = "app/font"
-    main_window.load_fonts_from_folder(fonts_folder)
 
     main_window.show()    
 

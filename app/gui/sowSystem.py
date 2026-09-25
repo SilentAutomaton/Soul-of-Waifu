@@ -1,6 +1,7 @@
 import math
 import random
 
+from app.gui.theme import qcolor as themed_color
 from PyQt6 import QtCore, QtGui, QtWidgets, QtOpenGLWidgets
 from PyQt6.QtWidgets import QMainWindow
 from PyQt6.QtCore import Qt
@@ -19,10 +20,10 @@ class C:
     T_SECONDARY = "rgba(160,160,188,200)"
     T_MUTED     = "rgba(100,100,128,190)"
 
-    STOPPED     = QColor(75,  75,  90)
-    LISTENING   = QColor(52,  211, 153)
-    PROCESSING  = QColor(251, 191, 36)
-    SPEAKING    = QColor(96,  165, 250)
+    STOPPED     = themed_color(75,  75,  90)
+    LISTENING   = themed_color(52,  211, 153)
+    PROCESSING  = themed_color(251, 191, 36)
+    SPEAKING    = themed_color(96,  165, 250)
 
     RING = {
         "STOPPED":

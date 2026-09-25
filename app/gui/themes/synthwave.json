@@ -1,0 +1,13 @@
+{
+  "name": "Synthwave",
+  "surface0": "#0E0A13",
+  "surface1": "#191223",
+  "surface2": "#241B2F",
+  "surface3": "#3A2744",
+  "surface4": "#4D3958",
+  "text_muted": "#9081A2",
+  "text_secondary": "#BEACD1",
+  "text_primary": "#E9D5FF",
+  "overlay": "#FFFFFF",
+  "accent": "#F472B6"
+}

@@ -1,0 +1,13 @@
+{
+  "name": "Slate",
+  "surface0": "#080B0F",
+  "surface1": "#0F141C",
+  "surface2": "#161C24",
+  "surface3": "#2A3544",
+  "surface4": "#404B5A",
+  "text_muted": "#80858B",
+  "text_secondary": "#C1C5CA",
+  "text_primary": "#F1F5F9",
+  "overlay": "#FFFFFF",
+  "accent": "#60A5FA"
+}

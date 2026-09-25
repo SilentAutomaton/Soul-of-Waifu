@@ -21,10 +21,11 @@ fi
 export VIRTUAL_ENV="$VENV_DIR"
 export PATH="$VENV_DIR/bin:$PATH"
 export PYTHONUNBUFFERED=1
-# The desktop companion uses frameless always-on-top overlays that position themselves.
-# Wayland compositors don't allow that, so run through XWayland unless overridden
-# (e.g. QT_QPA_PLATFORM=wayland ./start.sh).
-export QT_QPA_PLATFORM="${QT_QPA_PLATFORM:-xcb}"
+# Native Wayland by default. The desktop companion positions its own overlay windows,
+# which Wayland does not allow: use SOW_QPA=xcb ./start.sh for it.
+export QT_QPA_PLATFORM="${SOW_QPA:-wayland}"
+# The pip Qt build has no KDE/GTK platform theme; the portal one gives native file dialogs.
+export QT_QPA_PLATFORMTHEME=xdgdesktopportal
 
 python main.py "$@"
 code=$?

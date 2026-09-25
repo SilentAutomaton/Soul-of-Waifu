@@ -1,0 +1,13 @@
+{
+  "name": "Obsidian",
+  "surface0": "#060606",
+  "surface1": "#0A0A0A",
+  "surface2": "#121212",
+  "surface3": "#212121",
+  "surface4": "#363636",
+  "text_muted": "#7D7D7D",
+  "text_secondary": "#B3B3B3",
+  "text_primary": "#E0E0E0",
+  "overlay": "#FFFFFF",
+  "accent": "#FFFFFF"
+}

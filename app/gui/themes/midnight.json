@@ -1,0 +1,13 @@
+{
+  "name": "Midnight",
+  "surface0": "#07090D",
+  "surface1": "#0C1018",
+  "surface2": "#10141E",
+  "surface3": "#1D2434",
+  "surface4": "#2F374B",
+  "text_muted": "#767E9C",
+  "text_secondary": "#9FA8CD",
+  "text_primary": "#C7D2FE",
+  "overlay": "#FFFFFF",
+  "accent": "#818CF8"
+}

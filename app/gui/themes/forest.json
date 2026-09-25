@@ -1,0 +1,13 @@
+{
+  "name": "Forest",
+  "surface0": "#070B08",
+  "surface1": "#0C140F",
+  "surface2": "#121C16",
+  "surface3": "#1D3024",
+  "surface4": "#314639",
+  "text_muted": "#74887B",
+  "text_secondary": "#B0CBB9",
+  "text_primary": "#DCFCE7",
+  "overlay": "#FFFFFF",
+  "accent": "#4ADE80"
+}

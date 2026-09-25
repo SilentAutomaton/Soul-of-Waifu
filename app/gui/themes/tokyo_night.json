@@ -1,0 +1,13 @@
+{
+  "name": "Tokyo Night",
+  "surface0": "#0E0F15",
+  "surface1": "#24283B",
+  "surface2": "#1A1B26",
+  "surface3": "#3D4059",
+  "surface4": "#4E516E",
+  "text_muted": "#7D83A1",
+  "text_secondary": "#9BA4C7",
+  "text_primary": "#C0CAF5",
+  "overlay": "#FFFFFF",
+  "accent": "#7AA2F7"
+}

@@ -2409,3 +2409,38 @@ xtc_thresh_tooltip: '<b>XTC-Schwellenwert</b><br><br>
   Bestimmt, wie „beliebt" ein Wort sein muss, bevor XTC es entfernen darf.<br><br>
 
   💡 <i>Empfohlen: 0.1 (Nur Wörter mit mehr als 10 % Wahrscheinlichkeit können entfernt werden).</i>'
+theme_select: Design
+theme_save_as: Speichern unter …
+theme_import: Importieren …
+theme_export: Exportieren …
+theme_delete: Löschen
+theme_colors: Farben
+theme_token_surface0: Tiefer Hintergrund
+theme_token_surface1: Hintergrund
+theme_token_surface2: Fenster
+theme_token_surface3: Karte
+theme_token_surface4: Erhöht
+theme_token_text_muted: Gedämpfter Text
+theme_token_text_secondary: Sekundärer Text
+theme_token_text_primary: Text
+theme_token_overlay: Glastönung
+theme_token_accent: Akzent
+theme_follow_system: Akzentfarbe vom System übernehmen
+theme_font: Schrift
+theme_density: Abstände
+theme_radius: Eckenradius
+theme_glass: Glasdeckkraft
+theme_font_scale: Textgröße
+theme_ui_scale: Oberflächenskalierung (nach Neustart)
+theme_save_title: Design speichern
+theme_save_label: 'Name des Designs:'
+theme_save_placeholder: Mein Design
+theme_import_title: Design importieren
+theme_import_invalid: Diese Datei ist kein gültiges Design.
+theme_export_title: Design exportieren
+about_program_tooltip: Über Soul of Waifu
+theme_custom_font: Schrift (nach Neustart)
+theme_font_default: App-Standard (Inter Tight)
+social_github_tooltip: GitHub
+social_discord_tooltip: Discord
+social_youtube_tooltip: YouTube

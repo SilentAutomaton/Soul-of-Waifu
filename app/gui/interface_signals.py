@@ -32,6 +32,7 @@ from qasync import asyncSlot
 from http.server import SimpleHTTPRequestHandler
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
+from app.gui.theme import qcolor as themed_color
 from PyQt6 import QtCore, QtGui, QtWidgets
 from PyQt6.QtWebEngineWidgets import QWebEngineView
 from PyQt6.QtWebEngineCore import QWebEnginePage
@@ -471,7 +472,7 @@ class InterfaceSignals():
                 old_effect.setParent(None)
             glow = QtWidgets.QGraphicsDropShadowEffect(frame)
             glow.setBlurRadius(22)
-            glow.setColor(QColor(255, 200, 60, 190))
+            glow.setColor(themed_color(255, 200, 60, 190))
             glow.setOffset(0, 0)
             frame.setGraphicsEffect(glow)
 
@@ -1886,6 +1887,7 @@ class InterfaceSignals():
         self.animation_max.setEndValue(new_width)
         self.animation_max.setEasingCurve(QEasingCurve.Type.InOutQuart)
 
+        self.animation_max.finished.connect(self.main_window.relayout_current_page)
         self.animation_min.start()
         self.animation_max.start()
 
@@ -6208,9 +6210,9 @@ class InterfaceSignals():
             painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
 
             shadow_gradient = QtGui.QRadialGradient(27, 29, 23)
-            shadow_gradient.setColorAt(0.0, QtGui.QColor(0, 0, 0, 160))
-            shadow_gradient.setColorAt(0.7, QtGui.QColor(0, 0, 0, 40))
-            shadow_gradient.setColorAt(1.0, QtGui.QColor(0, 0, 0, 0))
+            shadow_gradient.setColorAt(0.0, themed_color(0, 0, 0, 160))
+            shadow_gradient.setColorAt(0.7, themed_color(0, 0, 0, 40))
+            shadow_gradient.setColorAt(1.0, themed_color(0, 0, 0, 0))
 
             painter.setBrush(QtGui.QBrush(shadow_gradient))
             painter.setPen(QtCore.Qt.GlobalColor.transparent)
@@ -6688,8 +6690,8 @@ class InterfaceSignals():
     def create_character_card_widget(self, character_name, card_widget):
         sow_system_status = self.configuration_settings.get_main_setting("sow_system_status")
 
-        base_col = QtGui.QColor(0, 0, 0, 100)
-        hover_col = QtGui.QColor(0, 0, 0, 200)
+        base_col = themed_color(0, 0, 0, 100)
+        hover_col = themed_color(0, 0, 0, 200)
 
         call_btn = AnimatedHoverButton("app/gui/icons/phone.png", "#2E7D32", self.translations.get("call_btn_text", "Call"))
         voice_btn = AnimatedHoverButton("app/gui/icons/voice.png", "#1976D2", self.translations.get("voice_btn_text", "Voice Settings"))
@@ -7123,7 +7125,7 @@ class InterfaceSignals():
         
         shadow = QGraphicsDropShadowEffect()
         shadow.setBlurRadius(20)
-        shadow.setColor(QColor(0, 0, 0, 180))
+        shadow.setColor(themed_color(0, 0, 0, 180))
         shadow.setOffset(0, 5)
         avatar_label.setGraphicsEffect(shadow)
         
@@ -7740,7 +7742,7 @@ class InterfaceSignals():
                         char_data["data"]["character_book"] = books_to_export
 
                 file_path, selected_filter = QFileDialog.getSaveFileName(
-                    None, 
+                    self.main_window, 
                     self.translations.get("export_card_dialog_title", "Export Character Card"), 
                     f"{character_name}", 
                     "PNG Images (*.png);;JSON Files (*.json)"
@@ -8001,7 +8003,7 @@ class InterfaceSignals():
                 except Exception as e:
                     logger.warning(f"[Soul Memory] Failed to bundle memory into chat export: {e}")
 
-            file_path, _ = QFileDialog.getSaveFileName(None, "Save chat", f"{character_name}_{char_chats[selected_id]['name']}.sowchat", "Chat Files (*.sowchat)")
+            file_path, _ = QFileDialog.getSaveFileName(self.main_window, "Save chat", f"{character_name}_{char_chats[selected_id]['name']}.sowchat", "Chat Files (*.sowchat)")
             if file_path:
                 with open(file_path, 'w', encoding='utf-8') as f:
                     json.dump(export_data, f, indent=4, ensure_ascii=False)
@@ -8009,7 +8011,7 @@ class InterfaceSignals():
             return False
 
         def import_chat():
-            file_path, _ = QFileDialog.getOpenFileName(None, "Import Chat", "", "Chat Files (*.sowchat)")
+            file_path, _ = QFileDialog.getOpenFileName(self.main_window, "Import Chat", "", "Chat Files (*.sowchat)")
             if not file_path: return False
             try:
                 with open(file_path, 'r', encoding='utf-8') as f:
@@ -11288,7 +11290,7 @@ class InterfaceSignals():
         Opens a dialog box for selecting a character's avatar image and updates the interface.
         """
         try:
-            file_path, _ = QFileDialog.getOpenFileName(None, "Choose character's image", "", "Images (*.png *.jpg *.jpeg)")
+            file_path, _ = QFileDialog.getOpenFileName(self.main_window, "Choose character's image", "", "Images (*.png *.jpg *.jpeg)")
             if file_path:
                 self._set_editor_avatar(file_path)
             else:
@@ -11353,7 +11355,7 @@ class InterfaceSignals():
             return
 
         file_path, _ = QFileDialog.getOpenFileName(
-            None, 
+            self.main_window, 
             "Choose Character Card (PNG or JSON)", 
             "", 
             "Character Files (*.png *.json);;PNG Images (*.png);;JSON Files (*.json)"
@@ -11543,7 +11545,7 @@ class InterfaceSignals():
         try:
             if not file_path:
                 file_path, _ = QFileDialog.getOpenFileName(
-                    None, 
+                    self.main_window, 
                     "Choose Character Card (PNG or JSON)", 
                     "", 
                     "Character Files (*.png *.json);;PNG Images (*.png);;JSON Files (*.json)"
@@ -11795,7 +11797,7 @@ class InterfaceSignals():
                     char_data["data"]["character_book"] = books_to_export
 
             file_path, selected_filter = QFileDialog.getSaveFileName(
-                None, 
+                self.main_window, 
                 "Export Character", 
                 f"{character_name}", 
                 "PNG Images (*.png);;JSON Files (*.json)"
@@ -13732,7 +13734,7 @@ class InterfaceSignals():
         btn_browse_ref.setStyleSheet(f"QPushButton {{ background-color: {_SURF2}; border: 1px solid {_BORDER}; border-radius: 8px; }} QPushButton:hover {{ background-color: {_SURF3}; border-color: {_BORDER_M}; }}")
         
         def browse_ref_audio():
-            file_path, _ = QFileDialog.getOpenFileName(None, "Select Reference Audio", "", "WAV Files (*.wav)")
+            file_path, _ = QFileDialog.getOpenFileName(self.main_window, "Select Reference Audio", "", "WAV Files (*.wav)")
             if file_path:
                 qwen_ref_path_input.setText(file_path)
 
@@ -15859,7 +15861,7 @@ class InterfaceSignals():
         
         shadow = QGraphicsDropShadowEffect()
         shadow.setBlurRadius(20)
-        shadow.setColor(QColor(0, 0, 0, 180))
+        shadow.setColor(themed_color(0, 0, 0, 180))
         shadow.setOffset(0, 5)
         avatar_label.setGraphicsEffect(shadow)
         
@@ -16701,7 +16703,7 @@ class InterfaceSignals():
 
         shadow = QGraphicsDropShadowEffect()
         shadow.setBlurRadius(8)
-        shadow.setColor(QColor(0, 0, 0, 180))
+        shadow.setColor(themed_color(0, 0, 0, 180))
         shadow.setOffset(-5, 0)
         widget.setGraphicsEffect(shadow)
 
@@ -16946,7 +16948,7 @@ class InterfaceSignals():
 
         shadow = QGraphicsDropShadowEffect()
         shadow.setBlurRadius(8)
-        shadow.setColor(QColor(0, 0, 0, 180))
+        shadow.setColor(themed_color(0, 0, 0, 180))
         shadow.setOffset(-5, 0)
         widget.setGraphicsEffect(shadow)
 
@@ -18451,7 +18453,7 @@ class InterfaceSignals():
         
         shadow = QGraphicsDropShadowEffect()
         shadow.setBlurRadius(20)
-        shadow.setColor(QColor(0, 0, 0, 180))
+        shadow.setColor(themed_color(0, 0, 0, 180))
         shadow.setOffset(0, 5)
         avatar_label.setGraphicsEffect(shadow)
         
@@ -20535,7 +20537,7 @@ class InterfaceSignals():
 
             shadow = QGraphicsDropShadowEffect()
             shadow.setBlurRadius(20)
-            shadow.setColor(QColor(0, 0, 0, 130))   
+            shadow.setColor(themed_color(0, 0, 0, 130))   
             shadow.setOffset(0, 4)                  
             menu.setGraphicsEffect(shadow)
 

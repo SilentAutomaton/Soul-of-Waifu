@@ -16,6 +16,7 @@ from socketserver import TCPServer
 from http.server import SimpleHTTPRequestHandler
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
+from app.gui.theme import qcolor as themed_color
 from PyQt6 import QtCore, QtGui, QtWidgets
 from PyQt6.QtOpenGLWidgets import QOpenGLWidget
 from PyQt6.QtCore import Qt, QTimerEvent, pyqtSignal
@@ -1581,7 +1582,7 @@ class Soul_Of_Waifu_System(QtCore.QObject):
 
             shadow = QGraphicsDropShadowEffect()
             shadow.setBlurRadius(10)
-            shadow.setColor(QColor(0, 0, 0, 80))
+            shadow.setColor(themed_color(0, 0, 0, 80))
             shadow.setOffset(0, 2)
             message_label.setGraphicsEffect(shadow)
 
@@ -3481,7 +3482,7 @@ class Live2DWidget_NoGUI(QOpenGLWidget):
         
         shadow = QGraphicsDropShadowEffect(menu)
         shadow.setBlurRadius(20)
-        shadow.setColor(QColor(0, 0, 0, 160))
+        shadow.setColor(themed_color(0, 0, 0, 160))
         shadow.setOffset(0, 4)
         menu.setGraphicsEffect(shadow)
         menu.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
@@ -3797,7 +3798,7 @@ class VRMWidget_NoGUI(QWidget):
         self.vrm_webview.setStyleSheet("background: transparent;")
  
         web_page = CustomWebEnginePage(self.vrm_webview)
-        web_page.setBackgroundColor(QColor(0, 0, 0, 0))
+        web_page.setBackgroundColor(themed_color(0, 0, 0, 0))
         self.vrm_webview.setPage(web_page)
  
         self.vrm_webview.settings().setAttribute(self.vrm_webview.settings().WebAttribute.WebGLEnabled, True)
@@ -4058,7 +4059,7 @@ class VRMWidget_NoGUI(QWidget):
         
         shadow = QGraphicsDropShadowEffect(menu)
         shadow.setBlurRadius(20)
-        shadow.setColor(QColor(0, 0, 0, 160))
+        shadow.setColor(themed_color(0, 0, 0, 160))
         shadow.setOffset(0, 4)
         menu.setGraphicsEffect(shadow)
         menu.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
@@ -4660,7 +4661,7 @@ class HormonesHUDOverlay(QtWidgets.QWidget):
 
         shadow = QGraphicsDropShadowEffect(self.card)
         shadow.setBlurRadius(28)
-        shadow.setColor(QColor(0, 0, 0, 240))
+        shadow.setColor(themed_color(0, 0, 0, 240))
         shadow.setOffset(0, 8)
         self.card.setGraphicsEffect(shadow)
         
@@ -4763,7 +4764,7 @@ class ScratchpadHUDOverlay(QtWidgets.QWidget):
 
         shadow = QGraphicsDropShadowEffect(self.card)
         shadow.setBlurRadius(28)
-        shadow.setColor(QColor(0, 0, 0, 240))
+        shadow.setColor(themed_color(0, 0, 0, 240))
         shadow.setOffset(0, 8)
         self.card.setGraphicsEffect(shadow)
         
@@ -4867,7 +4868,7 @@ class ActionApprovalOverlay(QtWidgets.QWidget):
 
         shadow = QGraphicsDropShadowEffect(self.card)
         shadow.setBlurRadius(28)
-        shadow.setColor(QColor(0, 0, 0, 240))
+        shadow.setColor(themed_color(0, 0, 0, 240))
         shadow.setOffset(0, 8)
         self.card.setGraphicsEffect(shadow)
 
@@ -5055,7 +5056,7 @@ class CompanionTextInputOverlay(QtWidgets.QLineEdit):
         
         shadow = QGraphicsDropShadowEffect(self)
         shadow.setBlurRadius(15)
-        shadow.setColor(QColor(0, 0, 0, 150))
+        shadow.setColor(themed_color(0, 0, 0, 150))
         shadow.setOffset(0, 3)
         self.setGraphicsEffect(shadow)
 

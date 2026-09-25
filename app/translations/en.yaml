@@ -2404,3 +2404,38 @@ xtc_thresh_tooltip: '<b>XTC Threshold</b><br><br>
   Determines how "popular" a word must be before XTC is allowed to remove it.<br><br>
 
   💡 <i>Recommended: 0.1 (Only words with >10% probability can be removed).</i>'
+theme_select: Theme
+theme_save_as: Save as…
+theme_import: Import…
+theme_export: Export…
+theme_delete: Delete
+theme_colors: Colors
+theme_token_surface0: Deep background
+theme_token_surface1: Background
+theme_token_surface2: Window
+theme_token_surface3: Card
+theme_token_surface4: Raised
+theme_token_text_muted: Muted text
+theme_token_text_secondary: Secondary text
+theme_token_text_primary: Text
+theme_token_overlay: Glass tint
+theme_token_accent: Accent
+theme_follow_system: Take the accent color from the system
+theme_font: Font
+theme_density: Spacing
+theme_radius: Corner radius
+theme_glass: Glass opacity
+theme_font_scale: Text size
+theme_ui_scale: Interface scale (after restart)
+theme_save_title: Save Theme
+theme_save_label: 'Theme name:'
+theme_save_placeholder: My Theme
+theme_import_title: Import Theme
+theme_import_invalid: This file is not a valid theme.
+theme_export_title: Export Theme
+about_program_tooltip: About Soul of Waifu
+theme_custom_font: Font (after restart)
+theme_font_default: App default (Inter Tight)
+social_github_tooltip: GitHub
+social_discord_tooltip: Discord
+social_youtube_tooltip: YouTube

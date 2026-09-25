@@ -65,6 +65,9 @@ Conflicts can only appear in the files under "Changed upstream files" below. Rul
 | `presets/no-game-no-life/` | a German *No Game No Life* fan-content preset (**local-only, not published to `sow-data`** - real copyrighted anime characters, unlike the original OCs above): seven character cards (Sora, Shiro, Jibril, Stephanie Dola, Izuna Hatsuse, Chlammy Zell, Fiel Nirvalen) plus a player persona, twelve Soul Stage scenes (one per Season 1 episode, Chapter 6 dedicated to the Jibril duel), and three lorebooks - import them with the tool above |
 | `app/utils/sfx_manager.py` | procedural audio SFX synthesizer via `numpy` and `sounddevice` (dice rolling & settle, critical fanfare, failure chords, encounter stingers, potion use, campfire rest ambience; fully cached, no external audio files required) |
 | `Roadmap.md` | Soul Stage RPG evolution roadmap and implementation log (Phases 1 - 4) |
+| `app/gui/theme.py` | semantic color tokens; wraps `setStyleSheet` and remaps the literal colors of every style sheet (and `themed_color(...)` in paint code) onto the active theme, plus spacing, radius, glass and text scale |
+| `app/gui/theme_editor.py` | theme picker and token editor in Options -> Appearance: colors, import/export, system accent, custom font, scale sliders |
+| `app/gui/themes/*.json` | built-in themes, converted from upstream's window theme presets (muted text raised to 4.5:1 contrast); user themes live in `~/.config/soul-of-waifu/themes/` |
 | `README-LINUX.md`, `README_DE.md`, `FORK-CHANGES.md`, `AI.md` | documentation |
 
 ## Changed upstream files
@@ -97,6 +100,8 @@ Conflicts can only appear in the files under "Changed upstream files" below. Rul
 | `app/configuration/configuration.py` | normalizes backslash paths coming from a Windows config | `Default settings.json (and configs from the Windows version)` |
 | `requirements.txt` | `pywin32` and `win32_setctime` marked as Windows-only | `sys_platform == "win32"` |
 | `.gitignore` | runtime data and files copied from the release archive | `# --- Linux port` |
+| `start.sh`, `main.py`, `app/gui/sowInterface.py` | native Wayland: system window frame on Linux (no frameless window, no own _ □ × buttons or resize grips), file dialogs through the XDG portal (`QT_QPA_PLATFORMTHEME=xdgdesktopportal`) | `if not IS_LINUX:` |
+| `app/gui/interface_signals.py` | file dialogs that had no parent get the main window, so the portal keeps them on top of it | `QFileDialog.getOpenFileName(self.main_window,` |
 
 ### Features on top of upstream
 
@@ -121,6 +126,11 @@ Conflicts can only appear in the files under "Changed upstream files" below. Rul
 | `app/gui/soul_stage_page.py`, `app/gui/interface_signals.py`, `app/utils/ai_clients/soul_stage_engine.py` | **Soul Stage RPG Evolution (Phase 5): Tactical Encounter Mode** - a lightweight `CombatEncounter` (initiative order, enemy HP pools) drives a live `CombatBar` HUD with initiative chips and enemy HP bars, plus four quick-action buttons (Attack/Dodge/Item/Flee); the GM planner starts/updates/ends encounters and reports enemy damage through the existing plan-JSON contract | `class CombatEncounter`, `class CombatBar` |
 | `app/translations/en.yaml`, `de.yaml`, `ru.yaml` | keys for the additions above | `response_language_label`, `ss_dice_*`, `ss_camp_*`, `ss_combat_*` |
 | `app/gui/interface_signals.py`, `app/utils/models_hub.py` | the Soul/Lorebook/Stage Gateway registries and the curated-models list point at this fork's own data repo (`SnowwhiteOakheart/sow-data`, a fork of `jofizcd/sow-data`) instead of upstream's | `SnowwhiteOakheart/sow-data` |
+| `app/gui/sowInterface.py`, `main.py`, `app/gui/interface_signals.py` | the sidebar footer buttons (GitHub, Discord, YouTube, About) are plain icons in the bottom-left corner, without the glass capsule | `def make_footer_btn`, no `class LiquidButton` |
+| `main.py`, `app/gui/theme.py` | fonts on Linux: bundled fonts load before the window is built, Inter Tight is the default font (widgets without an explicit font fell back to the system font), Windows families (`Segoe UI`, `Inter`, `Consolas`) map to Inter Tight or monospace, and the widgets' `PreferNoHinting` is ignored so text follows fontconfig's hinting like other apps | `use_app_fonts`, `use_system_hinting` |
+| `main.py`, `app/gui/sowInterface.py`, `app/gui/custom_widgets.py`, `app/gui/soul_stage_page.py` | adaptive layout: minimum window 720x480 (was 1350x734), only the visible page limits the minimum size, the sidebar hides below 1000 px, long labels wrap, top bars and button rows wrap (`FlowLayout`), card grids drop columns (`AdaptiveGrid`) | `size_stack_to_current_page`, `SIDEBAR_AUTO_HIDE_WIDTH` |
+| `app/gui/sowInterface.py`, `app/gui/interface_signals.py`, `main.py` | the Window Theme presets in Appearance are replaced by the token theme editor; old `window_theme`/`gui_theme` settings migrate once to `theme` | `ThemeEditor(theme.manager`, `migrate_legacy` |
+| `app/gui/*.py` | literal `QColor(r, g, b)` in paint code goes through the theme | `themed_color(` |
 | `app/gui/custom_widgets.py`, `app/gui/interface_signals.py` | the main character-list card (`CharacterCardList`) is taller (300px, was 270px) so portrait-oriented avatar art crops far less top-to-bottom; the character grid now sizes each row by its tallest card instead of one flat height, so `CharacterFolderCard` (still 210x270, its own pre-composed preview bitmap untouched) keeps working unchanged in the same grid | `character_card_height = 300` |
 
 ## Releases

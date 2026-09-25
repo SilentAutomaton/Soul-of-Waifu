@@ -1,0 +1,13 @@
+{
+  "name": "Default",
+  "surface0": "#0B0B0F",
+  "surface1": "#161616",
+  "surface2": "#1B1B1B",
+  "surface3": "#2B2B2B",
+  "surface4": "#3C3C3C",
+  "text_muted": "#86837D",
+  "text_secondary": "#B3B3B3",
+  "text_primary": "#E3E3E3",
+  "overlay": "#FFFFFF",
+  "accent": "#4BB8FF"
+}

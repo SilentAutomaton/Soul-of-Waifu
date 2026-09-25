@@ -109,9 +109,18 @@ executable (KDE) and marked as trusted (GNOME). To create them without running t
 ./start.sh
 ```
 
-`start.sh` runs the app through **XWayland** (`QT_QPA_PLATFORM=xcb`) by default. The desktop companion uses
-frameless, always-on-top overlay windows that position themselves, and Wayland compositors don't allow that.
-To try native Wayland anyway, run `QT_QPA_PLATFORM=wayland ./start.sh`.
+`start.sh` runs the app on **native Wayland** with the system window frame, and file dialogs go through
+the XDG desktop portal. The desktop companion uses frameless, always-on-top overlay windows that position
+themselves, and Wayland compositors don't allow that. To use it, run the app through XWayland:
+`SOW_QPA=xcb ./start.sh`.
+
+## Themes
+
+Options -> Appearance -> Window Theme picks a theme and edits its colors, spacing, corner radius, glass
+opacity, text size, interface scale and font. Themes are JSON files: the built-in ones are in
+`app/gui/themes/`, your own (saved, imported, or written by hand) in `~/.config/soul-of-waifu/themes/`.
+A file edited there is picked up while the app runs. Changing a theme restyles every widget at once, which
+takes a few seconds.
 
 ## Local LLMs (llama.cpp)
 

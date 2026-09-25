@@ -1,0 +1,13 @@
+{
+  "name": "Nordic",
+  "surface0": "#14171C",
+  "surface1": "#242933",
+  "surface2": "#2E3440",
+  "surface3": "#3A4150",
+  "surface4": "#4B5261",
+  "text_muted": "#969CA8",
+  "text_secondary": "#B3B9C4",
+  "text_primary": "#D8DEE9",
+  "overlay": "#FFFFFF",
+  "accent": "#88C0D0"
+}

@@ -1,0 +1,13 @@
+{
+  "name": "Coffee",
+  "surface0": "#0C0A09",
+  "surface1": "#161210",
+  "surface2": "#1C1816",
+  "surface3": "#302824",
+  "surface4": "#453D3A",
+  "text_muted": "#84807E",
+  "text_secondary": "#C1BDBB",
+  "text_primary": "#EFEBE9",
+  "overlay": "#FFFFFF",
+  "accent": "#D7CCC8"
+}

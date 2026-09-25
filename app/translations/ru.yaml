@@ -2410,3 +2410,38 @@ xtc_thresh_tooltip: '<b>Порог XTC (Threshold)</b><br><br>
   Определяет, насколько "популярным" (вероятным) должно быть слово, чтобы алгоритм XTC имел право его удалить.<br><br>
 
   💡 <i>Оптимально: 0.1 (Удаляются только слова с вероятностью выше 10%).</i>'
+theme_select: Тема
+theme_save_as: Сохранить как…
+theme_import: Импорт…
+theme_export: Экспорт…
+theme_delete: Удалить
+theme_colors: Цвета
+theme_token_surface0: Глубокий фон
+theme_token_surface1: Фон
+theme_token_surface2: Окно
+theme_token_surface3: Карточка
+theme_token_surface4: Выделение
+theme_token_text_muted: Приглушённый текст
+theme_token_text_secondary: Вторичный текст
+theme_token_text_primary: Текст
+theme_token_overlay: Оттенок стекла
+theme_token_accent: Акцент
+theme_follow_system: Брать цвет акцента из системы
+theme_font: Шрифт
+theme_density: Отступы
+theme_radius: Скругление углов
+theme_glass: Плотность стекла
+theme_font_scale: Размер текста
+theme_ui_scale: Масштаб интерфейса (после перезапуска)
+theme_save_title: Сохранить тему
+theme_save_label: 'Название темы:'
+theme_save_placeholder: Моя тема
+theme_import_title: Импорт темы
+theme_import_invalid: Файл не является темой.
+theme_export_title: Экспорт темы
+about_program_tooltip: О программе
+theme_custom_font: Шрифт (после перезапуска)
+theme_font_default: Шрифт приложения (Inter Tight)
+social_github_tooltip: GitHub
+social_discord_tooltip: Discord
+social_youtube_tooltip: YouTube

@@ -12,6 +12,7 @@ import datetime
 from typing import Optional
 
 from pathlib import Path
+from app.gui.theme import qcolor as themed_color
 from PyQt6 import QtCore, QtGui, QtWidgets
 from PyQt6.QtCore import Qt, pyqtSignal, QPropertyAnimation, QEasingCurve
 from PyQt6.QtGui import QColor, QFont, QPixmap, QPainter, QPainterPath, QIcon
@@ -22,7 +23,7 @@ from PyQt6.QtWidgets import (
     QDialog, QListWidget, QListWidgetItem, QMenu,
 )
 
-from app.gui.custom_widgets import SowSelectDialog, SowInputDialog, SowConfirmDialog, SceneFolderCard, sow_toast
+from app.gui.custom_widgets import SowSelectDialog, SowInputDialog, SowConfirmDialog, SceneFolderCard, sow_toast, FlowLayout, AdaptiveGrid, size_stack_to_current_page
 
 SOUL_STAGE_DIR = Path(".soul_stage")
 SCENES_FILE    = SOUL_STAGE_DIR / "scenes.json"
@@ -1759,8 +1760,7 @@ class SceneEditorView(QWidget):
         r_env2.addLayout(ca, 5)
         ly2.addLayout(r_env2)
 
-        lock_row = QHBoxLayout()
-        lock_row.setSpacing(16)
+        lock_row = FlowLayout(spacing=16)
 
         self.f_lock_bg = QtWidgets.QCheckBox(
             self.translations.get("lock_background", "🔒 Lock background (prevent auto-change)")
@@ -1802,9 +1802,7 @@ class SceneEditorView(QWidget):
         self.f_first_msg = AutoResizingTextEdit(); self.f_first_msg.setPlaceholderText(self.translations.get("first_msg_placeholder", "Optional greeting from the first party member.")); self.f_first_msg.setFixedHeight(64); self.f_first_msg.setStyleSheet(INPUT); ly3.addWidget(self.f_first_msg)
         fly.addWidget(sec3)
 
-        bot = QHBoxLayout()
-        bot.setSpacing(16)
-        bot.setContentsMargins(0, 0, 0, 0)
+        bot = AdaptiveGrid(max_columns=2, spacing=16)
 
         sec4a = _GlassSection(self.translations.get("section_party", "IV.  PARTY MEMBERS"))
         sec4a.setFixedHeight(480)
@@ -1857,7 +1855,7 @@ class SceneEditorView(QWidget):
         self.char_scroll.setWidget(self.char_inner)
         ly4a.addWidget(self.char_scroll, 1)
 
-        bot.addWidget(sec4a, 6)
+        bot.addWidget(sec4a)
 
         sec4b = _GlassSection(self.translations.get("section_engine", "V.  ENGINE SETTINGS"))
         sec4b.setFixedHeight(480)
@@ -1928,9 +1926,9 @@ class SceneEditorView(QWidget):
         ly4b.addWidget(self.f_dice_enabled)
 
         ly4b.addStretch()
-        bot.addWidget(sec4b, 4)
+        bot.addWidget(sec4b)
 
-        fly.addLayout(bot)
+        fly.addWidget(bot)
 
         scroll.setWidget(form)
         root.addWidget(scroll, 1)
@@ -2610,7 +2608,7 @@ class InventoryHUD(QWidget):
         """)
         shadow = QtWidgets.QGraphicsDropShadowEffect()
         shadow.setBlurRadius(18); shadow.setOffset(0, 4)
-        shadow.setColor(QColor(0, 0, 0, 150))
+        shadow.setColor(themed_color(0, 0, 0, 150))
         self.setGraphicsEffect(shadow)
 
         self._root = QVBoxLayout(self)
@@ -2765,7 +2763,7 @@ class PlayerStatusHUD(QFrame):
         shadow = QtWidgets.QGraphicsDropShadowEffect(self)
         shadow.setBlurRadius(16)
         shadow.setOffset(0, 3)
-        shadow.setColor(QColor(0, 0, 0, 150))
+        shadow.setColor(themed_color(0, 0, 0, 150))
         self.setGraphicsEffect(shadow)
 
         self._root = QHBoxLayout(self)
@@ -3011,7 +3009,7 @@ class CombatBar(QFrame):
         shadow = QtWidgets.QGraphicsDropShadowEffect(self)
         shadow.setBlurRadius(16)
         shadow.setOffset(0, 3)
-        shadow.setColor(QColor(0, 0, 0, 150))
+        shadow.setColor(themed_color(0, 0, 0, 150))
         self.setGraphicsEffect(shadow)
 
         root = QVBoxLayout(self)
@@ -3181,7 +3179,7 @@ class SoulStageClockTracker(QWidget):
         shadow = QtWidgets.QGraphicsDropShadowEffect(self)
         shadow.setBlurRadius(20)
         shadow.setOffset(0, 4)
-        shadow.setColor(QColor(0, 0, 0, 160))
+        shadow.setColor(themed_color(0, 0, 0, 160))
         self.setGraphicsEffect(shadow)
 
         self._root = QVBoxLayout(self)
@@ -3879,7 +3877,7 @@ class ChoicesBar(QFrame):
             shadow = QtWidgets.QGraphicsDropShadowEffect()
             shadow.setBlurRadius(14)
             shadow.setOffset(0, 3)
-            shadow.setColor(QColor(0, 0, 0, 90))
+            shadow.setColor(themed_color(0, 0, 0, 90))
             btn.setGraphicsEffect(shadow)
 
             btn.clicked.connect(lambda checked, t=text: self._on_choice_clicked(t))
@@ -5523,7 +5521,6 @@ class SoulStageChatView(QFrame):
         self.top_bar = QFrame(self)
         self.top_bar.setObjectName("ss_top_bar")
         self.top_bar.setMinimumSize(QtCore.QSize(0, 60))
-        self.top_bar.setMaximumSize(QtCore.QSize(16777215, 60))
         self.top_bar.setStyleSheet("""
             QFrame#ss_top_bar {
                 background-color: rgba(20, 20, 20, 180);
@@ -5537,8 +5534,11 @@ class SoulStageChatView(QFrame):
         self.top_bar.setFrameShape(QFrame.Shape.NoFrame)
         self.top_bar.setFrameShadow(QFrame.Shadow.Raised)
 
-        tl = QHBoxLayout(self.top_bar)
-        tl.setContentsMargins(20, 9, 20, 9)
+        bar = FlowLayout(self.top_bar, spacing=8, right_align_last=True)
+        bar.setContentsMargins(20, 9, 20, 9)
+        left_group = QWidget()
+        tl = QHBoxLayout(left_group)
+        tl.setContentsMargins(0, 0, 0, 0)
         tl.setSpacing(8)
 
         self.btn_back = QPushButton("←")
@@ -5662,8 +5662,12 @@ class SoulStageChatView(QFrame):
             "character has — the rest of the party won't know."
         ))
         tl.addWidget(self.whisper_checkbox)
+        bar.addWidget(left_group)
 
-        tl.addStretch()
+        right_group = QWidget()
+        tl = QHBoxLayout(right_group)
+        tl.setContentsMargins(0, 0, 0, 0)
+        tl.setSpacing(8)
 
         def _icon_btn(icon_path: str, tooltip: str, color_rgb: str = "255,255,255", alpha_normal: float = 0.08) -> QPushButton:
             btn = QPushButton()
@@ -5768,6 +5772,7 @@ class SoulStageChatView(QFrame):
         )
         self.btn_camp.clicked.connect(self._open_camp_dialog)
         tl.addWidget(self.btn_camp)
+        bar.addWidget(right_group)
 
         root.addWidget(self.top_bar)
 
@@ -6267,6 +6272,7 @@ class SoulStagePage(QWidget):
         self.inner_stack.addWidget(self.editor_view)
         self.inner_stack.addWidget(self.chat_view)
         layout.addWidget(self.inner_stack)
+        size_stack_to_current_page(self.inner_stack)
 
         self.lobby_view.create_new.connect(self._on_create_new)
         self.lobby_view.open_scene.connect(self._on_open_scene)

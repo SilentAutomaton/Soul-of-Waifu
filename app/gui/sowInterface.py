@@ -2,6 +2,7 @@ import os
 import yaml
 from pathlib import Path
 
+from app.gui.theme import qcolor as themed_color
 from PyQt6 import QtCore, QtGui, QtWidgets
 from PyQt6.QtWidgets import QPushButton, QVBoxLayout, QLabel, QGraphicsDropShadowEffect, QListWidget
 from PyQt6.QtCore import Qt, QPointF, QTimer, QPropertyAnimation, QEasingCurve, pyqtProperty, QRectF, QPoint
@@ -9,10 +10,14 @@ from PyQt6.QtGui import QColor, QPainter, QRadialGradient, QCursor, QFont, QPixm
 
 from app.gui.custom_widgets import (
     LocalModelStatusWidget, SowConfirmDialog, SowInputDialog, sow_toast, safe_paint,
-    TokenBudgetBarWidget, PersonaQuickButton, ChatAudioHudButton, SLIDER_STYLE_DARK
+    TokenBudgetBarWidget, PersonaQuickButton, ChatAudioHudButton, SLIDER_STYLE_DARK,
+    FlowLayout, AdaptiveGrid
 )
 from app.gui.soul_stage_page import SoulStagePage
+from app.gui import theme
+from app.gui.theme_editor import ThemeEditor
 from app.configuration import configuration
+from app.utils.platform_compat import IS_LINUX
 
 class Ui_MainWindow(object):
     def __init__(self):
@@ -46,10 +51,11 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(1350, 734)
-        MainWindow.setMinimumSize(QtCore.QSize(1350, 734))
+        MainWindow.setMinimumSize(QtCore.QSize(720, 480))
 
-        MainWindow.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.Window)
-        MainWindow.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+        if not IS_LINUX:
+            MainWindow.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.Window)
+            MainWindow.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
 
         font_title_lbl = QtGui.QFont("Inter Tight SemiBold", 10, QtGui.QFont.Weight.Bold)
         font_title_lbl.setHintingPreference(QtGui.QFont.HintingPreference.PreferNoHinting)
@@ -95,7 +101,7 @@ class Ui_MainWindow(object):
         shadow.setBlurRadius(15)
         shadow.setXOffset(0)
         shadow.setYOffset(0)
-        shadow.setColor(QColor(0, 0, 0, 60))
+        shadow.setColor(themed_color(0, 0, 0, 60))
         self.main_widget.setGraphicsEffect(shadow)
         self.main_widget.setObjectName("main_widget")
 
@@ -152,7 +158,6 @@ class Ui_MainWindow(object):
         self.horizontalLayout_7.addWidget(self.toggle_sidebar_btn)
         
         self.frame_version = QtWidgets.QFrame(parent=self.menu_bar)
-        self.frame_version.setMinimumSize(QtCore.QSize(1000, 0))
         self.frame_version.setFrameShape(QtWidgets.QFrame.Shape.NoFrame)
         self.frame_version.setFrameShadow(QtWidgets.QFrame.Shadow.Raised)
         self.frame_version.setObjectName("frame_version")
@@ -279,7 +284,6 @@ class Ui_MainWindow(object):
         self.horizontalLayout_7.addWidget(self.right_buttons, 0, QtCore.Qt.AlignmentFlag.AlignRight)
         self.gridLayout_20.addWidget(self.menu_bar, 0, 0, 1, 3)
         self.SideBar_Right = QtWidgets.QWidget(parent=self.main_widget)
-        self.SideBar_Right.setMinimumSize(QtCore.QSize(800, 648))
         self.SideBar_Right.setStyleSheet("#SideBar_Right {\n"
 "    background-color: rgb(27,27,27);\n"
 "    color: rgb(227, 227, 227);\n"
@@ -441,7 +445,7 @@ class Ui_MainWindow(object):
         """)
         
         self.gridLayout_6 = QtWidgets.QGridLayout(self.frame_welcome_to)
-        self.gridLayout_6.setContentsMargins(32, 6, 32, 6)
+        self.gridLayout_6.setContentsMargins(16, 6, 16, 6)
         self.gridLayout_6.setObjectName("gridLayout_6")
 
         self.profile_container = QtWidgets.QWidget(parent=self.frame_welcome_to)
@@ -601,7 +605,7 @@ class Ui_MainWindow(object):
         self.gridLayout_6.addWidget(self.control_capsule, 0, 2, 1, 1)
 
         self.search_bar_menu = ModernSearchBar(parent=self.frame_welcome_to)
-        self.search_bar_menu.setMinimumSize(QtCore.QSize(230, 44))
+        self.search_bar_menu.setMinimumSize(QtCore.QSize(140, 44))
         self.search_bar_menu.setMaximumSize(QtCore.QSize(290, 44))
         
         self.lineEdit_search_character_menu = self.search_bar_menu.line_edit
@@ -1360,11 +1364,11 @@ class Ui_MainWindow(object):
         )
         shadow_footer = QGraphicsDropShadowEffect()
         shadow_footer.setBlurRadius(20)
-        shadow_footer.setColor(QColor(0, 0, 0, 150))
+        shadow_footer.setColor(themed_color(0, 0, 0, 150))
         shadow_footer.setOffset(0, -5)
         self.frame_bottom_character_creation.setGraphicsEffect(shadow_footer)
         self.bottom_layout = QtWidgets.QHBoxLayout(self.frame_bottom_character_creation)
-        self.bottom_layout.setContentsMargins(40, 0, 40, 0)
+        self.bottom_layout.setContentsMargins(16, 0, 16, 0)
         self.bottom_layout.setSpacing(15)
         
         self.total_tokens_building_label = QtWidgets.QLabel("Total Tokens: 0")
@@ -2007,7 +2011,7 @@ class Ui_MainWindow(object):
             content = QtWidgets.QWidget()
             content.setStyleSheet("background: transparent;")
             content_layout = QtWidgets.QVBoxLayout(content)
-            content_layout.setContentsMargins(50, 40, 50, 50)
+            content_layout.setContentsMargins(24, 32, 24, 40)
             content_layout.setSpacing(30)
             
             scroll.setWidget(content)
@@ -2451,7 +2455,7 @@ class Ui_MainWindow(object):
             f"}}"
             f"QFrame#LLMPresetBar QLabel {{ border: none; background: transparent; }}"
         )
-        preset_bar_layout = QtWidgets.QHBoxLayout(preset_bar)
+        preset_bar_layout = FlowLayout(preset_bar, spacing=10)
         preset_bar_layout.setContentsMargins(16, 12, 16, 12)
         preset_bar_layout.setSpacing(10)
 
@@ -2510,7 +2514,7 @@ class Ui_MainWindow(object):
             "llm_preset_tooltip",
             "Save and switch between full snapshots of your generation & sampling settings."
         ))
-        preset_bar_layout.addWidget(self.comboBox_llm_presets, 1)
+        preset_bar_layout.addWidget(self.comboBox_llm_presets)
 
         def _mk_preset_btn(text, tooltip, accent=False):
             b = QtWidgets.QPushButton(text)
@@ -3168,8 +3172,7 @@ class Ui_MainWindow(object):
         permissions_layout.setContentsMargins(0, 0, 0, 0)
         permissions_layout.setSpacing(10)
 
-        grid_layout = QtWidgets.QGridLayout()
-        grid_layout.setSpacing(12)
+        grid_layout = AdaptiveGrid(max_columns=2, spacing=12)
         grid_layout.setContentsMargins(5, 5, 5, 5)
 
         tools_data = [
@@ -3334,11 +3337,9 @@ class Ui_MainWindow(object):
             
             capsule_layout.addWidget(desc_lbl)
 
-            row = index // 2
-            col = index % 2
-            grid_layout.addWidget(capsule, row, col)
+            grid_layout.addWidget(capsule)
 
-        permissions_layout.addLayout(grid_layout)
+        permissions_layout.addWidget(grid_layout)
         l_tools_native.addWidget(self.tools_permissions_widget)
 
         self.checkBox_enable_tool_calling.toggled.connect(self.tools_permissions_widget.setEnabled)
@@ -4321,7 +4322,7 @@ class Ui_MainWindow(object):
         shadow_jump_to_bottom = QtWidgets.QGraphicsDropShadowEffect()
         shadow_jump_to_bottom.setBlurRadius(18)
         shadow_jump_to_bottom.setOffset(0, 2)
-        shadow_jump_to_bottom.setColor(QtGui.QColor(0, 0, 0, 140))
+        shadow_jump_to_bottom.setColor(themed_color(0, 0, 0, 140))
         self.pushButton_jump_to_bottom.setGraphicsEffect(shadow_jump_to_bottom)
         self.pushButton_jump_to_bottom.hide()
 
@@ -4392,7 +4393,8 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.frame_send_message.sizePolicy().hasHeightForWidth())
         self.frame_send_message.setSizePolicy(sizePolicy)
-        self.frame_send_message.setFixedWidth(680)
+        self.frame_send_message.setMinimumWidth(240)
+        self.frame_send_message.setMaximumWidth(900)
         self.frame_send_message.setMinimumHeight(40)
         self.frame_send_message.setMaximumHeight(40)
         self.frame_send_message.setBaseSize(QtCore.QSize(0, 0))
@@ -4623,7 +4625,7 @@ class Ui_MainWindow(object):
 
         self.frame_director_note = QtWidgets.QFrame(parent=self.chat_page)
         self.frame_director_note.setObjectName("frame_director_note")
-        self.frame_director_note.setMinimumWidth(750)
+        self.frame_director_note.setMinimumWidth(240)
         self.frame_director_note.setMaximumWidth(860)
         self.frame_director_note.setFixedHeight(42)
         self.frame_director_note.setStyleSheet("""
@@ -4731,7 +4733,7 @@ class Ui_MainWindow(object):
             }
         """)
         self.horizontalLayout_8 = QtWidgets.QHBoxLayout(self.frame_models_hub_search)
-        self.horizontalLayout_8.setContentsMargins(30, 0, 30, 0)
+        self.horizontalLayout_8.setContentsMargins(12, 0, 12, 0)
         self.horizontalLayout_8.setObjectName("horizontalLayout_8")
 
         glass_toggle_style = """
@@ -4758,7 +4760,7 @@ class Ui_MainWindow(object):
 
         self.pushButton_models_hub_recommendations = QtWidgets.QPushButton(parent=self.frame_models_hub_search)
         self.pushButton_models_hub_recommendations.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-        self.pushButton_models_hub_recommendations.setMinimumSize(QtCore.QSize(190, 33))
+        self.pushButton_models_hub_recommendations.setMinimumSize(QtCore.QSize(0, 33))
         self.pushButton_models_hub_recommendations.setMaximumSize(QtCore.QSize(190, 33))
         font = QtGui.QFont()
         font.setFamily("Inter Tight Black")
@@ -4778,7 +4780,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_8.addWidget(self.pushButton_models_hub_recommendations)
         self.pushButton_models_hub_popular = QtWidgets.QPushButton(parent=self.frame_models_hub_search)
         self.pushButton_models_hub_popular.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-        self.pushButton_models_hub_popular.setMinimumSize(QtCore.QSize(150, 33))
+        self.pushButton_models_hub_popular.setMinimumSize(QtCore.QSize(0, 33))
         self.pushButton_models_hub_popular.setMaximumSize(QtCore.QSize(150, 33))
         font = QtGui.QFont()
         font.setFamily("Inter Tight Black")
@@ -4798,7 +4800,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_8.addWidget(self.pushButton_models_hub_popular)
         self.pushButton_models_hub_my_models = QtWidgets.QPushButton(parent=self.frame_models_hub_search)
         self.pushButton_models_hub_my_models.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-        self.pushButton_models_hub_my_models.setMinimumSize(QtCore.QSize(150, 33))
+        self.pushButton_models_hub_my_models.setMinimumSize(QtCore.QSize(0, 33))
         self.pushButton_models_hub_my_models.setMaximumSize(QtCore.QSize(150, 33))
         font = QtGui.QFont()
         font.setFamily("Inter Tight Black")
@@ -4844,7 +4846,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_8.addItem(spacerItem31)
         
         self.search_bar_models = ModernSearchBar(parent=self.frame_models_hub_search)
-        self.search_bar_models.setMinimumSize(QtCore.QSize(300, 45))
+        self.search_bar_models.setMinimumSize(QtCore.QSize(140, 45))
         self.search_bar_models.setMaximumSize(QtCore.QSize(400, 45))
         self.search_bar_models.line_edit.setPlaceholderText("Search models...")
         self.lineEdit_search_model = self.search_bar_models.line_edit
@@ -5039,7 +5041,7 @@ class Ui_MainWindow(object):
         self.gridLayout_20.addWidget(self.SideBar_Right, 1, 1, 1, 1)
         
         self.SideBar_Left = QtWidgets.QWidget(parent=self.main_widget)
-        self.SideBar_Left.setMinimumSize(QtCore.QSize(190, 648))
+        self.SideBar_Left.setMinimumSize(QtCore.QSize(190, 0))
         self.SideBar_Left.setMaximumSize(QtCore.QSize(190, 16777215))
         self.SideBar_Left.setLayoutDirection(QtCore.Qt.LayoutDirection.LeftToRight)
 
@@ -5047,20 +5049,20 @@ class Ui_MainWindow(object):
         shadow_sidebar.setBlurRadius(20)
         shadow_sidebar.setXOffset(0)
         shadow_sidebar.setYOffset(0)
-        shadow_sidebar.setColor(QColor(0, 0, 0, 80))
+        shadow_sidebar.setColor(themed_color(0, 0, 0, 80))
         self.SideBar_Left.setGraphicsEffect(shadow_sidebar)
 
         shadow_button = QtWidgets.QGraphicsDropShadowEffect()
         shadow_button.setBlurRadius(15)
         shadow_button.setXOffset(3)
         shadow_button.setYOffset(3)
-        shadow_button.setColor(QColor(0, 0, 0, 50))
+        shadow_button.setColor(themed_color(0, 0, 0, 50))
 
         shadow_logo = QtWidgets.QGraphicsDropShadowEffect()
         shadow_logo.setBlurRadius(10)
         shadow_logo.setXOffset(2)
         shadow_logo.setYOffset(2)
-        shadow_logo.setColor(QColor(0, 0, 0, 100))
+        shadow_logo.setColor(themed_color(0, 0, 0, 100))
 
         self.SideBar_Left.setStyleSheet("#SideBar_Left {\n"
 "    background: qlineargradient(spread: pad, x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 rgba(27, 27, 27, 255), stop: 0.25 rgba(38, 38, 38, 255), stop: 0.5 rgba(42, 42, 42, 255), stop: 0.75 rgba(46, 46, 46, 255), stop: 1 rgba(50, 50, 50, 255));\n"
@@ -5563,69 +5565,35 @@ class Ui_MainWindow(object):
         self.slide_in_status_container = slide_in_status
         self.slide_out_status_container = slide_out_status
 
-        self.separator_left_bar_3 = QtWidgets.QFrame(parent=self.SideBar_Left)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.separator_left_bar_3.sizePolicy().hasHeightForWidth())
-        self.separator_left_bar_3.setMinimumSize(QtCore.QSize(165, 2))
-        self.separator_left_bar_3.setMaximumSize(QtCore.QSize(165, 2))
-        self.separator_left_bar_3.setStyleSheet("QFrame {\n"
-"        background-color: rgba(10, 10, 10, 40);\n"
-"        border-radius: 2px;\n"
-"        height: 1px;\n"
-"}")
-        self.separator_left_bar_3.setFrameShadow(QtWidgets.QFrame.Shadow.Raised)
-        self.separator_left_bar_3.setFrameShape(QtWidgets.QFrame.Shape.HLine)
-        self.separator_left_bar_3.setObjectName("separator_left_bar_3")
-        self.verticalLayout_2.addWidget(self.separator_left_bar_3, 0, QtCore.Qt.AlignmentFlag.AlignHCenter)
+        def make_footer_btn(name, icon, tooltip_key, tooltip):
+            btn = QtWidgets.QPushButton(parent=self.SideBar_Left)
+            btn.setObjectName(name)
+            btn.setFixedSize(QtCore.QSize(32, 32))
+            btn.setIcon(QtGui.QIcon(icon))
+            btn.setIconSize(QtCore.QSize(16, 16))
+            btn.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
+            btn.setToolTip(self.translations.get(tooltip_key, tooltip))
+            btn.setAccessibleName(btn.toolTip())
+            btn.setStyleSheet(
+                "QPushButton { background-color: transparent; border: none; border-radius: 16px; }"
+                "QPushButton:hover { background-color: rgba(255, 255, 255, 0.08); }"
+                "QPushButton:pressed { background-color: rgba(255, 255, 255, 0.04); }"
+                "QPushButton:focus { border: 1px solid #4BB8FF; }"
+            )
+            return btn
 
-        self.footer_container = QtWidgets.QWidget(self.SideBar_Left)
-        footer_layout = QtWidgets.QHBoxLayout(self.footer_container)
-        footer_layout.setContentsMargins(5, 10, 5, 10) 
-        footer_layout.setSpacing(5)
-        footer_layout.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-        
-        self.glass_capsule = QtWidgets.QFrame()
-        self.glass_capsule.setMinimumHeight(46)
-        self.glass_capsule.setFixedWidth(170)
-        self.glass_capsule.setStyleSheet("""
-            QFrame {
-                background-color: rgba(0, 0, 0, 0.3);
-                border: 1px solid rgba(255, 255, 255, 0.08);
-                border-radius: 23px;
-            }
-        """)
-        
-        capsule_shadow = QtWidgets.QGraphicsDropShadowEffect()
-        capsule_shadow.setBlurRadius(20)
-        capsule_shadow.setColor(QColor(0, 0, 0, 100))
-        capsule_shadow.setOffset(0, 5)
-        self.glass_capsule.setGraphicsEffect(capsule_shadow)
+        self.pushButton_github = make_footer_btn("pushButton_github", "app/gui/icons/github.png", "social_github_tooltip", "GitHub")
+        self.pushButton_discord = make_footer_btn("pushButton_discord", "app/gui/icons/discord.png", "social_discord_tooltip", "Discord")
+        self.pushButton_youtube = make_footer_btn("pushButton_youtube", "app/gui/icons/youtube.png", "social_youtube_tooltip", "YouTube")
+        self.about_btn = make_footer_btn("about_btn", "app/gui/icons/information.png", "about_program_tooltip", "About Soul of Waifu")
 
-        capsule_layout = QtWidgets.QHBoxLayout(self.glass_capsule)
-        capsule_layout.setContentsMargins(0, 0, 0, 0)
-        capsule_layout.setSpacing(5)
-        capsule_layout.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-
-        self.pushButton_github = LiquidButton("app/gui/icons/github.png", "#FFFFFF", self.glass_capsule)
-        self.pushButton_github.setObjectName("pushButton_github")
-        capsule_layout.addWidget(self.pushButton_github)
-
-        self.pushButton_discord = LiquidButton("app/gui/icons/discord.png", "#5865F2", self.glass_capsule)
-        self.pushButton_discord.setObjectName("pushButton_discord")
-        capsule_layout.addWidget(self.pushButton_discord)
-
-        self.pushButton_youtube = LiquidButton("app/gui/icons/youtube.png", "#FF0000", self.glass_capsule)
-        self.pushButton_youtube.setObjectName("pushButton_youtube")
-        capsule_layout.addWidget(self.pushButton_youtube)
-
-        self.about_btn = LiquidButton("app/gui/icons/information.png", "#00BFFF", self.glass_capsule)
-        self.about_btn.setObjectName("about_btn")
-        capsule_layout.addWidget(self.about_btn)
-
-        footer_layout.addWidget(self.glass_capsule)
-        self.verticalLayout_2.addWidget(self.footer_container)
+        about_row = QtWidgets.QHBoxLayout()
+        about_row.setContentsMargins(12, 6, 0, 12)
+        about_row.setSpacing(4)
+        for btn in (self.pushButton_github, self.pushButton_discord, self.pushButton_youtube, self.about_btn):
+            about_row.addWidget(btn)
+        about_row.addStretch()
+        self.verticalLayout_2.addLayout(about_row)
         self.gridLayout_20.addWidget(self.SideBar_Left, 1, 0, 1, 1)
 
         self.SideBar_Right.raise_()
@@ -6392,7 +6360,7 @@ class Ui_MainWindow(object):
         self.active_variable_widgets.clear()
 
 class RippleButton(QPushButton):
-    def __init__(self, *args, ripple_color=QColor(50, 50, 50, 100), **kwargs):
+    def __init__(self, *args, ripple_color=themed_color(50, 50, 50, 100), **kwargs):
         super().__init__(*args, **kwargs)
         self._ripple_radius = 0
         self._ripple_pos = None
@@ -6459,9 +6427,9 @@ class PushButton(QtWidgets.QPushButton):
 
         self.icon_pixmap = QtGui.QPixmap(icon_path)
         
-        self._color_normal = QColor(255, 255, 255, 10)
-        self._color_hover = QColor(255, 255, 255, 40)
-        self._color_pressed = QColor(255, 255, 255, 60)
+        self._color_normal = themed_color(255, 255, 255, 10)
+        self._color_hover = themed_color(255, 255, 255, 40)
+        self._color_pressed = themed_color(255, 255, 255, 60)
 
         self._current_bg_color = self._color_normal
         
@@ -6510,7 +6478,7 @@ class PushButton(QtWidgets.QPushButton):
         radius = 20
 
         painter.setBrush(QBrush(self._current_bg_color))
-        painter.setPen(QPen(QColor(255, 255, 255, 30), 1)) 
+        painter.setPen(QPen(themed_color(255, 255, 255, 30), 1)) 
         painter.drawRoundedRect(draw_rect, radius, radius)
 
         if not self.icon_pixmap.isNull():
@@ -6530,9 +6498,9 @@ class PushButton_2(QtWidgets.QPushButton):
         self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
 
-        self._color_normal = QColor(67, 68, 70, 180) 
-        self._color_hover = QColor(90, 93, 96, 220)
-        self._color_pressed = QColor(120, 123, 126, 240)
+        self._color_normal = themed_color(67, 68, 70, 180) 
+        self._color_hover = themed_color(90, 93, 96, 220)
+        self._color_pressed = themed_color(120, 123, 126, 240)
 
         self._current_bg_color = self._color_normal
 
@@ -6582,7 +6550,7 @@ class PushButton_2(QtWidgets.QPushButton):
         radius = 15
 
         painter.setBrush(QBrush(self._current_bg_color))
-        painter.setPen(QPen(QColor(255, 255, 255, 30), 1)) 
+        painter.setPen(QPen(themed_color(255, 255, 255, 30), 1)) 
         painter.drawRoundedRect(draw_rect, radius, radius)
 
         if not self.icon().isNull():
@@ -6611,9 +6579,9 @@ class AnimatedToggle(QtWidgets.QCheckBox):
         self.setCursor(Qt.CursorShape.PointingHandCursor)
         self.setText("")
 
-        self._bg_off = QColor("#3a3a3a")
-        self._bg_on  = QColor("#d32f2f")
-        self._circle_color = QColor("#dddddd")
+        self._bg_off = themed_color("#3a3a3a")
+        self._bg_on  = themed_color("#d32f2f")
+        self._circle_color = themed_color("#dddddd")
 
         self._circle_position = 3.0
 
@@ -6682,11 +6650,11 @@ class ModernSearchBar(QtWidgets.QFrame):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setMinimumSize(400, 45)
+        self.setMinimumSize(140, 45)
         self.setMaximumHeight(45)
         self.setObjectName("ModernSearchBar")
         
-        self._border_color = QtGui.QColor(255, 255, 255, 40)
+        self._border_color = themed_color(255, 255, 255, 40)
         self.animation = QtCore.QPropertyAnimation(self, b"border_color")
         self.animation.setDuration(250)
         
@@ -6785,7 +6753,7 @@ class ModernSearchBar(QtWidgets.QFrame):
     def animate_focus(self, focused):
         self.animation.stop()
         self.animation.setStartValue(self._border_color)
-        end_color = QtGui.QColor(255, 255, 255, 120) if focused else QtGui.QColor(255, 255, 255, 40)
+        end_color = themed_color(255, 255, 255, 120) if focused else themed_color(255, 255, 255, 40)
         self.animation.setEndValue(end_color)
         self.animation.start()
 
@@ -6799,7 +6767,7 @@ class ModernSearchBar(QtWidgets.QFrame):
         
         path = QtGui.QPainterPath()
         path.addRoundedRect(QtCore.QRectF(rect), radius, radius)
-        p.fillPath(path, QtGui.QColor(0, 0, 0, 65)) 
+        p.fillPath(path, themed_color(0, 0, 0, 65)) 
         
         pen = QtGui.QPen(self._border_color, 1.2)
         p.setPen(pen)
@@ -6822,72 +6790,6 @@ class AutoResizingTextEdit(QtWidgets.QTextEdit):
         margins = self.contentsMargins()
         new_height = doc_height + margins.top() + margins.bottom() + 15
         self.setMinimumHeight(max(100, new_height))
-
-class LiquidButton(QtWidgets.QPushButton):
-    def __init__(self, icon_path, hover_color_hex, parent=None):
-        super().__init__(parent)
-        self.setFixedSize(36, 36)
-        self.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
-        
-        original_pixmap = QtGui.QPixmap(icon_path)
-        
-        self.icon_pixmap = original_pixmap.scaled(
-            24, 24,
-            QtCore.Qt.AspectRatioMode.KeepAspectRatio,
-            QtCore.Qt.TransformationMode.SmoothTransformation
-        )
-        
-        self._base_color = QColor(0, 0, 0, 0)
-        self._hover_color = QColor(hover_color_hex)
-        self._hover_color.setAlpha(80)
-        self._current_color = self._base_color
-
-        self._animation = QtCore.QVariantAnimation(self)
-        self._animation.setDuration(200)
-        self._animation.setEasingCurve(QtCore.QEasingCurve.Type.OutQuad)
-        self._animation.valueChanged.connect(self._update_color)
-
-    def _update_color(self, color):
-        self._current_color = color
-        self.update()
-
-    def enterEvent(self, event):
-        self._animation.stop()
-        self._animation.setStartValue(self._current_color)
-        self._animation.setEndValue(self._hover_color)
-        self._animation.start()
-        super().enterEvent(event)
-
-    def leaveEvent(self, event):
-        self._animation.stop()
-        self._animation.setStartValue(self._current_color)
-        self._animation.setEndValue(self._base_color)
-        self._animation.start()
-        super().leaveEvent(event)
-
-    @safe_paint
-    def paintEvent(self, event):
-        painter = QPainter(self)
-        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-        painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
-
-        path = QtGui.QPainterPath()
-        path.addEllipse(0, 0, self.width(), self.height())
-        painter.fillPath(path, self._current_color)
-
-        icon_size = 26
-        
-        x = round((self.width() - icon_size) / 2)
-        y = round((self.height() - icon_size) / 2)
-
-        is_hovered = self._current_color.alpha() > 10
-    
-        if is_hovered:
-            painter.setOpacity(1.0)
-        else:
-            painter.setOpacity(0.6)
-        
-        painter.drawPixmap(x, y, icon_size, icon_size, self.icon_pixmap)
 
 class RPGlassCard(QtWidgets.QFrame):
     clicked = QtCore.pyqtSignal()
@@ -6916,7 +6818,7 @@ class RPGlassCard(QtWidgets.QFrame):
 
         shadow = QtWidgets.QGraphicsDropShadowEffect(self)
         shadow.setBlurRadius(35)
-        shadow.setColor(QtGui.QColor(0, 0, 0, 120))
+        shadow.setColor(themed_color(0, 0, 0, 120))
         shadow.setOffset(0, 8)
         self.setGraphicsEffect(shadow)
 
@@ -7538,188 +7440,7 @@ class AppearanceSettingsTab(QtWidgets.QWidget):
         theme_card.setStyleSheet(CARD_STYLE)
         TH = QtWidgets.QVBoxLayout(theme_card)
         TH.setContentsMargins(20, 20, 20, 20)
-
-        WINDOW_THEMES = [
-            # --- NEUTRAL & DARK ---
-            {
-                "name": self.tr("appearance_wtheme_default", "Default"),
-                "bg_primary": "27,27,27", "bg_secondary": "22,22,22", "border_color": "50,50,55",
-                "sidebar_accent": "#A0A0A0", "sidebar_hover": "#1B1B1B", "sidebar_text": "#D2D2D2"
-            },
-            {
-                "name": self.tr("appearance_wtheme_obsidian", "Obsidian"),
-                "bg_primary": "18,18,18", "bg_secondary": "10,10,10", "border_color": "35,35,35",
-                "sidebar_accent": "#FFFFFF", "sidebar_hover": "#252525", "sidebar_text": "#E0E0E0"
-            },
-            {
-                "name": self.tr("appearance_wtheme_graphite", "Graphite"),
-                "bg_primary": "30,30,30", "bg_secondary": "37,37,38", "border_color": "55,55,55",
-                "sidebar_accent": "#569CD6", "sidebar_hover": "#2D2D2D", "sidebar_text": "#CCCCCC"
-            },
-
-            # --- COOL & BLUE ---
-            {
-                "name": self.tr("appearance_wtheme_nord", "Nordic"),
-                "bg_primary": "46,52,64", "bg_secondary": "36,41,51", "border_color": "59,66,82",
-                "sidebar_accent": "#88C0D0", "sidebar_hover": "#434C5E", "sidebar_text": "#D8DEE9"
-            },
-            {
-                "name": self.tr("appearance_wtheme_tokyo_night", "Tokyo Night"),
-                "bg_primary": "26,27,38", "bg_secondary": "36,40,59", "border_color": "65,68,95",
-                "sidebar_accent": "#7AA2F7", "sidebar_hover": "#2F3549", "sidebar_text": "#C0CAF5"
-            },
-            {
-                "name": self.tr("appearance_wtheme_oceanic", "Oceanic"),
-                "bg_primary": "15,23,42", "bg_secondary": "10,15,30", "border_color": "30,41,59",
-                "sidebar_accent": "#38BDF8", "sidebar_hover": "#1E293B", "sidebar_text": "#E2E8F0"
-            },
-            {
-                "name": self.tr("appearance_wtheme_midnight", "Midnight"),
-                "bg_primary": "16,20,30", "bg_secondary": "12,16,24", "border_color": "30,38,55",
-                "sidebar_accent": "#818CF8", "sidebar_hover": "#1F2937", "sidebar_text": "#C7D2FE"
-            },
-
-            # --- PURPLE & PINK ---
-            {
-                "name": self.tr("appearance_wtheme_synthwave", "Synthwave"),
-                "bg_primary": "36,27,47", "bg_secondary": "25,18,35", "border_color": "60,40,70",
-                "sidebar_accent": "#F472B6", "sidebar_hover": "#453055", "sidebar_text": "#E9D5FF"
-            },
-            {
-                "name": self.tr("appearance_wtheme_cyberpunk", "Cyberpunk"),
-                "bg_primary": "10,10,18", "bg_secondary": "20,5,30", "border_color": "50,10,80",
-                "sidebar_accent": "#00FF9F", "sidebar_hover": "#301040", "sidebar_text": "#FF0055"
-            },
-            {
-                "name": self.tr("appearance_wtheme_royal", "Royal"),
-                "bg_primary": "28,20,40", "bg_secondary": "20,15,30", "border_color": "45,35,60",
-                "sidebar_accent": "#A78BFA", "sidebar_hover": "#352545", "sidebar_text": "#E5E7EB"
-            },
-            {
-                "name": self.tr("appearance_wtheme_rose", "Rose"),
-                "bg_primary": "35,25,30", "bg_secondary": "25,18,22", "border_color": "55,35,45",
-                "sidebar_accent": "#FB7185", "sidebar_hover": "#40202A", "sidebar_text": "#FFE4E6"
-            },
-
-            # --- NATURE & WARM ---
-            {
-                "name": self.tr("appearance_wtheme_forest", "Forest"),
-                "bg_primary": "18,28,22", "bg_secondary": "12,20,15", "border_color": "30,50,38",
-                "sidebar_accent": "#4ADE80", "sidebar_hover": "#142518", "sidebar_text": "#DCFCE7"
-            },
-            {
-                "name": self.tr("appearance_wtheme_coffee", "Coffee"),
-                "bg_primary": "28,24,22", "bg_secondary": "22,18,16", "border_color": "50,42,38",
-                "sidebar_accent": "#D7CCC8", "sidebar_hover": "#352A25", "sidebar_text": "#EFEBE9"
-            },
-            {
-                "name": self.tr("appearance_wtheme_amber", "Amber"),
-                "bg_primary": "30,25,20", "bg_secondary": "22,18,14", "border_color": "55,40,30",
-                "sidebar_accent": "#FBBF24", "sidebar_hover": "#33251A", "sidebar_text": "#FEF3C7"
-            },
-            
-            # --- SPECIAL ---
-            {
-                "name": self.tr("appearance_wtheme_slate", "Slate"),
-                "bg_primary": "22,28,36", "bg_secondary": "15,20,28", "border_color": "44,56,72",
-                "sidebar_accent": "#60A5FA", "sidebar_hover": "#1E293B", "sidebar_text": "#F1F5F9"
-            },
-            {
-                "name": self.tr("appearance_wtheme_dracula", "Vampire"),
-                "bg_primary": "40,42,54", "bg_secondary": "28,30,40", "border_color": "68,71,90",
-                "sidebar_accent": "#BD93F9", "sidebar_hover": "#343746", "sidebar_text": "#F8F8F2"
-            }
-        ]
-
-        def ui_update_all():
-            self.windowThemeChanged.emit(wt)
-
-        theme_wrapper = QtWidgets.QHBoxLayout()
-        theme_wrapper.setContentsMargins(0, 0, 0, 0)
-        
-        theme_grid = QtWidgets.QGridLayout()
-        theme_grid.setSpacing(10)
-        theme_grid.setContentsMargins(0, 0, 0, 0)
-        theme_btns = []
-        row, col = 0, 0
-        
-        MAX_COLS = 7 
-        
-        for theme in WINDOW_THEMES:
-            btn = QtWidgets.QPushButton()
-            btn.setFixedSize(46, 32)
-            btn.setFocusPolicy(QtCore.Qt.FocusPolicy.NoFocus)
-            btn.setToolTip(theme["name"])
-            btn.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
-
-            bp = theme["bg_primary"]
-            bs = theme["bg_secondary"]
-            r1, g1, b1 = [int(x) for x in bp.split(",")]
-            r2, g2, b2 = [int(x) for x in bs.split(",")]
-            
-            is_sel = (wt.get("theme_name", "default") == theme["name"].lower().replace(" ", "_"))
-            border = "#FFFFFF" if is_sel else "transparent"
-            
-            btn.setStyleSheet(f"""
-                QPushButton {{
-                    background: qlineargradient(x1:0,y1:0,x2:1,y2:1, stop:0 rgb({r1},{g1},{b1}), stop:1 rgb({r2},{g2},{b2}));
-                    border-radius: 6px; border: 2px solid {border};
-                }}
-                QPushButton:hover {{ border: 2px solid #999; }}
-                QToolTip {{ background-color: rgba(25, 25, 30, 0.95); color: #E0E0E0; border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 6px; padding: 6px 10px; font-size: 12px; font-weight: 500; }}
-            """)
-            
-            name_lbl = QtWidgets.QLabel(theme["name"])
-            name_lbl.setFont(self.get_font())
-            name_lbl.setStyleSheet("color:#666; font-size:9px; background:transparent; border:none;")
-            name_lbl.setAlignment(QtCore.Qt.AlignmentFlag.AlignHCenter)
-            
-            v_box = QtWidgets.QVBoxLayout()
-            v_box.setSpacing(4)
-            v_box.addWidget(btn, alignment=QtCore.Qt.AlignmentFlag.AlignHCenter)
-            v_box.addWidget(name_lbl)
-            
-            theme_grid.addLayout(v_box, row, col)
-            theme_btns.append((btn, theme))
-            
-            col += 1
-            if col >= MAX_COLS:
-                col = 0
-                row += 1
-
-        def make_theme_click(b, th, all_btns):
-            def click(_):
-                for ob, ot in all_btns:
-                    bp2 = ot["bg_primary"]; bs2 = ot["bg_secondary"]
-                    r1,g1,b1 = [int(x) for x in bp2.split(",")]
-                    r2,g2,b2 = [int(x) for x in bs2.split(",")]
-                    sel = ob is b
-                    brd = "#888" if sel else "transparent"
-                    ob.setStyleSheet(f"""
-                        QPushButton {{
-                            background: qlineargradient(x1:0,y1:0,x2:1,y2:1, stop:0 rgb({r1},{g1},{b1}), stop:1 rgb({r2},{g2},{b2}));
-                            border-radius: 8px; border: 2px solid {brd};
-                        }}
-                        QPushButton:hover {{ border: 2px solid #555; }}
-                    """)
-                
-                wt.update(th)
-                wt["theme_name"] = th["name"].lower().replace(" ", "_")
-
-                u["sidebar_accent"] = th.get("sidebar_accent", "#A0A0A0")
-                u["sidebar_hover"]  = th.get("sidebar_hover", "#1B1B1B")
-                u["sidebar_text"]   = th.get("sidebar_text", "#D2D2D2")
-
-                ui_update_all()
-                
-            return click
-
-        for btn, theme in theme_btns:
-            btn.clicked.connect(make_theme_click(btn, theme, theme_btns))
-
-        theme_wrapper.addLayout(theme_grid)
-        theme_wrapper.addStretch()
-        TH.addLayout(theme_wrapper)
+        TH.addWidget(ThemeEditor(theme.manager, self.translations))
         RL.addWidget(theme_card)
 
         ui_lbl = create_section_lbl(self.tr("appearance_header_ui", "Interface (Sidebar and Buttons)"))
@@ -7830,7 +7551,7 @@ class GlassPortalButton(QPushButton):
         p = self._hover_progress
 
         painter.setPen(Qt.PenStyle.NoPen)
-        base_glass_color = QColor(10, 10, 10, 200) 
+        base_glass_color = themed_color(10, 10, 10, 200) 
         painter.setBrush(QBrush(base_glass_color))
         painter.drawRoundedRect(rect, rx, ry)
 
@@ -7845,7 +7566,7 @@ class GlassPortalButton(QPushButton):
             painter.drawRoundedRect(rect, rx, ry)
 
         if self._is_pressed:
-            painter.setBrush(QBrush(QColor(0, 0, 0, 140)))
+            painter.setBrush(QBrush(themed_color(0, 0, 0, 140)))
             painter.drawRoundedRect(rect, rx, ry)
 
         border_gradient = QtGui.QLinearGradient(rect.topLeft(), rect.bottomRight())
@@ -7901,8 +7622,8 @@ class ArrowTooltip(QtWidgets.QWidget):
         painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
         
         rect = self.rect().adjusted(1, 8, -1, -1)
-        painter.setBrush(QtGui.QColor(35, 35, 40, 250))
-        painter.setPen(QtGui.QPen(QtGui.QColor(255, 255, 255, 40), 1))
+        painter.setBrush(themed_color(35, 35, 40, 250))
+        painter.setPen(QtGui.QPen(themed_color(255, 255, 255, 40), 1))
         painter.drawRoundedRect(rect, 8, 8)
         
         center_x = self.width() / 2
@@ -7910,7 +7631,7 @@ class ArrowTooltip(QtWidgets.QWidget):
         arrow_h = 8
         
         painter.setPen(Qt.PenStyle.NoPen)
-        painter.setBrush(QtGui.QColor(35, 35, 40, 250))
+        painter.setBrush(themed_color(35, 35, 40, 250))
         triangle = QtGui.QPolygon([
             QtCore.QPoint(int(center_x - arrow_w / 2), 9),
             QtCore.QPoint(int(center_x + arrow_w / 2), 9),
@@ -7918,11 +7639,11 @@ class ArrowTooltip(QtWidgets.QWidget):
         ])
         painter.drawPolygon(triangle)
         
-        painter.setPen(QtGui.QPen(QtGui.QColor(255, 255, 255, 40), 1))
+        painter.setPen(QtGui.QPen(themed_color(255, 255, 255, 40), 1))
         painter.drawLine(QtCore.QPoint(int(center_x - arrow_w / 2), 9), QtCore.QPoint(int(center_x), 1))
         painter.drawLine(QtCore.QPoint(int(center_x), 1), QtCore.QPoint(int(center_x + arrow_w / 2), 9))
         
-        painter.setPen(QtGui.QColor(240, 240, 240))
+        painter.setPen(themed_color(240, 240, 240))
         painter.setFont(self.font)
         painter.drawText(rect, Qt.AlignmentFlag.AlignCenter, self.text)
 

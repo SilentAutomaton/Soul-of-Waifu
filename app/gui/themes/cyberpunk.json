@@ -1,0 +1,13 @@
+{
+  "name": "Cyberpunk",
+  "surface0": "#06060A",
+  "surface1": "#14051E",
+  "surface2": "#0A0A12",
+  "surface3": "#2E0A4A",
+  "surface4": "#460950",
+  "text_muted": "#787890",
+  "text_secondary": "#B4B4C8",
+  "text_primary": "#E6E6F0",
+  "overlay": "#FFFFFF",
+  "accent": "#00FF9F"
+}

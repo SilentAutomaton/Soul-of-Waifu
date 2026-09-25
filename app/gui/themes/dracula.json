@@ -1,0 +1,13 @@
+{
+  "name": "Vampire",
+  "surface0": "#0F1016",
+  "surface1": "#1C1E28",
+  "surface2": "#282A36",
+  "surface3": "#414456",
+  "surface4": "#565969",
+  "text_muted": "#919295",
+  "text_secondary": "#CACBC9",
+  "text_primary": "#F8F8F2",
+  "overlay": "#FFFFFF",
+  "accent": "#BD93F9"
+}

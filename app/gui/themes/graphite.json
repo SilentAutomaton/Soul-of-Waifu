@@ -1,0 +1,13 @@
+{
+  "name": "Graphite",
+  "surface0": "#101010",
+  "surface1": "#252526",
+  "surface2": "#1E1E1E",
+  "surface3": "#343434",
+  "surface4": "#464646",
+  "text_muted": "#858585",
+  "text_secondary": "#A6A6A6",
+  "text_primary": "#CCCCCC",
+  "overlay": "#FFFFFF",
+  "accent": "#569CD6"
+}

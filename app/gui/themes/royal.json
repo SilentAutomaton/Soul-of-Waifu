@@ -1,0 +1,13 @@
+{
+  "name": "Royal",
+  "surface0": "#0B0810",
+  "surface1": "#140F1E",
+  "surface2": "#1C1428",
+  "surface3": "#2B223A",
+  "surface4": "#3F374E",
+  "text_muted": "#817F8B",
+  "text_secondary": "#B9B9C0",
+  "text_primary": "#E5E7EB",
+  "overlay": "#FFFFFF",
+  "accent": "#A78BFA"
+}

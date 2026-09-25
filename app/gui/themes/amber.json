@@ -1,0 +1,13 @@
+{
+  "name": "Amber",
+  "surface0": "#0C0A08",
+  "surface1": "#16120E",
+  "surface2": "#1E1914",
+  "surface3": "#34261D",
+  "surface4": "#4B3C2F",
+  "text_muted": "#8A826B",
+  "text_secondary": "#CDC3A0",
+  "text_primary": "#FEF3C7",
+  "overlay": "#FFFFFF",
+  "accent": "#FBBF24"
+}

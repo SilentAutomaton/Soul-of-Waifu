@@ -3,6 +3,7 @@ import re
 import math
 import subprocess
 import logging
+from app.gui.theme import qcolor as themed_color
 from PyQt6 import sip
 import tiktoken
 import json
@@ -503,7 +504,7 @@ class CharacterCardCharactersGateway(QtWidgets.QFrame):
 
         self.shadow_effect = QtWidgets.QGraphicsDropShadowEffect(self)
         self.shadow_effect.setBlurRadius(15)
-        self.shadow_effect.setColor(QtGui.QColor(0, 0, 0, 100))
+        self.shadow_effect.setColor(themed_color(0, 0, 0, 100))
         self.shadow_effect.setOffset(0, 5)
         self.setGraphicsEffect(self.shadow_effect)
 
@@ -615,7 +616,7 @@ class CharacterCardCharactersGateway(QtWidgets.QFrame):
 
         if self._info_alpha > 0:
             gradient = QtGui.QLinearGradient(0, rect.height() * 0.4, 0, rect.height())
-            gradient.setColorAt(0, QtGui.QColor(0, 0, 0, 0))
+            gradient.setColorAt(0, themed_color(0, 0, 0, 0))
             gradient.setColorAt(1, QtGui.QColor(0, 0, 0, int(min(220, self._info_alpha))))
             painter.fillRect(rect, QtGui.QBrush(gradient))
 
@@ -674,6 +675,142 @@ def _mk_font(size: int, weight: QtGui.QFont.Weight) -> QtGui.QFont:
     f = QtGui.QFont("Inter Tight", size, weight)
     f.setHintingPreference(QFont.HintingPreference.PreferNoHinting)
     return f
+
+class FlowLayout(QtWidgets.QLayout):
+    """Lays items out in rows and wraps them when the width runs out.
+    With right_align_last, the last item sits at the right edge of its row."""
+
+    def __init__(self, parent=None, spacing=8, right_align_last=False):
+        super().__init__(parent)
+        self._items = []
+        self._right_align_last = right_align_last
+        self.setSpacing(spacing)
+
+    def addItem(self, item):
+        self._items.append(item)
+
+    def count(self):
+        return len(self._items)
+
+    def itemAt(self, index):
+        return self._items[index] if 0 <= index < len(self._items) else None
+
+    def takeAt(self, index):
+        return self._items.pop(index) if 0 <= index < len(self._items) else None
+
+    def expandingDirections(self):
+        return Qt.Orientation(0)
+
+    def hasHeightForWidth(self):
+        return True
+
+    def heightForWidth(self, width):
+        return self._do_layout(QRect(0, 0, width, 0), apply=False)
+
+    def setGeometry(self, rect):
+        super().setGeometry(rect)
+        self._do_layout(rect, apply=True)
+
+    def sizeHint(self):
+        return self.minimumSize()
+
+    def minimumSize(self):
+        size = QSize()
+        for item in self._items:
+            size = size.expandedTo(item.minimumSize())
+        m = self.contentsMargins()
+        return size + QSize(m.left() + m.right(), m.top() + m.bottom())
+
+    def _do_layout(self, rect, apply):
+        m = self.contentsMargins()
+        area = rect.adjusted(m.left(), m.top(), -m.right(), -m.bottom())
+        x, y, row_height = area.x(), area.y(), 0
+        visible = [i for i in self._items if not (i.widget() and i.widget().isHidden())]
+        for n, item in enumerate(visible):
+            hint = item.sizeHint()
+            if x > area.x() and x + hint.width() > area.right() + 1:
+                x, y, row_height = area.x(), y + row_height + self.spacing(), 0
+            left = x
+            if self._right_align_last and n == len(visible) - 1:
+                left = max(x, area.right() + 1 - hint.width())
+            if apply:
+                item.setGeometry(QRect(QtCore.QPoint(left, y), hint))
+            x = left + hint.width() + self.spacing()
+            row_height = max(row_height, hint.height())
+        return y + row_height - rect.y() + m.bottom()
+
+
+class AdaptiveGrid(QtWidgets.QWidget):
+    """A grid of equal-width cells that drops to fewer columns when the width runs out."""
+
+    def __init__(self, max_columns=2, spacing=12, parent=None):
+        super().__init__(parent)
+        self._max_columns = max_columns
+        self._columns = 0
+        self._cells = []
+        self._grid = QtWidgets.QGridLayout(self)
+        self._grid.setSpacing(spacing)
+        self._grid.setContentsMargins(0, 0, 0, 0)
+
+    def addWidget(self, widget):
+        self._cells.append(widget)
+        self._columns = 0
+        self._arrange(self.width())
+
+    def minimumSizeHint(self):
+        widest = max((c.minimumSizeHint().width() for c in self._cells), default=0)
+        return QSize(widest, super().minimumSizeHint().height())
+
+    def resizeEvent(self, event):
+        self._arrange(event.size().width())
+        super().resizeEvent(event)
+
+    def _arrange(self, width):
+        widest = max((c.sizeHint().width() for c in self._cells), default=1)
+        fits = (width + self._grid.spacing()) // (widest + self._grid.spacing())
+        columns = max(1, min(self._max_columns, fits))
+        if columns == self._columns:
+            return
+        self._columns = columns
+        for cell in self._cells:
+            self._grid.removeWidget(cell)
+        for c in range(self._max_columns):
+            self._grid.setColumnStretch(c, 1 if c < columns else 0)
+        for i, cell in enumerate(self._cells):
+            self._grid.addWidget(cell, i // columns, i % columns)
+
+
+def relax_widths(root):
+    """Lets long labels wrap and long combo boxes shrink, so pages fit narrow windows."""
+    # ponytail: blanket pass over existing widgets; set these per widget when a page is rebuilt
+    for label in root.findChildren(QtWidgets.QLabel):
+        if not label.wordWrap() and label.pixmap().isNull() and len(label.text()) > 40:
+            label.setWordWrap(True)
+    for combo in root.findChildren(QtWidgets.QComboBox):
+        if combo.sizeAdjustPolicy() != QtWidgets.QComboBox.SizeAdjustPolicy.AdjustToMinimumContentsLengthWithIcon:
+            combo.setSizeAdjustPolicy(QtWidgets.QComboBox.SizeAdjustPolicy.AdjustToMinimumContentsLengthWithIcon)
+            combo.setMinimumContentsLength(12)
+
+
+def size_stack_to_current_page(stack):
+    """QStackedWidget takes the largest minimum size of all its pages. Mark the hidden
+    pages as Ignored so only the visible page limits how small the window can get."""
+    policies = {}
+
+    def update(_=None):
+        for i in range(stack.count()):
+            page = stack.widget(i)
+            policies.setdefault(page, page.sizePolicy())
+            if page is stack.currentWidget():
+                page.setSizePolicy(policies[page])
+            else:
+                page.setSizePolicy(QtWidgets.QSizePolicy.Policy.Ignored, QtWidgets.QSizePolicy.Policy.Ignored)
+
+    stack.currentChanged.connect(update)
+    stack.currentChanged.connect(lambda _: relax_widths(stack.currentWidget()))
+    update()
+    relax_widths(stack)
+
 
 def _make_separator(accent_rgba: str) -> QFrame:
     sep = QFrame()
@@ -742,7 +879,7 @@ class LorebookGatewayCard(QFrame):
 
         shadow = QGraphicsDropShadowEffect(self)
         shadow.setBlurRadius(28)
-        shadow.setColor(QColor(255, 176, 32, 28))
+        shadow.setColor(themed_color(255, 176, 32, 28))
         shadow.setOffset(0, 5)
         self.setGraphicsEffect(shadow)
 
@@ -946,7 +1083,7 @@ class SceneGatewayCard(QFrame):
 
         shadow = QGraphicsDropShadowEffect(self)
         shadow.setBlurRadius(28)
-        shadow.setColor(QColor(0, 230, 118, 28))
+        shadow.setColor(themed_color(0, 230, 118, 28))
         shadow.setOffset(0, 5)
         self.setGraphicsEffect(shadow)
 
@@ -1534,7 +1671,7 @@ class ModelListItemWidget(QWidget):
 
         shadow = QGraphicsDropShadowEffect()
         shadow.setBlurRadius(18)
-        shadow.setColor(QColor(0, 0, 0, 60))
+        shadow.setColor(themed_color(0, 0, 0, 60))
         shadow.setOffset(0, 3)
         self.card.setGraphicsEffect(shadow)
 
@@ -2141,7 +2278,7 @@ class BackgroundCard(QtWidgets.QFrame):
 
         if image_path == "Default":
             self.pixmap = QPixmap(200, 150)
-            self.pixmap.fill(QColor(15, 15, 18))
+            self.pixmap.fill(themed_color(15, 15, 18))
         else:
             original_pixmap = QPixmap(image_path)
             self.pixmap = original_pixmap.scaled(
@@ -2193,18 +2330,18 @@ class BackgroundCard(QtWidgets.QFrame):
         painter.restore()
 
         gradient = QtGui.QLinearGradient(0, rect.height() * 0.5, 0, rect.height())
-        gradient.setColorAt(0, QColor(0, 0, 0, 0))
-        gradient.setColorAt(1, QColor(0, 0, 0, 200))
+        gradient.setColorAt(0, themed_color(0, 0, 0, 0))
+        gradient.setColorAt(1, themed_color(0, 0, 0, 200))
         painter.fillRect(rect, QtGui.QBrush(gradient))
 
         if self.is_selected:
-            painter.setPen(QtGui.QPen(QColor(76, 175, 80), 4))
+            painter.setPen(QtGui.QPen(themed_color(76, 175, 80), 4))
             painter.drawRoundedRect(rect.adjusted(2, 2, -2, -2), 10, 10)
         else:
-            painter.setPen(QtGui.QPen(QColor(255, 255, 255, 30), 2))
+            painter.setPen(QtGui.QPen(themed_color(255, 255, 255, 30), 2))
             painter.drawRoundedRect(rect.adjusted(1, 1, -1, -1), 11, 11)
 
-        painter.setPen(QColor(255, 255, 255, 240))
+        painter.setPen(themed_color(255, 255, 255, 240))
         font = QFont("Inter Tight SemiBold", 11, QFont.Weight.Bold)
         painter.setFont(font)
         
@@ -2257,7 +2394,7 @@ class BackgroundChangerWindow(QDialog):
         shadow = QGraphicsDropShadowEffect(self)
         shadow.setBlurRadius(25)
         shadow.setOffset(0, 5)
-        shadow.setColor(QColor(0, 0, 0, 150))
+        shadow.setColor(themed_color(0, 0, 0, 150))
         self.main_frame.setGraphicsEffect(shadow)
 
         frame_layout = QVBoxLayout(self.main_frame)
@@ -2513,7 +2650,7 @@ class CharacterCardList(QtWidgets.QFrame):
         
         self.shadow_effect = QtWidgets.QGraphicsDropShadowEffect(self)
         self.shadow_effect.setBlurRadius(15)
-        self.shadow_effect.setColor(QtGui.QColor(0, 0, 0, 100))
+        self.shadow_effect.setColor(themed_color(0, 0, 0, 100))
         self.shadow_effect.setOffset(0, 5)
         self.setGraphicsEffect(self.shadow_effect)
 
@@ -2633,7 +2770,7 @@ class CharacterCardList(QtWidgets.QFrame):
 
         if self._info_alpha > 0:
             gradient = QtGui.QLinearGradient(0, rect.height() * 0.4, 0, rect.height())
-            gradient.setColorAt(0, QtGui.QColor(0, 0, 0, 0))
+            gradient.setColorAt(0, themed_color(0, 0, 0, 0))
             gradient.setColorAt(1, QtGui.QColor(0, 0, 0, int(min(220, self._info_alpha))))
             painter.fillRect(rect, QtGui.QBrush(gradient))
 
@@ -2676,7 +2813,7 @@ class AnimatedHoverButton(QtWidgets.QPushButton):
         if base_color:
             self._base_color = QtGui.QColor(base_color) if isinstance(base_color, (str, int)) else base_color
         else:
-            self._base_color = QtGui.QColor(0, 0, 0, 0)
+            self._base_color = themed_color(0, 0, 0, 0)
             
         self._hover_color = QtGui.QColor(hover_color) if isinstance(hover_color, (str, int)) else hover_color
         
@@ -2893,7 +3030,7 @@ class TypingIndicatorWidget(QWidget):
 
         shadow = QGraphicsDropShadowEffect()
         shadow.setBlurRadius(10)
-        shadow.setColor(QColor(0, 0, 0, 80))
+        shadow.setColor(themed_color(0, 0, 0, 80))
         shadow.setOffset(0, 2)
         self.animated_dots.setGraphicsEffect(shadow)
 
@@ -3384,7 +3521,7 @@ class SoulMemoryViewer(QtWidgets.QDialog):
     def _apply_shadow(self, widget):
         shadow = QtWidgets.QGraphicsDropShadowEffect()
         shadow.setBlurRadius(15)
-        shadow.setColor(QtGui.QColor(0, 0, 0, 80))
+        shadow.setColor(themed_color(0, 0, 0, 80))
         shadow.setOffset(0, 4)
         widget.setGraphicsEffect(shadow)
 
@@ -3882,11 +4019,11 @@ class CharacterFolderCard(QtWidgets.QFrame):
                 cropped = scaled.copy(sx, sy, 105, 135)
                 painter.drawPixmap(int(positions[i].x()), int(positions[i].y()), cropped)
             
-            painter.fillRect(self.pixmap.rect(), QtGui.QColor(0, 0, 0, 100))
+            painter.fillRect(self.pixmap.rect(), themed_color(0, 0, 0, 100))
         else:
             gradient = QtGui.QLinearGradient(0, 0, 210, 270)
-            gradient.setColorAt(0, QtGui.QColor(35, 35, 50))
-            gradient.setColorAt(1, QtGui.QColor(20, 20, 35))
+            gradient.setColorAt(0, themed_color(35, 35, 50))
+            gradient.setColorAt(1, themed_color(20, 20, 35))
             painter.fillRect(self.pixmap.rect(), QtGui.QBrush(gradient))
             
             folder_icon = QtGui.QPixmap("app/gui/icons/folder.png").scaled(52, 52, QtCore.Qt.AspectRatioMode.KeepAspectRatio, QtCore.Qt.TransformationMode.SmoothTransformation)
@@ -3896,7 +4033,7 @@ class CharacterFolderCard(QtWidgets.QFrame):
 
         self.shadow_effect = QtWidgets.QGraphicsDropShadowEffect(self)
         self.shadow_effect.setBlurRadius(15)
-        self.shadow_effect.setColor(QtGui.QColor(0, 0, 0, 100))
+        self.shadow_effect.setColor(themed_color(0, 0, 0, 100))
         self.shadow_effect.setOffset(0, 5)
         self.setGraphicsEffect(self.shadow_effect)
 
@@ -4034,7 +4171,7 @@ class CharacterFolderCard(QtWidgets.QFrame):
 
         if self._info_alpha > 0:
             gradient = QtGui.QLinearGradient(0, rect.height() * 0.4, 0, rect.height())
-            gradient.setColorAt(0, QtGui.QColor(0, 0, 0, 0))
+            gradient.setColorAt(0, themed_color(0, 0, 0, 0))
             gradient.setColorAt(1, QtGui.QColor(0, 0, 0, int(min(220, self._info_alpha))))
             painter.fillRect(rect, QtGui.QBrush(gradient))
 
@@ -4113,24 +4250,24 @@ class _GlowPanel(QtWidgets.QFrame):
         clip_path.addRoundedRect(rf.adjusted(0, 0, 20, 0), 18, 18)
         p.setClipPath(clip_path)
 
-        p.fillRect(r, QtGui.QColor(9, 9, 14))
+        p.fillRect(r, themed_color(9, 9, 14))
 
         bloom_a = QtGui.QRadialGradient(rf.width() * 0.5, rf.height() * 0.16, rf.width() * 1.05)
-        bloom_a.setColorAt(0.00, QtGui.QColor(70, 140, 235, 46))
-        bloom_a.setColorAt(0.55, QtGui.QColor(45, 90, 190, 14))
-        bloom_a.setColorAt(1.00, QtGui.QColor(0, 0, 0, 0))
+        bloom_a.setColorAt(0.00, themed_color(70, 140, 235, 46))
+        bloom_a.setColorAt(0.55, themed_color(45, 90, 190, 14))
+        bloom_a.setColorAt(1.00, themed_color(0, 0, 0, 0))
         p.fillRect(r, bloom_a)
 
         bloom_b = QtGui.QRadialGradient(rf.width() * 0.5, rf.height() + 30, rf.width() * 0.95)
-        bloom_b.setColorAt(0.00, QtGui.QColor(150, 80, 220, 40))
-        bloom_b.setColorAt(0.60, QtGui.QColor(90, 50, 160, 12))
-        bloom_b.setColorAt(1.00, QtGui.QColor(0, 0, 0, 0))
+        bloom_b.setColorAt(0.00, themed_color(150, 80, 220, 40))
+        bloom_b.setColorAt(0.60, themed_color(90, 50, 160, 12))
+        bloom_b.setColorAt(1.00, themed_color(0, 0, 0, 0))
         p.fillRect(r, bloom_b)
 
         top_line = QtGui.QLinearGradient(0, 0, rf.width(), 0)
-        top_line.setColorAt(0.00, QtGui.QColor(120, 170, 255, 0))
-        top_line.setColorAt(0.50, QtGui.QColor(130, 175, 255, 60))
-        top_line.setColorAt(1.00, QtGui.QColor(120, 170, 255, 0))
+        top_line.setColorAt(0.00, themed_color(120, 170, 255, 0))
+        top_line.setColorAt(0.50, themed_color(130, 175, 255, 60))
+        top_line.setColorAt(1.00, themed_color(120, 170, 255, 0))
         p.fillRect(QtCore.QRectF(0, 0, rf.width(), 1), top_line)
 
         p.end()
@@ -4570,7 +4707,7 @@ class AboutDialog(QtWidgets.QDialog):
 
         glow = QtWidgets.QGraphicsDropShadowEffect(self)
         glow.setBlurRadius(52)
-        glow.setColor(QtGui.QColor(85, 155, 255, 120))
+        glow.setColor(themed_color(85, 155, 255, 120))
         glow.setOffset(0, 6)
         logo_lbl.setGraphicsEffect(glow)
 
@@ -5074,7 +5211,7 @@ class UpdaterDialog(QDialog):
 
     def _apply_base_palette(self):
         pal = self.palette()
-        pal.setColor(QPalette.ColorRole.Window, QColor(self._BG))
+        pal.setColor(QPalette.ColorRole.Window, themed_color(self._BG))
         self.setPalette(pal)
         self.setAutoFillBackground(True)
 
@@ -5523,7 +5660,7 @@ class _ProgressBar(QtWidgets.QWidget):
         shape_path = self._get_full_shape(full_rect, slope_len)
  
         p.setPen(Qt.PenStyle.NoPen)
-        p.setBrush(QColor(255, 255, 255, 15))
+        p.setBrush(themed_color(255, 255, 255, 15))
         p.drawPath(shape_path)
  
         if self._progress > 0:
@@ -7189,7 +7326,7 @@ class PersonasEditorDialog(QDialog):
 
     def _apply_base_palette(self):
         pal = self.palette()
-        pal.setColor(QPalette.ColorRole.Window, QColor(self._BG))
+        pal.setColor(QPalette.ColorRole.Window, themed_color(self._BG))
         self.setPalette(pal)
         self.setAutoFillBackground(True)
 
@@ -7426,7 +7563,7 @@ class PersonasEditorDialog(QDialog):
         painter.drawPixmap(0, 0, cropped)
 
         painter.setClipping(False)
-        pen = QtGui.QPen(QColor(255, 255, 255, 35), 1.5)
+        pen = QtGui.QPen(themed_color(255, 255, 255, 35), 1.5)
         painter.setPen(pen)
         painter.setBrush(Qt.BrushStyle.NoBrush)
         painter.drawEllipse(QtCore.QRectF(0.75, 0.75, size - 1.5, size - 1.5))
@@ -7481,7 +7618,7 @@ class PersonasEditorDialog(QDialog):
         
         shadow = QGraphicsDropShadowEffect()
         shadow.setBlurRadius(20)
-        shadow.setColor(QColor(0, 0, 0, 180))
+        shadow.setColor(themed_color(0, 0, 0, 180))
         shadow.setOffset(0, 5)
         self.avatar_label.setGraphicsEffect(shadow)
 
@@ -7763,7 +7900,7 @@ class SystemPromptEditorDialog(QDialog):
 
     def _apply_base_palette(self):
         pal = self.palette()
-        pal.setColor(QPalette.ColorRole.Window, QColor(self._BG))
+        pal.setColor(QPalette.ColorRole.Window, themed_color(self._BG))
         self.setPalette(pal)
         self.setAutoFillBackground(True)
 
@@ -8245,7 +8382,7 @@ class DiscordGatewayDialog(QDialog):
 
     def _apply_base_palette(self):
         pal = self.palette()
-        pal.setColor(QPalette.ColorRole.Window, QColor(self._BG))
+        pal.setColor(QPalette.ColorRole.Window, themed_color(self._BG))
         self.setPalette(pal)
         self.setAutoFillBackground(True)
 
@@ -8551,7 +8688,7 @@ class LorebookEditorDialog(QDialog):
  
     def _apply_base_palette(self):
         pal = self.palette()
-        pal.setColor(QtGui.QPalette.ColorRole.Window, QColor(self._BG))
+        pal.setColor(QtGui.QPalette.ColorRole.Window, themed_color(self._BG))
         self.setPalette(pal)
         self.setAutoFillBackground(True)
 
@@ -9706,7 +9843,7 @@ class AuthorNotesEditorDialog(QDialog):
 
     def _apply_base_palette(self):
         pal = self.palette()
-        pal.setColor(QPalette.ColorRole.Window, QColor(self._BG))
+        pal.setColor(QPalette.ColorRole.Window, themed_color(self._BG))
         self.setPalette(pal)
         self.setAutoFillBackground(True)
 
@@ -10157,7 +10294,7 @@ class SummaryEditorDialog(QDialog):
 
     def _apply_base_palette(self):
         pal = self.palette()
-        pal.setColor(QPalette.ColorRole.Window, QColor(self._BG))
+        pal.setColor(QPalette.ColorRole.Window, themed_color(self._BG))
         self.setPalette(pal)
         self.setAutoFillBackground(True)
 
@@ -10531,7 +10668,7 @@ class ImageGenSettingsDialog(QDialog):
 
     def _apply_base_palette(self):
         pal = self.palette()
-        pal.setColor(QPalette.ColorRole.Window, QColor(self._BG))
+        pal.setColor(QPalette.ColorRole.Window, themed_color(self._BG))
         self.setPalette(pal)
         self.setAutoFillBackground(True)
 
@@ -11278,7 +11415,7 @@ class StatusDot(QtWidgets.QWidget):
     def __init__(self, parent=None, dot_size=8, box_size=20):
         super().__init__(parent)
         self._dot_size = dot_size
-        self._color = QtGui.QColor(255, 255, 255, 140)
+        self._color = themed_color(255, 255, 255, 140)
         self._glow = 0.22
         self._pulse_anim = None
         self.setFixedSize(box_size, box_size)
@@ -11341,7 +11478,7 @@ class StatusDot(QtWidgets.QWidget):
 class LocalModelStatusWidget(QtWidgets.QWidget):
     STYLES = {
         "offline": {
-            "color": QtGui.QColor(255, 255, 255, 64),
+            "color": themed_color(255, 255, 255, 64),
             "text_color": "rgba(255, 255, 255, 0.3)",
             "pulse": False,
             "key": "local_model_state_offline",
@@ -11462,11 +11599,11 @@ class SceneFolderCard(QtWidgets.QFrame):
                 cropped = scaled.copy(sx, sy, 105, 135)
                 painter.drawPixmap(int(positions[i].x()), int(positions[i].y()), cropped)
             
-            painter.fillRect(self.pixmap.rect(), QtGui.QColor(0, 0, 0, 110))
+            painter.fillRect(self.pixmap.rect(), themed_color(0, 0, 0, 110))
         else:
             gradient = QtGui.QLinearGradient(0, 0, 210, 270)
-            gradient.setColorAt(0, QtGui.QColor(18, 36, 28))
-            gradient.setColorAt(1, QtGui.QColor(10, 20, 15))
+            gradient.setColorAt(0, themed_color(18, 36, 28))
+            gradient.setColorAt(1, themed_color(10, 20, 15))
             painter.fillRect(self.pixmap.rect(), QtGui.QBrush(gradient))
             
             stage_icon = QtGui.QPixmap("app/gui/icons/soul_stage.png").scaled(
@@ -11478,7 +11615,7 @@ class SceneFolderCard(QtWidgets.QFrame):
 
         self.shadow_effect = QtWidgets.QGraphicsDropShadowEffect(self)
         self.shadow_effect.setBlurRadius(18)
-        self.shadow_effect.setColor(QtGui.QColor(0, 230, 118, 40))
+        self.shadow_effect.setColor(themed_color(0, 230, 118, 40))
         self.shadow_effect.setOffset(0, 5)
         self.setGraphicsEffect(self.shadow_effect)
 
@@ -11614,7 +11751,7 @@ class SceneFolderCard(QtWidgets.QFrame):
 
         if self._info_alpha > 0:
             gradient = QtGui.QLinearGradient(0, rect.height() * 0.4, 0, rect.height())
-            gradient.setColorAt(0, QtGui.QColor(0, 0, 0, 0))
+            gradient.setColorAt(0, themed_color(0, 0, 0, 0))
             gradient.setColorAt(1, QtGui.QColor(0, 0, 0, int(min(225, self._info_alpha))))
             painter.fillRect(rect, QtGui.QBrush(gradient))
 
@@ -11716,14 +11853,14 @@ class PersonaQuickButton(QtWidgets.QPushButton):
         if self._pixmap and not self._pixmap.isNull():
             painter.drawPixmap(rect, self._pixmap)
         else:
-            painter.setBrush(QtGui.QColor(35, 35, 45))
+            painter.setBrush(themed_color(35, 35, 45))
             painter.setPen(QtCore.Qt.PenStyle.NoPen)
             painter.drawEllipse(rect.adjusted(1, 1, -1, -1))
 
         if self._is_hovered:
-            pen = QtGui.QPen(QtGui.QColor(96, 165, 250, 220), 2.0)
+            pen = QtGui.QPen(themed_color(96, 165, 250, 220), 2.0)
         else:
-            pen = QtGui.QPen(QtGui.QColor(255, 255, 255, 45), 1.5)
+            pen = QtGui.QPen(themed_color(255, 255, 255, 45), 1.5)
 
         painter.setPen(pen)
         painter.setBrush(QtCore.Qt.BrushStyle.NoBrush)
@@ -11760,7 +11897,7 @@ class ContextInspectorCard(QtWidgets.QWidget):
 
         shadow = QtWidgets.QGraphicsDropShadowEffect(self.frame)
         shadow.setBlurRadius(20)
-        shadow.setColor(QtGui.QColor(0, 0, 0, 180))
+        shadow.setColor(themed_color(0, 0, 0, 180))
         shadow.setOffset(0, 4)
         self.frame.setGraphicsEffect(shadow)
 
@@ -12027,7 +12164,7 @@ class AudioHudPopup(QtWidgets.QWidget):
         
         shadow = QtWidgets.QGraphicsDropShadowEffect(main_card)
         shadow.setBlurRadius(14)
-        shadow.setColor(QtGui.QColor(0, 0, 0, 160))
+        shadow.setColor(themed_color(0, 0, 0, 160))
         shadow.setOffset(0, 4)
         main_card.setGraphicsEffect(shadow)
 
@@ -12241,10 +12378,10 @@ class ChatAudioHudButton(QtWidgets.QPushButton):
                 import math
                 height_mult = (math.sin(self._eq_phase + i * 1.5) + 1.0) / 2.0
                 bar_h = 4.0 + height_mult * 10.0
-                bar_color = QtGui.QColor(75, 184, 255, 230)
+                bar_color = themed_color(75, 184, 255, 230)
             else:
                 bar_h = 3.0
-                bar_color = QtGui.QColor(255, 255, 255, 60)
+                bar_color = themed_color(255, 255, 255, 60)
 
             x = start_x + i * (bar_w + spacing)
             y = center_y - (bar_h / 2.0)
@@ -12253,7 +12390,7 @@ class ChatAudioHudButton(QtWidgets.QPushButton):
             painter.setBrush(bar_color)
             painter.drawRoundedRect(QtCore.QRectF(x, y, bar_w, bar_h), 1.2, 1.2)
 
-        painter.setPen(QtGui.QColor(240, 240, 240, 220) if self._is_playing else QtGui.QColor(160, 160, 160, 150))
+        painter.setPen(themed_color(240, 240, 240, 220) if self._is_playing else themed_color(160, 160, 160, 150))
         painter.setFont(self._font)
 
         text_start_x = start_x + 3 * (bar_w + spacing) + 6.0

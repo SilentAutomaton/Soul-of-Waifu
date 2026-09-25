@@ -1,0 +1,13 @@
+{
+  "name": "Rose",
+  "surface0": "#0E0A0C",
+  "surface1": "#191216",
+  "surface2": "#23191E",
+  "surface3": "#35222C",
+  "surface4": "#4B3640",
+  "text_muted": "#927F83",
+  "text_secondary": "#CFB7BA",
+  "text_primary": "#FFE4E6",
+  "overlay": "#FFFFFF",
+  "accent": "#FB7185"
+}
