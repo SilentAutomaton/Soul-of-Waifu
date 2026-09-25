@@ -201,7 +201,7 @@ Soul Stage verwandelt deinen Chat in eine strukturierte Tabletop-Rollenspielkamp
 - **Lagerfeuer-Rast & Beziehungs-Meilensteine:** Kurze oder lange Rast am Feuer (`🏕️`), intime Gefährten-Zwischenszenen (*Campfire Banter*) und Auszeichnung von Vertrauens-Meilensteinen (+25, +50, +75).
 - **Taktischer Begegnungs-Modus:** Startet der Spielleiter einen echten Kampf, erscheinen eine Initiative-Leiste (Gruppe + Gegner) und Gegner-HP-Leisten über der Eingabe, mit Ein-Klick-Aktionen ⚔️ Angriff / 🛡️ Ausweichen / 🎒 Item / 🏃 Flucht, die der Spielleiter narrativ auflöst.
 - **Story-Arcs:** Verborgene Wendungen und Ermittlungen bleiben vor NPCs und der Gruppe geheim, bis im Spiel konkrete Hinweise gefunden werden.
-- **Zugsteuerung:** Wechsle zwischen den Eingabemodi Sagen, Tun, Denken und Regie, wähle den nächsten Sprecher manuell oder sende private Flüsternachrichten, die nur ein Gruppenmitglied sieht.
+- **Zugsteuerung:** Wechsle zwischen den Eingabemodi Sagen, Tun, Denken und Regie, wähle den nächsten Sprecher manuell oder sende private Flüsternachrichten, die nur ein Gruppenmitglied sieht. Ein Live-Indikator zeigt, wer gerade tatsächlich am Zug ist - auch bei jedem Sprecherwechsel, den der Spielleiter innerhalb einer Runde eigenständig vornimmt.
 - **Strukturierte Beziehungsverfolgung:** Vertrauensstufen und soziale Rollen werden serialisiert und in jeden Zug eingespeist, sodass Gefährten und NPCs ihre Beziehung zu dir nie „vergessen“.
 - **Interaktive Gruppe & NPCs:** Die Hauptmitglieder der Gruppe synchronisieren ihre Erinnerungen über Soul Memory, während für bestimmte Begegnungen dynamische, temporäre NPCs (mit eigenem dauerhaftem Gedächtnis) erscheinen.
 - **Szenenordner:** Organisiere deine Szenario-Bibliothek nach Kampagnen, Genres oder Settings.

@@ -2021,6 +2021,10 @@ ss_combat_dodge_tag: Уклонение
 ss_combat_flee_tag: Бегство
 ss_combat_round: РАУНД
 ss_combat_defeated: Повержен
+ss_turn_party: 🎙 {name} говорит
+ss_turn_npc: 🎭 {name} вставляет реплику
+ss_turn_narrator: 📖 Рассказчик описывает сцену
+ss_turn_idle: ⏸ Ожидание вашего ввода
 starting_ambient: Начальный эмбиент
 starting_ambient_hint: Фоновый аудио для этой сцены. Планировщик может переключать его динамически.
 starting_background: Начальный фон

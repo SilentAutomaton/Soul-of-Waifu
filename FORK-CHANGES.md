@@ -122,6 +122,8 @@ Conflicts can only appear in the files under "Changed upstream files" below. Rul
 | `app/translations/en.yaml`, `de.yaml`, `ru.yaml` | keys for the additions above | `response_language_label`, `ss_dice_*`, `ss_camp_*`, `ss_combat_*` |
 | `app/gui/interface_signals.py`, `app/utils/models_hub.py` | the Soul/Lorebook/Stage Gateway registries and the curated-models list point at this fork's own data repo (`SnowwhiteOakheart/sow-data`, a fork of `jofizcd/sow-data`) instead of upstream's | `SnowwhiteOakheart/sow-data` |
 | `app/gui/custom_widgets.py`, `app/gui/interface_signals.py` | the main character-list card (`CharacterCardList`) is taller (300px, was 270px) so portrait-oriented avatar art crops far less top-to-bottom; the character grid now sizes each row by its tallest card instead of one flat height, so `CharacterFolderCard` (still 210x270, its own pre-composed preview bitmap untouched) keeps working unchanged in the same grid | `character_card_height = 300` |
+| `app/gui/soul_stage_page.py`, `app/gui/interface_signals.py` | live **Turn Indicator** in the Soul Stage top bar: the "Next:" dropdown only ever picks the *first* speaker of a turn, so once the GM starts chaining through party members/NPCs/narration on its own there was no way to tell who actually has the floor right now - a small pulsing pill now flips to the current speaker on every `on_char_start`/`on_npc_start`/narrator beat and back to idle when the turn ends | `class TurnIndicator` |
+| `app/translations/en.yaml`, `de.yaml`, `ru.yaml` | keys for the turn indicator above | `ss_turn_party`, `ss_turn_npc`, `ss_turn_narrator`, `ss_turn_idle` |
 
 ## Releases
 

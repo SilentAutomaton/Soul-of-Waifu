@@ -3157,6 +3157,89 @@ class CombatBar(QFrame):
         self.show()
 
 
+class TurnIndicator(QFrame):
+    """
+    Compact live "who has the turn right now" pill for the Soul Stage top bar. Distinct
+    from the "Next:" dropdown (which only ever picks the FIRST speaker of a turn) - this
+    reflects every speaker change the GM makes while chaining through party members, NPCs
+    and narration within a single turn, including ones the player never chose manually.
+    """
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setObjectName("turn_indicator")
+        self.translations = _load_translations()
+
+        self.setStyleSheet("""
+            QFrame#turn_indicator {
+                background: rgba(255, 210, 90, 0.08);
+                border: 1px solid rgba(255, 210, 90, 0.30);
+                border-radius: 10px;
+            }
+        """)
+
+        root = QHBoxLayout(self)
+        root.setContentsMargins(8, 3, 10, 3)
+        root.setSpacing(6)
+
+        self._avatar_lbl = QLabel()
+        self._avatar_lbl.setFixedSize(18, 18)
+        root.addWidget(self._avatar_lbl)
+
+        self._dot_lbl = QLabel("●")
+        self._dot_lbl.setStyleSheet("color: #FFD25C; font-size: 8px; background: transparent;")
+        root.addWidget(self._dot_lbl)
+
+        self._text_lbl = QLabel()
+        self._text_lbl.setFont(_font("Inter Tight SemiBold", 10, bold=True))
+        self._text_lbl.setStyleSheet("color: rgba(255, 224, 170, 0.95); background: transparent;")
+        root.addWidget(self._text_lbl)
+
+        self._pulse_on = True
+        self._pulse_timer = QtCore.QTimer(self)
+        self._pulse_timer.timeout.connect(self._toggle_pulse)
+
+        self.set_idle()
+
+    def _toggle_pulse(self):
+        self._pulse_on = not self._pulse_on
+        color = "#FFD25C" if self._pulse_on else "rgba(255, 210, 90, 0.20)"
+        self._dot_lbl.setStyleSheet(f"color: {color}; font-size: 8px; background: transparent;")
+
+    def _set_avatar(self, pixmap: Optional[QPixmap]):
+        if pixmap is not None and not pixmap.isNull():
+            self._avatar_lbl.setPixmap(_round_pixmap(pixmap, 18))
+            self._avatar_lbl.show()
+        else:
+            self._avatar_lbl.hide()
+
+    def show_party_turn(self, name: str):
+        self._set_avatar(_get_char_avatar_pixmap(name))
+        text = self.translations.get("ss_turn_party", "🎙 {name} is speaking").replace("{name}", name)
+        self._text_lbl.setText(text)
+        self._pulse_timer.start(500)
+        self._pulse_on = True
+
+    def show_npc_turn(self, name: str, avatar_path: str = ""):
+        px = QPixmap(avatar_path) if avatar_path else None
+        self._set_avatar(px if px and not px.isNull() else None)
+        text = self.translations.get("ss_turn_npc", "🎭 {name} chimes in").replace("{name}", name)
+        self._text_lbl.setText(text)
+        self._pulse_timer.start(500)
+        self._pulse_on = True
+
+    def show_narrator_turn(self):
+        self._set_avatar(None)
+        self._text_lbl.setText(self.translations.get("ss_turn_narrator", "📖 The narrator is describing the scene"))
+        self._pulse_timer.start(500)
+        self._pulse_on = True
+
+    def set_idle(self):
+        self._pulse_timer.stop()
+        self._dot_lbl.setStyleSheet("color: rgba(255, 210, 90, 0.20); font-size: 8px; background: transparent;")
+        self._set_avatar(None)
+        self._text_lbl.setText(self.translations.get("ss_turn_idle", "⏸ Waiting for your input"))
+
+
 class SoulStageClockTracker(QWidget):
     """
     Floating, collapsible Campaign Board tracker showing active Campaign Clocks
@@ -5576,6 +5659,13 @@ class SoulStageChatView(QFrame):
         self._party_row.setSpacing(4)
         tl.addWidget(self.party_container)
 
+        dv1b = QFrame(); dv1b.setFrameShape(QFrame.Shape.VLine); dv1b.setFixedWidth(1)
+        dv1b.setStyleSheet("background: rgba(255,255,255,0.08); margin: 10px 4px;")
+        tl.addWidget(dv1b)
+
+        self.turn_indicator = TurnIndicator()
+        tl.addWidget(self.turn_indicator)
+
         dv2 = QFrame(); dv2.setFrameShape(QFrame.Shape.VLine); dv2.setFixedWidth(1)
         dv2.setStyleSheet("background: rgba(255,255,255,0.08); margin: 10px 4px;")
         tl.addWidget(dv2)
@@ -6200,6 +6290,22 @@ class SoulStageChatView(QFrame):
     def update_combat_bar(self, combat_data: dict):
         if hasattr(self, "combat_bar"):
             self.combat_bar.update_combat(combat_data)
+
+    def set_turn_party(self, name: str):
+        if hasattr(self, "turn_indicator"):
+            self.turn_indicator.show_party_turn(name)
+
+    def set_turn_npc(self, name: str, avatar_path: str = ""):
+        if hasattr(self, "turn_indicator"):
+            self.turn_indicator.show_npc_turn(name, avatar_path)
+
+    def set_turn_narrator(self):
+        if hasattr(self, "turn_indicator"):
+            self.turn_indicator.show_narrator_turn()
+
+    def set_turn_idle(self):
+        if hasattr(self, "turn_indicator"):
+            self.turn_indicator.set_idle()
 
     def update_campaign_tracker(self, board_data: dict):
         if hasattr(self, "clock_tracker"):

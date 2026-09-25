@@ -196,7 +196,7 @@ Soul Stage transitions your chat into a structured tabletop roleplaying campaign
 - **Campfire Rest & Bond Milestones:** Take short or long rests at the campfire (`🏕️`), trigger intimate companion conversations, and advance companion bond levels (+25, +50, +75).
 - **Tactical Encounter Mode:** When the GM starts a genuine fight, a live initiative bar (party + enemies) and per-enemy HP bars appear above the input, with one-click ⚔️ Attack / 🛡️ Dodge / 🎒 Item / 🏃 Flee quick actions the GM resolves narratively.
 - **Story Arcs:** Hidden plot twists and investigations stay concealed from NPCs and the party until concrete clues are uncovered during play.
-- **Turn Control Bar:** Switch between Say, Do, Think, and Director input modes, pick the next speaker manually, or send Private Whispers only one party member can see.
+- **Turn Control Bar:** Switch between Say, Do, Think, and Director input modes, pick the next speaker manually, or send Private Whispers only one party member can see. A live turn indicator shows who actually has the floor right now - including every speaker the GM chains through on its own within a single turn, not just the one you picked.
 - **Structural Relationship Tracker:** Trust levels and social roles are serialized and fed into every turn, so companions and NPCs never "forget" their dynamic with you, even dozens of turns later.
 - **Interactive Party & NPCs:** Main party members sync memories via Soul Memory, while dynamic temporary NPCs spawn (with their own persistent memory) for specific encounters.
 - **Scene Folders:** Organize your scenario library into campaigns, genres, or settings.

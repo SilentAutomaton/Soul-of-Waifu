@@ -2015,6 +2015,10 @@ ss_combat_dodge_tag: Dodge
 ss_combat_flee_tag: Flee
 ss_combat_round: ROUND
 ss_combat_defeated: Defeated
+ss_turn_party: 🎙 {name} is speaking
+ss_turn_npc: 🎭 {name} chimes in
+ss_turn_narrator: 📖 The narrator is describing the scene
+ss_turn_idle: ⏸ Waiting for your input
 starting_ambient: Starting Ambient
 starting_ambient_hint: Background audio for this scene. The Planner can switch it dynamically.
 starting_background: Starting Background

@@ -4878,6 +4878,7 @@ class InterfaceSignals():
                 lyt.setContentsMargins(0, 4, 0, 4)
                 lyt.addWidget(narrator_bubble)
                 chat_view.chat_container.addWidget(narrator_wrap)
+                chat_view.set_turn_narrator()
 
                 if self.ss_msg_mgr:
                     _narr_idx = len(chat_log) + len(turn_log)
@@ -4909,6 +4910,7 @@ class InterfaceSignals():
             char_full_text = ""
             _char_idx = len(chat_log) + len(turn_log)
             char_label, _ = self._ss_add_custom_message(name, "", is_user=False, msg_idx=_char_idx)
+            chat_view.set_turn_party(name)
             await asyncio.sleep(0)
 
         async def on_char_chunk(name: str, chunk: str):
@@ -4935,6 +4937,7 @@ class InterfaceSignals():
             lyt.setContentsMargins(0, 4, 0, 4)
             lyt.addWidget(npc_bubble)
             chat_view.chat_container.addWidget(wrap)
+            chat_view.set_turn_npc(npc.name, avatar_path)
 
             if self.ss_msg_mgr:
                 _npc_idx = len(chat_log) + len(turn_log)
@@ -4996,6 +4999,7 @@ class InterfaceSignals():
                 ws.campaign_board.to_dict()
             )
             chat_view.update_combat_bar(ws.combat.to_dict())
+            chat_view.set_turn_idle()
 
         async def on_choices(choices: list, event_type: str):
             _plot_event_type[0] = event_type
@@ -5697,6 +5701,7 @@ class InterfaceSignals():
                 lyt.setContentsMargins(0, 4, 0, 4)
                 lyt.addWidget(narrator_bubble)
                 chat_view.chat_container.addWidget(narrator_wrap)
+                chat_view.set_turn_narrator()
 
                 if self.ss_msg_mgr:
                     _narr_idx = len(chat_log) + len(turn_log)
@@ -5724,6 +5729,7 @@ class InterfaceSignals():
             char_full_text = ""; char_name_saved = name
             _char_idx = len(chat_log) + len(turn_log)
             char_label, _ = self._ss_add_custom_message(name, "", is_user=False, msg_idx=_char_idx)
+            chat_view.set_turn_party(name)
             await asyncio.sleep(0)
 
         async def on_char_chunk(name: str, chunk: str):
@@ -5750,6 +5756,7 @@ class InterfaceSignals():
             lyt.setContentsMargins(0, 4, 0, 4)
             lyt.addWidget(npc_bubble)
             chat_view.chat_container.addWidget(wrap)
+            chat_view.set_turn_npc(npc.name, avatar_path)
 
             if self.ss_msg_mgr:
                 _npc_idx = len(chat_log) + len(turn_log)
@@ -5811,6 +5818,7 @@ class InterfaceSignals():
                 ws.campaign_board.to_dict()
             )
             chat_view.update_combat_bar(ws.combat.to_dict())
+            chat_view.set_turn_idle()
 
         async def on_error(msg: str):
             b = SoulStageEventCard(event_type="none")

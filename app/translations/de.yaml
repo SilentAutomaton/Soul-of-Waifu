@@ -2023,6 +2023,10 @@ ss_combat_dodge_tag: Ausweichen
 ss_combat_flee_tag: Flucht
 ss_combat_round: RUNDE
 ss_combat_defeated: Besiegt
+ss_turn_party: 🎙 {name} spricht gerade
+ss_turn_npc: 🎭 {name} mischt sich ein
+ss_turn_narrator: 📖 Der Erzähler beschreibt die Szene
+ss_turn_idle: ⏸ Wartet auf deine Eingabe
 starting_ambient: Start-Ambiente
 starting_ambient_hint: Hintergrundaudio für diese Szene. Der Planer kann es dynamisch wechseln.
 starting_background: Starthintergrund
