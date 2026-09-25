@@ -100,8 +100,11 @@ keine verloren gegangen ist.
 - **Fehler des Originals behoben:** Der Reiter „Appearance“ wurde in keiner Sprache übersetzt; Karten im
   RP-Editor schnitten längere Übersetzungen ab; die Begrüßung auf der Startseite nutzte 5 der 7 Varianten,
   die jede Sprachdatei mitbringt; `update_lip_sync` stürzte ohne `character_list` ab.
-- Für Windows gibt es das alles als Patch zum Drüberkopieren: **[v2.5.1-win.2](https://github.com/SnowwhiteOakheart/Soul-of-Waifu/releases/tag/v2.5.1-win.2)** (52 MB, wird über
-  eine offizielle v2.5.1-Installation entpackt).
+- Für Windows mit vorhandener offizieller v2.5.1-Installation gibt es das alles als Patch zum Drüberkopieren:
+  **[v2.5.1-win.2](https://github.com/SnowwhiteOakheart/Soul-of-Waifu/releases/tag/v2.5.1-win.2)** (52 MB).
+  Wer bei null anfängt (egal ob Windows oder Linux), nimmt **[v2.5.1-full.1](https://github.com/SnowwhiteOakheart/Soul-of-Waifu/releases/tag/v2.5.1-full.1)**
+  (1,3 GB) - ein einziges eigenständiges Archiv mit offiziellen Release-Assets und diesem Fork bereits
+  zusammengeführt, einfach entpacken und `installer.bat` bzw. `installer.sh` ausführen.
 
 ### 🧰 Extras
 
@@ -340,6 +343,12 @@ Erzeuge Illustrationen direkt in Chatnachrichten über das Kontextmenü.
 ---
 
 ## 📥 Installation
+
+> [!TIP]
+> Schnellster Weg auf beiden Systemen: **[v2.5.1-full.1](https://github.com/SnowwhiteOakheart/Soul-of-Waifu/releases/tag/v2.5.1-full.1)**
+> (1,3 GB, eigenständig - offizielle Assets und dieser Fork bereits zusammengeführt) herunterladen,
+> entpacken, dann `installer.bat` (Windows) bzw. `./installer.sh` (Linux) ausführen. Die Schritte unten sind
+> die Alternative direkt aus dem Quellcode.
 
 ### Windows
 

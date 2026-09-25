@@ -46,7 +46,10 @@ This branch also adds features that are not Linux-specific:
 
 None of that is Linux-specific, so it runs on Windows as well: **[v2.5.1-win.2](https://github.com/SnowwhiteOakheart/Soul-of-Waifu/releases/tag/v2.5.1-win.2)** ships those
 files as a 52 MB patch to unpack over an official v2.5.1 installation (untested on Windows, see the
-release notes).
+release notes). Starting from scratch, **[v2.5.1-full.1](https://github.com/SnowwhiteOakheart/Soul-of-Waifu/releases/tag/v2.5.1-full.1)**
+(1.3 GB) is a single self-contained archive for both platforms - the official release assets and this fork
+are already merged in, so extract it and run `installer.bat` or `installer.sh` directly, no separate
+download needed.
 
 ## Requirements
 

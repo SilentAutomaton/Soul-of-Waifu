@@ -95,8 +95,11 @@ release; `./tools/fork_report.sh` verifies afterwards that none of them got lost
 - **Upstream bugs fixed:** the Appearance tab was never translated in any language; RP editor cards
   clipped longer translations; the start page greeting drew from 5 of the 7 variants each language file
   ships; `update_lip_sync` crashed on a configuration without `character_list`.
-- Windows users get all of it as a drop-in patch: **[v2.5.1-win.2](https://github.com/SnowwhiteOakheart/Soul-of-Waifu/releases/tag/v2.5.1-win.2)** (52 MB, unpack over an
-  official v2.5.1 installation).
+- Windows users with an existing official v2.5.1 install get all of it as a drop-in patch:
+  **[v2.5.1-win.2](https://github.com/SnowwhiteOakheart/Soul-of-Waifu/releases/tag/v2.5.1-win.2)** (52 MB).
+  Starting from scratch on either OS, **[v2.5.1-full.1](https://github.com/SnowwhiteOakheart/Soul-of-Waifu/releases/tag/v2.5.1-full.1)**
+  (1.3 GB) is a single self-contained archive with the official release assets and this fork already merged
+  in - extract it and run `installer.bat` or `installer.sh`, no separate download needed.
 
 ### 🧰 Extras
 
@@ -335,6 +338,11 @@ Generate illustrations directly within chat messages via context menu actions.
 ---
 
 ## 📥 Installation
+
+> [!TIP]
+> Fastest path on either OS: download **[v2.5.1-full.1](https://github.com/SnowwhiteOakheart/Soul-of-Waifu/releases/tag/v2.5.1-full.1)**
+> (1.3 GB, self-contained - official assets and this fork already merged in), extract it, then run
+> `installer.bat` (Windows) or `./installer.sh` (Linux). The steps below are the from-source alternative.
 
 ### Windows
 
