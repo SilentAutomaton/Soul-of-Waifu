@@ -33,65 +33,20 @@ if not SCENES_FILE.exists():
     SCENES_FILE.write_text(json.dumps({"scenes": {}}, ensure_ascii=False, indent=2))
 
 COMBO_STYLE = """
-            QComboBox {
-                background-color: rgba(15, 15, 18, 0.4);
-                color: #e0e0e0;
-                border: 1px solid rgba(255, 255, 255, 0.15);
-                border-radius: 12px;
-                padding: 8px 12px;
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                            stop:0 rgba(255, 255, 255, 0.05),
-                                            stop:1 rgba(0, 0, 0, 0.05));
-            }
-            QComboBox:hover {
-                border: 1px solid rgba(255, 255, 255, 0.4);
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                            stop:0 rgba(255, 255, 255, 0.08),
-                                            stop:1 rgba(0, 0, 0, 0.08));
-            }
-            QComboBox:focus {
-                border: 1px solid rgba(255, 255, 255, 0.6);
-                outline: none;
-            }
-            QComboBox::drop-down {
-                subcontrol-origin: padding;
-                subcontrol-position: top right;
-                width: 20px;
-                border: none;
-            }
-            QComboBox::down-arrow {
-                image: url(:/sowInterface/arrowDown.png);
-                width: 12px;
-                height: 12px;
-            }
-            QComboBox QAbstractItemView {
-                background-color: rgba(30, 30, 35, 0.8);
-                color: #e0e0e0;
-                border: 1px solid rgba(255, 255, 255, 0.2);
-                border-radius: 8px;
-                selection-background-color: rgba(255, 255, 255, 0.15);
-                selection-color: #ffffff;
-                padding: 5px;
-                outline: none;
-            }
+            
+            
+            
+            
+            
+            
             QComboBox QAbstractItemView::item {
                 padding: 8px 12px;
                 border: none;
                 border-radius: 6px;
                 background: transparent;
             }
-            QComboBox QAbstractItemView::item:hover {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                            stop:0 rgba(255, 255, 255, 0.1),
-                                            stop:1 rgba(255, 255, 255, 0.05));
-                color: #ffffff;
-            }
-            QComboBox QAbstractItemView::item:selected {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                            stop:0 rgba(255, 255, 255, 0.15),
-                                            stop:1 rgba(255, 255, 255, 0.05));
-                color: #ffffff;
-            }
+            
+            
             QScrollBar:vertical {
                 background-color: rgba(30, 30, 35, 0.8);
                 width: 12px;
@@ -441,45 +396,17 @@ SCROLLBAR = """
     }
     QScrollBar::handle:vertical:hover { background: rgba(255,255,255,0.30); }
     QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height: 0; }
-    QToolTip {
-        background-color: rgba(25, 25, 30, 0.95); 
-        color: #E0E0E0; 
-        border: 1px solid rgba(255, 255, 255, 0.15); 
-        border-radius: 6px; 
-        padding: 6px 10px; font-size: 13px; 
-        font-family: 'Inter Tight SemiBold';
-    }
+    
 """
 
 INPUT = """
-    QLineEdit, QTextEdit, QComboBox, QSpinBox, QDoubleSpinBox {
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.06);
-        border-top: 1px solid rgba(255, 255, 255, 0.12);
-        border-radius: 10px;
-        color: rgba(240, 240, 240, 0.95);
-        font-family: 'Inter Tight Medium'; 
-        font-size: 13px;
-        padding: 8px 14px;
-        padding-right: 28px;
-        selection-background-color: rgba(255, 255, 255, 0.15);
-    }
+    
 
-    QLineEdit:focus, QTextEdit:focus, QComboBox:focus, QSpinBox:focus, QDoubleSpinBox:focus {
-        border: 1px solid rgba(255, 255, 255, 0.25);
-        background: rgba(255, 255, 255, 0.05);
-    }
+    
 
-    QComboBox::drop-down { border: none; width: 30px; }
-    QComboBox::down-arrow { image: url(app/gui/icons/arrow_down.png); width: 12px; height: 12px; }
-    QComboBox QAbstractItemView {
-        background: #0d0d0f; 
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 8px; 
-        color: rgba(240, 240, 240, 0.95);
-        selection-background-color: rgba(255, 255, 255, 0.1); 
-        padding: 4px;
-    }
+    
+    
+    
 
     QSpinBox::up-button, QDoubleSpinBox::up-button {
         subcontrol-origin: border;
@@ -505,30 +432,12 @@ INPUT = """
         border-bottom-right-radius: 8px;
     }
 
-    QSpinBox::up-button:hover, QSpinBox::down-button:hover,
-    QDoubleSpinBox::up-button:hover, QDoubleSpinBox::down-button:hover {
-        background: rgba(255, 255, 255, 0.08);
-    }
+    
 
-    QSpinBox::up-arrow, QDoubleSpinBox::up-arrow {
-        image: url(app/gui/icons/up_arrow.png);
-        width: 10px; 
-        height: 10px;
-    }
+    
 
-    QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {
-        image: url(app/gui/icons/down_arrow.png);
-        width: 10px; 
-        height: 10px;
-    }
-    QToolTip {
-        background-color: rgba(25, 25, 30, 0.95); 
-        color: #E0E0E0; 
-        border: 1px solid rgba(255, 255, 255, 0.15); 
-        border-radius: 6px; 
-        padding: 6px 10px; font-size: 13px; 
-        font-family: 'Inter Tight SemiBold';
-    }
+    
+    
 """
 
 CB_STYLE = """
@@ -540,14 +449,7 @@ CB_STYLE = """
     QCheckBox::indicator:checked {
         background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4);
     }
-    QToolTip {
-        background-color: rgba(25, 25, 30, 0.95); 
-        color: #E0E0E0; 
-        border: 1px solid rgba(255, 255, 255, 0.15); 
-        border-radius: 6px; 
-        padding: 6px 10px; font-size: 13px; 
-        font-family: 'Inter Tight SemiBold';
-    }
+    
 """
 
 class _Btn(QPushButton):
@@ -1400,10 +1302,7 @@ class SoulStageLobbyView(QWidget):
         dialog.setStyleSheet("""
             QDialog { background: #0c0c10; }
             QLabel { color: rgba(255,255,255,0.85); background: transparent; }
-            QLineEdit {
-                background: rgba(255,255,255,0.04); color: white;
-                border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 10px;
-            }
+            
             QListWidget {
                 background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06);
                 border-radius: 10px; color: white; padding: 6px;
@@ -1478,10 +1377,7 @@ class SoulStageLobbyView(QWidget):
         dialog.setStyleSheet("""
             QDialog { background: #0c0c10; }
             QLabel { color: rgba(255,255,255,0.85); background: transparent; }
-            QLineEdit {
-                background: rgba(255,255,255,0.04); color: white;
-                border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 10px;
-            }
+            
             QListWidget {
                 background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06);
                 border-radius: 10px; color: white; padding: 6px;
@@ -2145,8 +2041,8 @@ class SceneEditorView(QWidget):
         opening = self.f_opening.toPlainText().strip()
         party   = [n for n, cb in self._char_checks.items() if cb.isChecked()]
         ok = True
-        err   = INPUT + "QLineEdit { border-color: rgba(255,60,60,0.6); }"
-        err_t = INPUT + "QTextEdit { border-color: rgba(255,60,60,0.6); }"
+        err   = INPUT + ""
+        err_t = INPUT + ""
         err_scroll = SCROLLBAR + "QScrollArea { background: rgba(0,0,0,0.18); border: 1px solid rgba(255,60,60,0.6); border-radius: 14px; }"
         ok_scroll  = SCROLLBAR + "QScrollArea { background: rgba(0,0,0,0.18); border: 1px solid rgba(255,255,255,0.06); border-radius: 14px; }"
         if not title:   self.f_title.setStyleSheet(err);   ok = False
@@ -3925,23 +3821,9 @@ class ManualDiceDialog(QtWidgets.QDialog):
                 color: rgba(240, 240, 245, 0.90);
                 font-family: 'Inter Tight Medium';
             }
-            QComboBox, QSpinBox, QLineEdit {
-                background: rgba(255, 255, 255, 0.05);
-                border: 1px solid rgba(255, 255, 255, 0.12);
-                border-radius: 8px;
-                color: #FFFFFF;
-                font-family: 'Inter Tight Medium';
-                font-size: 12px;
-                padding: 6px 10px;
-            }
-            QComboBox:hover, QSpinBox:hover, QLineEdit:hover {
-                border-color: rgba(255, 210, 90, 0.45);
-            }
-            QComboBox QAbstractItemView {
-                background-color: #1a1a20;
-                color: #FFFFFF;
-                selection-background-color: rgba(255, 210, 90, 0.3);
-            }
+            
+            
+            
             QCheckBox {
                 color: rgba(240, 240, 245, 0.85);
                 font-family: 'Inter Tight Medium';
@@ -4609,20 +4491,8 @@ class WorldInfoDialog(QtWidgets.QDialog):
             }
             QLabel { background: transparent; border: none; }
             
-            QLineEdit, QTextEdit {
-                background: rgba(0, 0, 0, 0.2);
-                border: 1px solid rgba(255, 255, 255, 0.08);
-                border-top: 1px solid rgba(255, 255, 255, 0.15);
-                border-radius: 8px;
-                color: rgba(240, 240, 240, 0.95);
-                font-family: 'Inter Tight Medium'; font-size: 13px;
-                padding: 10px 14px;
-                selection-background-color: rgba(255, 255, 255, 0.20);
-            }
-            QLineEdit:focus, QTextEdit:focus {
-                background: rgba(255, 255, 255, 0.04);
-                border: 1px solid rgba(255, 255, 255, 0.25);
-            }
+            
+            
             
             QScrollBar:vertical { background: transparent; width: 6px; margin: 0; }
             QScrollBar::handle:vertical { background: rgba(255,255,255,0.15); border-radius: 3px; min-height: 24px; }
@@ -5581,32 +5451,11 @@ class SoulStageChatView(QFrame):
         tl.addWidget(dv2)
 
         combo_style = """
-            QComboBox {
-                background: rgba(255,255,255,0.05);
-                border: 1px solid rgba(255,255,255,0.10);
-                border-radius: 8px;
-                color: rgba(255,255,255,0.75);
-                font-family: 'Inter Tight Medium';
-                font-size: 11px;
-                padding: 3px 10px;
-                min-height: 22px;
-            }
-            QComboBox:hover { background: rgba(255,255,255,0.09); border-color: rgba(255,255,255,0.2); }
-            QComboBox::drop-down { border: none; width: 16px; }
-            QComboBox QAbstractItemView {
-                background-color: #1a1a1e; color: #e8e8e8;
-                selection-background-color: rgba(255,255,255,0.12);
-                border: 1px solid rgba(255,255,255,0.1);
-                outline: none;
-            }
-            QToolTip { 
-                background-color: rgba(25, 25, 30, 0.95); 
-                color: #E0E0E0; 
-                border: 1px solid rgba(255, 255, 255, 0.15); 
-                border-radius: 6px; 
-                padding: 6px 10px; font-size: 12px; 
-                font-weight: 500; 
-            }
+            
+            
+            
+            
+            
         """
 
         self.mode_combo = QtWidgets.QComboBox()
@@ -5647,14 +5496,7 @@ class SoulStageChatView(QFrame):
             QCheckBox::indicator { width: 14px; height: 14px; border-radius: 4px;
                 border: 1px solid rgba(255,255,255,0.25); background: rgba(255,255,255,0.04); }
             QCheckBox::indicator:checked { background: rgba(150,130,255,0.6); border-color: rgba(150,130,255,0.8); }
-            QToolTip { 
-                background-color: rgba(25, 25, 30, 0.95); 
-                color: #E0E0E0; 
-                border: 1px solid rgba(255, 255, 255, 0.15); 
-                border-radius: 6px; 
-                padding: 6px 10px; font-size: 12px; 
-                font-weight: 500; 
-            }
+            
         """)
         self.whisper_checkbox.setToolTip(self.translations.get(
             "whisper_tooltip",
@@ -5699,14 +5541,7 @@ class SoulStageChatView(QFrame):
                         stop:1 rgba(255, 255, 255, 0.10));
                     border: 1px solid rgba(255, 255, 255, 0.08);
                 }}
-                QToolTip {{
-                    background-color: rgba(25, 25, 30, 0.95); 
-                    color: #E0E0E0; 
-                    border: 1px solid rgba(255, 255, 255, 0.15); 
-                    border-radius: 6px; 
-                    padding: 6px 10px; font-size: 12px; 
-                    font-weight: 500; 
-                }}
+                
             """)
             return btn
 
@@ -5865,7 +5700,6 @@ class SoulStageChatView(QFrame):
         self.text_input.setFont(font)
         self.text_input.textChanged.connect(self._on_user_typing)
         self.text_input.textChanged.connect(self._adjust_input_height)
-        self.text_input.setMinimumHeight(40)
         self.text_input.setMaximumHeight(610)
         self.text_input.setPlaceholderText(self.translations.get("input_placeholder", "Direct the story or speak to someone..."))
         self.text_input.setStyleSheet("""

@@ -16,12 +16,6 @@ BUTTON_STYLE = """
     QPushButton:disabled { color: #6F6B63; }
 """
 INPUT_STYLE = """
-    QComboBox, QFontComboBox {
-        background-color: rgba(255, 255, 255, 0.05); color: #E3E3E3;
-        border: 1px solid rgba(255, 255, 255, 0.10); border-radius: 8px; padding: 4px 10px; min-height: 26px;
-    }
-    QComboBox:focus, QFontComboBox:focus { border: 1px solid #4BB8FF; }
-    QComboBox QAbstractItemView { background-color: #161616; color: #E3E3E3; selection-background-color: #2B2B2B; }
     QCheckBox { color: #B3B3B3; background: transparent; border: none; spacing: 8px; }
     QCheckBox::indicator {
         width: 16px; height: 16px; border-radius: 4px;

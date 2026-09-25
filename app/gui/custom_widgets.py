@@ -36,14 +36,7 @@ from app.configuration import configuration
 logger = logging.getLogger("Interface Signals")
 
 SLIDER_STYLE_DARK = """
-    QToolTip {
-        background-color: rgba(25, 25, 30, 0.95);
-        color: #E0E0E0;
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        border-radius: 6px;
-        padding: 6px 10px; font-size: 12px;
-        font-weight: 500;
-    }
+    
     QSlider::groove:horizontal { background: rgba(0,0,0,0.5); height: 6px; border-radius: 3px; }
     QSlider::sub-page:horizontal { background: rgba(255, 255, 255, 0.55); border-radius: 3px; }
     QSlider::handle:horizontal { background: white; width: 16px; height: 16px; margin: -5px 0; border-radius: 8px; border: 1px solid rgba(0,0,0,0.2); }
@@ -1530,13 +1523,7 @@ class GatewayPreviewDialog(QDialog):
                 rule_prompt.setReadOnly(True)
                 rule_prompt.setFont(_mk_font(9, QtGui.QFont.Weight.Normal))
                 rule_prompt.setStyleSheet(f"""
-                    QTextEdit {{
-                        background: rgba(0, 0, 0, 0.25);
-                        color: rgba(255, 255, 255, 0.55);
-                        border: 1px solid rgba(255, 255, 255, 0.04);
-                        border-radius: 6px;
-                        padding: 6px;
-                    }}
+                    
                 """)
                 
                 fm = QtGui.QFontMetrics(rule_prompt.font())
@@ -1560,14 +1547,7 @@ class GatewayPreviewDialog(QDialog):
                 txt.setReadOnly(True)
                 txt.setFont(_mk_font(10, QtGui.QFont.Weight.Normal))
                 txt.setStyleSheet("""
-                    QTextEdit {
-                        background-color: rgba(0, 0, 0, 0.25);
-                        color: rgba(255, 255, 255, 0.7);
-                        border: 1px solid rgba(255, 255, 255, 0.05);
-                        border-radius: 8px;
-                        padding: 10px;
-                        line-height: 1.4;
-                    }
+                    
                 """)
                 
                 fm = QtGui.QFontMetrics(txt.font())
@@ -2819,15 +2799,7 @@ def hover_icon_button(icon_path, hover_color, tooltip_text, parent=None, base_co
     btn.setStyleSheet(f"""
         QPushButton {{ background-color: {css(base_color)}; border: none; border-radius: 16px; }}
         QPushButton:hover {{ background-color: {css(hover_color)}; }}
-        QToolTip {{
-            background-color: rgba(25, 25, 30, 0.95);
-            color: #E0E0E0;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 6px;
-            padding: 6px 10px;
-            font-size: 12px;
-            font-weight: 500;
-        }}
+        
     """)
     return btn
 
@@ -3200,8 +3172,8 @@ class SoulMemoryViewer(QtWidgets.QDialog):
             QListWidget::item { padding: 12px; border-radius: 8px; margin-bottom: 4px; color: #CBD5E1; }
             QListWidget::item:selected { background: rgba(96, 165, 250, 0.15); color: #FFFFFF; border: 1px solid rgba(96, 165, 250, 0.3); }
             QListWidget::item:hover:!selected { background: rgba(255, 255, 255, 0.04); }
-            QTextEdit, QPlainTextEdit { background: rgba(10, 10, 15, 0.5); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 12px; padding: 16px; color: #E2E8F0; font-family: 'Cascadia Code', 'Consolas', monospace; font-size: 13px; selection-background-color: rgba(96, 165, 250, 0.4); }
-            QTextEdit:focus, QPlainTextEdit:focus { border: 1px solid rgba(96, 165, 250, 0.4); background: rgba(15, 15, 20, 0.7); }
+            
+            
             
             QPushButton { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 8px 18px; color: #E2E8F0; font-weight: 600; font-size: 13px; }
             QPushButton:hover { background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); }
@@ -4965,20 +4937,7 @@ class MultiSelectDialog(QDialog):
         self.search_bar.setFont(self.f_input)
         self.search_bar.setPlaceholderText(self.translations.get("lorebook_selector_search", "Search items..."))
         self.search_bar.setFixedHeight(40)
-        self.search_bar.setStyleSheet(
-            f"QLineEdit#MSSearchBar {{"
-            f"  background: {self._SURF2};"
-            f"  border: 1px solid {self._BORDER};"
-            f"  border-radius: 8px;"
-            f"  color: {self._TEXT};"
-            f"  padding: 0 14px;"
-            f"  selection-background-color: {self._ACC_MUT};"
-            f"}}"
-            f"QLineEdit#MSSearchBar:focus {{"
-            f"  border-color: {self._BORDER_M};"
-            f"  background: {self._SURF3};"
-            f"}}"
-        )
+        self.search_bar.setStyleSheet("")
         self.search_bar.textChanged.connect(self.filter_items)
         content_layout.addWidget(self.search_bar)
 
@@ -6282,18 +6241,11 @@ class CardImportSourceDialog(QtWidgets.QDialog):
             "import_source_url_placeholder",
             "https://chub.ai/characters/author/character  (or direct .png link)"
         ))
-        self.url_input.setFixedHeight(38)
         self.url_input.setFont(f_input)
         self.url_input.setVisible(False)
         self.url_input.setStyleSheet("""
-            QLineEdit {
-                background: rgba(10,10,15,0.6);
-                border: 1px solid rgba(255,255,255,0.12);
-                border-radius: 8px;
-                color: #E2E8F0;
-                padding: 0 12px;
-            }
-            QLineEdit:focus { border-color: rgba(167,139,250,0.6); }
+            
+            
         """)
         lay.addWidget(self.url_input)
 
@@ -6787,22 +6739,11 @@ class SowInputDialog(QtWidgets.QDialog):
         lay.addSpacing(16)
 
         self.input_field = QtWidgets.QLineEdit()
-        self.input_field.setFixedHeight(42)
         self.input_field.setText(text)
         self.input_field.setPlaceholderText(placeholder)
         self.input_field.setStyleSheet("""
-            QLineEdit {
-                background-color: rgb(18, 18, 26);
-                border: 1px solid rgba(255, 255, 255, 0.1);
-                border-radius: 10px;
-                color: #E2E8F0;
-                padding: 0 14px;
-                selection-background-color: rgba(96, 165, 250, 0.4);
-            }
-            QLineEdit:focus {
-                border: 1px solid rgba(96, 165, 250, 0.5);
-                background-color: rgb(22, 22, 30);
-            }
+            
+            
         """)
         self.input_field.returnPressed.connect(self.accept)
         lay.addWidget(self.input_field)
@@ -7028,27 +6969,12 @@ class SowSelectDialog(QtWidgets.QDialog):
 
         self.combo_box = QtWidgets.QComboBox()
         self.combo_box.addItems(items)
-        self.combo_box.setFixedHeight(42)
         self.combo_box.setStyleSheet("""
-            QComboBox {
-                background-color: rgba(18, 18, 26);
-                border: 1px solid rgba(255, 255, 255, 0.1);
-                border-radius: 10px;
-                color: #E2E8F0;
-                padding: 0 14px;
-            }
-            QComboBox:hover { border: 1px solid rgba(96, 165, 250, 0.3); }
-            QComboBox::drop-down { border: none; width: 30px; }
-            QComboBox::down-arrow { width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 5px solid #6F6B63; }
-            QComboBox QAbstractItemView {
-                background-color: rgb(26, 26, 34);
-                color: #E2E8F0;
-                border: 1px solid rgba(255, 255, 255, 0.1);
-                border-radius: 8px;
-                selection-background-color: rgba(96, 165, 250, 0.2);
-                outline: none;
-                padding: 6px;
-            }
+            
+            
+            
+            
+            
         """)
         lay.addWidget(self.combo_box)
 
@@ -7411,7 +7337,6 @@ class PersonasEditorDialog(QDialog):
         self.name_input.setFont(self.f_input)
         self.name_input.setPlaceholderText(self.translations.get("personas_editor_name_placeholder", "E.g. Dark Knight"))
         self.name_input.setStyleSheet(self._s_input())
-        self.name_input.setFixedHeight(38)
         editor_lay.addWidget(self.name_input)
 
         desc_lbl = QLabel(self.translations.get("personas_editor_description", "BACKGROUND & DESCRIPTION"))
@@ -7470,20 +7395,7 @@ class PersonasEditorDialog(QDialog):
         main_layout.addWidget(self.editor_area)
 
     def _s_input(self):
-        return (
-            f"QWidget {{"
-            f"  background: {self._SURF2};"
-            f"  border: 1px solid {self._BORDER};"
-            f"  border-radius: 8px;"
-            f"  color: {self._TEXT};"
-            f"  padding: 10px 14px;"
-            f"  selection-background-color: {self._ACC_MUT};"
-            f"}}"
-            f"QWidget:focus {{"
-            f"  border-color: {self._BORDER_M};"
-            f"  background: {self._SURF3};"
-            f"}}"
-        )
+        return ""
 
     def _setup_logic(self):
         self.upload_btn.clicked.connect(self._choose_avatar)
@@ -7969,39 +7881,8 @@ class SystemPromptEditorDialog(QDialog):
 
         self.preset_combo = QComboBox()
         self.preset_combo.setObjectName("SPEPresetCombo")
-        self.preset_combo.setFixedHeight(40)
         self.preset_combo.setFont(self.f_input)
-        self.preset_combo.setStyleSheet(
-            f"QComboBox#SPEPresetCombo {{"
-            f"  background-color: {self._SURF2};"
-            f"  color: {self._TEXT};"
-            f"  border: 1px solid {self._BORDER};"
-            f"  border-radius: 6px;"
-            f"  padding-left: 12px;"
-            f"}}"
-            f"QComboBox#SPEPresetCombo:hover {{"
-            f"  border-color: {self._BORDER_M};"
-            f"}}"
-            f"QComboBox#SPEPresetCombo::drop-down {{"
-            f"  border: none;"
-            f"  width: 24px;"
-            f"}}"
-            f"QComboBox#SPEPresetCombo::down-arrow {{"
-            f"  width: 0; height: 0;"
-            f"  border-left: 4px solid transparent;"
-            f"  border-right: 4px solid transparent;"
-            f"  border-top: 5px solid {self._TEXT_S};"
-            f"}}"
-            f"QComboBox#SPEPresetCombo QAbstractItemView {{"
-            f"  background-color: {self._SURF3};"
-            f"  color: {self._TEXT};"
-            f"  border: 1px solid {self._BORDER_M};"
-            f"  border-radius: 6px;"
-            f"  padding: 4px;"
-            f"  outline: none;"
-            f"  selection-background-color: {self._SURF2};"
-            f"}}"
-        )
+        self.preset_combo.setStyleSheet("")
         combo_lay.addWidget(self.preset_combo)
         control_lay.addLayout(combo_lay)
 
@@ -8151,21 +8032,7 @@ class SystemPromptEditorDialog(QDialog):
         return bar
 
     def _s_input(self, name):
-        return (
-            f"QTextEdit#{name} {{"
-            f"  background: {self._SURF2};"
-            f"  border: 1px solid {self._BORDER};"
-            f"  border-radius: 8px;"
-            f"  color: {self._TEXT};"
-            f"  padding: 12px 14px;"
-            f"  selection-background-color: {self._BLUE_MUT};"
-            f"  line-height: 1.4;"
-            f"}}"
-            f"QTextEdit#{name}:focus {{"
-            f"  border-color: {self._BORDER_M};"
-            f"  background: {self._SURF3};"
-            f"}}"
-        )
+        return ""
 
     def _setup_logic(self):
         self.reset_button.clicked.connect(self._reset_to_default)
@@ -8417,22 +8284,8 @@ class DiscordGatewayDialog(QDialog):
         self.token_input.setObjectName("DGTokenInput")
         self.token_input.setPlaceholderText("Paste your Discord Bot Token here...")
         self.token_input.setFont(self.f_token)
-        self.token_input.setFixedHeight(38)
         self.token_input.setEchoMode(QLineEdit.EchoMode.Password)
-        self.token_input.setStyleSheet(
-            f"QLineEdit#DGTokenInput {{"
-            f"  background: {self._SURF2};"
-            f"  border: 1px solid {self._BORDER};"
-            f"  border-radius: 8px;"
-            f"  color: {self._TEXT};"
-            f"  padding: 0 12px;"
-            f"  selection-background-color: {self._DIS_MUT};"
-            f"}}"
-            f"QLineEdit#DGTokenInput:focus {{"
-            f"  border-color: {self._BORDER_M};"
-            f"  background: {self._SURF3};"
-            f"}}"
-        )
+        self.token_input.setStyleSheet("")
         
         config_api = self.configuration_api.get_token("DISCORD_BOT_TOKEN")
         if config_api:
@@ -8820,14 +8673,12 @@ class LorebookEditorDialog(QDialog):
         self.input_name = QLineEdit()
         self.input_name.setObjectName("LBInputName")
         self.input_name.setPlaceholderText(self.translations.get("lorebook_entry_name_placeholder", "Entry name..."))
-        self.input_name.setFixedHeight(34)
         self.input_name.setFont(self.f_input)
         self.input_name.setStyleSheet(self._s_lineedit("LBInputName"))
  
         self.combo_type = QComboBox()
         self.combo_type.setObjectName("LBComboType")
         self.combo_type.addItems(self._trigger_labels)
-        self.combo_type.setFixedHeight(34)
         self.combo_type.setFixedWidth(145)
         self.combo_type.setFont(self.f_input)
         self.combo_type.setStyleSheet(self._s_combo("LBComboType"))
@@ -8838,7 +8689,6 @@ class LorebookEditorDialog(QDialog):
             self.translations.get("lorebook_injection_passive", "Passive"), 
             self.translations.get("lorebook_injection_active", "Active")
         ])
-        self.combo_inj.setFixedHeight(34)
         self.combo_inj.setFixedWidth(130)
         self.combo_inj.setFont(self.f_input)
         self.combo_inj.setStyleSheet(self._s_combo("LBComboInj"))
@@ -8984,23 +8834,9 @@ class LorebookEditorDialog(QDialog):
             "lorebook_recursive_depth_tooltip", "Max recursion passes (1-4)."
         ))
         self.recursion_depth_spin.setStyleSheet("""
-            QSpinBox, QDoubleSpinBox {
-                background: rgba(255, 255, 255, 0.03);
-                border: 1px solid rgba(255, 255, 255, 0.06);
-                border-top: 1px solid rgba(255, 255, 255, 0.12);
-                border-radius: 10px;
-                color: rgba(240, 240, 240, 0.95);
-                font-family: 'Inter Tight Medium'; 
-                font-size: 13px;
-                padding: 0px 8px;
-                padding-right: 28px;
-                selection-background-color: rgba(255, 255, 255, 0.15);
-            }
+            
         
-            QSpinBox:focus, QDoubleSpinBox:focus {
-                border: 1px solid rgba(255, 255, 255, 0.25);
-                background: rgba(255, 255, 255, 0.05);
-            }
+            
         
             QSpinBox::up-button, QDoubleSpinBox::up-button {
                 subcontrol-origin: border;
@@ -9026,30 +8862,12 @@ class LorebookEditorDialog(QDialog):
                 border-bottom-right-radius: 8px;
             }
         
-            QSpinBox::up-button:hover, QSpinBox::down-button:hover,
-            QDoubleSpinBox::up-button:hover, QDoubleSpinBox::down-button:hover {
-                background: rgba(255, 255, 255, 0.08);
-            }
+            
         
-            QSpinBox::up-arrow, QDoubleSpinBox::up-arrow {
-                image: url(app/gui/icons/up_arrow.png);
-                width: 10px; 
-                height: 10px;
-            }
+            
         
-            QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {
-                image: url(app/gui/icons/down_arrow.png);
-                width: 10px; 
-                height: 10px;
-            }
-            QToolTip {
-                background-color: rgba(25, 25, 30, 0.95); 
-                color: #E0E0E0; 
-                border: 1px solid rgba(255, 255, 255, 0.15); 
-                border-radius: 6px; 
-                padding: 6px 10px; font-size: 13px; 
-                font-family: 'Inter Tight SemiBold';
-            }
+            
+            
         """)
 
         self.token_counter_lbl = QLabel("Tokens: 0")
@@ -9196,13 +9014,11 @@ class LorebookEditorDialog(QDialog):
         b.setToolTip(tip); b.setCursor(Qt.CursorShape.PointingHandCursor)
         if danger:
             b.setStyleSheet(
-                f"QToolTip {{ background-color: {self._SURF3}; color: {self._TEXT}; border: 1px solid {self._BORDER_M}; border-radius: 6px; padding: 6px; }}"
                 f"QPushButton#{obj}{{background:{self._DNG_MUT};border:1px solid rgba(196,64,64,0.18);border-radius:6px;}}"
                 f"QPushButton#{obj}:hover{{background:{self._DNG_GLO};border-color:rgba(196,64,64,0.45);}}"
             )
         else:
             b.setStyleSheet(
-                f"QToolTip {{ background-color: {self._SURF3}; color: {self._TEXT}; border: 1px solid {self._BORDER_M}; border-radius: 6px; padding: 6px; }}"
                 f"QPushButton#{obj}{{background:{self._SURF2};border:1px solid {self._BORDER};border-radius:6px;}}"
                 f"QPushButton#{obj}:hover{{background:{self._SURF3};border-color:{self._BORDER_M};}}"
             )
@@ -9222,40 +9038,16 @@ class LorebookEditorDialog(QDialog):
         return b
 
     def _s_lineedit(self, name):
-        return (
-            f"QLineEdit#{name}{{background:{self._SURF2};border:1px solid {self._BORDER};"
-            f"border-radius:6px;color:{self._TEXT};padding:0 10px;selection-background-color:{self._ACC_MUT};}}"
-            f"QLineEdit#{name}:focus{{border-color:{self._BORDER_M};background:{self._SURF3};}}"
-        )
+        return ""
  
     def _s_textedit(self, name):
-        return (
-            f"QTextEdit#{name}{{background:{self._SURF2};border:1px solid {self._BORDER};"
-            f"border-radius:8px;color:{self._TEXT};padding:8px 10px;selection-background-color:{self._ACC_MUT};}}"
-            f"QTextEdit#{name}:focus{{border-color:{self._BORDER_M};background:{self._SURF3};}}"
-        )
+        return ""
  
     def _s_combo(self, name):
-        return (
-            f"QComboBox#{name}{{background:{self._SURF2};border:1px solid {self._BORDER};"
-            f"border-radius:6px;color:{self._TEXT};padding:0 10px;}}"
-            f"QComboBox#{name}:hover{{border-color:{self._BORDER_M};}}"
-            f"QComboBox#{name}::drop-down{{border:none;width:18px;}}"
-            f"QComboBox#{name}::down-arrow{{width:0;height:0;"
-            f"border-left:4px solid transparent;border-right:4px solid transparent;"
-            f"border-top:5px solid {self._TEXT_S};}}"
-            f"QComboBox#{name} QAbstractItemView{{background:{self._SURF3};color:{self._TEXT};"
-            f"border-radius:6px;selection-background-color:{self._SURF4};border:1px solid {self._BORDER_M};"
-            f"outline:none;padding:4px;}}"
-        )
+        return ""
  
     def _s_spin(self, name):
-        return (
-            f"QSpinBox#{name}{{background:{self._SURF2};border:1px solid {self._BORDER};"
-            f"border-radius:6px;color:{self._TEXT};padding:0 8px;}}"
-            f"QSpinBox#{name}:focus{{border-color:{self._BORDER_M};}}"
-            f"QSpinBox#{name}::up-button,QSpinBox#{name}::down-button{{width:0;}}"
-        )
+        return ""
  
     def _s_list(self):
         return (
@@ -9879,19 +9671,12 @@ class AuthorNotesEditorDialog(QDialog):
 
             self.scope_combo = QComboBox()
             self.scope_combo.setObjectName("ANScopeCombo")
-            self.scope_combo.setFixedHeight(32)
             self.scope_combo.setFont(self.f_input)
             self.scope_combo.addItems([
                 self.translations.get("author_notes_scope_chat", f"This chat only"),
                 self.translations.get("author_notes_scope_global", "Global (all characters & chats)"),
             ])
-            self.scope_combo.setStyleSheet(
-                f"QComboBox#ANScopeCombo {{"
-                f"  background: {self._SURF2}; border: 1px solid {self._BORDER};"
-                f"  border-radius: 6px; color: {self._TEXT}; padding: 0 10px;"
-                f"}}"
-                f"QComboBox#ANScopeCombo::drop-down {{ border: none; width: 22px; }}"
-            )
+            self.scope_combo.setStyleSheet("")
             self.scope_combo.currentIndexChanged.connect(self._on_scope_changed)
             scope_row.addWidget(self.scope_combo)
 
@@ -9904,7 +9689,6 @@ class AuthorNotesEditorDialog(QDialog):
             self.depth_spin.setObjectName("ANDepthSpin")
             self.depth_spin.setRange(0, 20)
             self.depth_spin.setValue(3)
-            self.depth_spin.setFixedHeight(32)
             self.depth_spin.setFixedWidth(100)
             self.depth_spin.setAlignment(Qt.AlignmentFlag.AlignCenter)
             self.depth_spin.setFont(self.f_input)
@@ -9913,23 +9697,9 @@ class AuthorNotesEditorDialog(QDialog):
                 "How many messages from the end of the history the note is placed at. 0 = right before your message."
             ))
             self.depth_spin.setStyleSheet("""
-                QSpinBox, QDoubleSpinBox {
-                    background: rgba(255, 255, 255, 0.03);
-                    border: 1px solid rgba(255, 255, 255, 0.06);
-                    border-top: 1px solid rgba(255, 255, 255, 0.12);
-                    border-radius: 10px;
-                    color: rgba(240, 240, 240, 0.95);
-                    font-family: 'Inter Tight Medium'; 
-                    font-size: 13px;
-                    padding: 0px 8px;
-                    padding-right: 28px;
-                    selection-background-color: rgba(255, 255, 255, 0.15);
-                }
+                
             
-                QSpinBox:focus, QDoubleSpinBox:focus {
-                    border: 1px solid rgba(255, 255, 255, 0.25);
-                    background: rgba(255, 255, 255, 0.05);
-                }
+                
             
                 QSpinBox::up-button, QDoubleSpinBox::up-button {
                     subcontrol-origin: border;
@@ -9955,30 +9725,12 @@ class AuthorNotesEditorDialog(QDialog):
                     border-bottom-right-radius: 8px;
                 }
             
-                QSpinBox::up-button:hover, QSpinBox::down-button:hover,
-                QDoubleSpinBox::up-button:hover, QDoubleSpinBox::down-button:hover {
-                    background: rgba(255, 255, 255, 0.08);
-                }
+                
             
-                QSpinBox::up-arrow, QDoubleSpinBox::up-arrow {
-                    image: url(app/gui/icons/up_arrow.png);
-                    width: 10px; 
-                    height: 10px;
-                }
+                
             
-                QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {
-                    image: url(app/gui/icons/down_arrow.png);
-                    width: 10px; 
-                    height: 10px;
-                }
-                QToolTip {
-                    background-color: rgba(25, 25, 30, 0.95); 
-                    color: #E0E0E0; 
-                    border: 1px solid rgba(255, 255, 255, 0.15); 
-                    border-radius: 6px; 
-                    padding: 6px 10px; font-size: 13px; 
-                    font-family: 'Inter Tight SemiBold';
-                }
+                
+                
             """)
             scope_row.addWidget(self.depth_spin)
             scope_row.addStretch()
@@ -9997,20 +9749,7 @@ class AuthorNotesEditorDialog(QDialog):
         self.notes_edit.setPlaceholderText(
             self.translations.get("author_notes_editor_placeholder", "Enter your instructions or hints for the character here...")
         )
-        self.notes_edit.setStyleSheet(
-            f"QTextEdit#ANInputContent {{"
-            f"  background: {self._SURF2};"
-            f"  border: 1px solid {self._BORDER};"
-            f"  border-radius: 8px;"
-            f"  color: {self._TEXT};"
-            f"  padding: 12px 14px;"
-            f"  selection-background-color: {self._BLUE_MUT};"
-            f"}}"
-            f"QTextEdit#ANInputContent:focus {{"
-            f"  border-color: {self._BORDER_M};"
-            f"  background: {self._SURF3};"
-            f"}}"
-        )
+        self.notes_edit.setStyleSheet("")
         lay.addWidget(self.notes_edit, 1)
 
         return body
@@ -10387,7 +10126,6 @@ class SummaryEditorDialog(QDialog):
         self.generate_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.generate_btn.setToolTip(self.translations.get("summary_editor_tooltip", "Uses the directives to summarize recent messages immediately."))
         self.generate_btn.setStyleSheet(
-            f"QToolTip {{ background-color: {self._SURF3}; color: {self._TEXT}; border: 1px solid {self._BORDER_M}; border-radius: 6px; padding: 6px; }}"
             f"QPushButton#SumBtnGen {{ background: {self._BLUE_MUT}; border: 1px solid {self._BLUE_GLO}; border-radius: 6px; color: {self._BLUE}; }}"
             f"QPushButton#SumBtnGen:hover {{ background: rgba(75, 184, 255, 0.25); border-color: rgba(75, 184, 255, 0.55); color: {self._BLUE_BRT}; }}"
         )
@@ -10408,21 +10146,7 @@ class SummaryEditorDialog(QDialog):
         return bar
 
     def _s_textedit(self, name):
-        return (
-            f"QTextEdit#{name} {{"
-            f"  background: {self._SURF2};"
-            f"  border: 1px solid {self._BORDER};"
-            f"  border-radius: 8px;"
-            f"  color: {self._TEXT};"
-            f"  padding: 12px 14px;"
-            f"  selection-background-color: {self._BLUE_MUT};"
-            f"  line-height: 1.4;"
-            f"}}"
-            f"QTextEdit#{name}:focus {{"
-            f"  border-color: {self._BORDER_M};"
-            f"  background: {self._SURF3};"
-            f"}}"
-        )
+        return ""
 
     def _get_status_text(self):
         return self.translations.get("summary_editor_covered_badge", "History: 1-{last_seq}").format(last_seq=self.last_seq)
@@ -10979,54 +10703,10 @@ class ImageGenSettingsDialog(QDialog):
         )
 
     def _s_input(self, name):
-        return (
-            f"QWidget#{name} {{"
-            f"  background: {self._SURF2};"
-            f"  border: 1px solid {self._BORDER};"
-            f"  border-radius: 6px;"
-            f"  color: {self._TEXT};"
-            f"  padding: 8px 10px;"
-            f"  selection-background-color: {self._BLUE_MUT};"
-            f"}}"
-            f"QWidget#{name}:focus {{"
-            f"  border-color: {self._BORDER_M};"
-            f"  background: {self._SURF3};"
-            f"}}"
-        )
+        return ""
 
     def _s_combo(self, name):
-        return (
-            f"QComboBox#{name} {{"
-            f"  background-color: {self._SURF2};"
-            f"  color: {self._TEXT};"
-            f"  border: 1px solid {self._BORDER};"
-            f"  border-radius: 6px;"
-            f"  padding-left: 10px;"
-            f"  height: 34px;"
-            f"}}"
-            f"QComboBox#{name}:hover {{"
-            f"  border-color: {self._BORDER_M};"
-            f"}}"
-            f"QComboBox#{name}::drop-down {{"
-            f"  border: none;"
-            f"  width: 24px;"
-            f"}}"
-            f"QComboBox#{name}::down-arrow {{"
-            f"  width: 0; height: 0;"
-            f"  border-left: 4px solid transparent;"
-            f"  border-right: 4px solid transparent;"
-            f"  border-top: 5px solid {self._TEXT_S};"
-            f"}}"
-            f"QComboBox#{name} QAbstractItemView {{"
-            f"  background-color: {self._SURF3};"
-            f"  color: {self._TEXT};"
-            f"  border: 1px solid {self._BORDER_M};"
-            f"  border-radius: 6px;"
-            f"  padding: 4px;"
-            f"  outline: none;"
-            f"  selection-background-color: {self._SURF2};"
-            f"}}"
-        )
+        return ""
 
     def _create_spinbox_column(self, label_text, min_v, max_v, step, default_v):
         col = QVBoxLayout()
@@ -11043,17 +10723,7 @@ class ImageGenSettingsDialog(QDialog):
         sb.setSingleStep(step)
         sb.setValue(default_v)
         sb.setFixedHeight(34)
-        sb.setStyleSheet(
-            f"QSpinBox {{"
-            f"  background: {self._SURF2};"
-            f"  border: 1px solid {self._BORDER};"
-            f"  border-radius: 6px;"
-            f"  color: {self._TEXT};"
-            f"  padding: 0 8px;"
-            f"}}"
-            f"QSpinBox:focus {{ border-color: {self._BORDER_M}; background: {self._SURF3}; }}"
-            f"QSpinBox::up-button, QSpinBox::down-button {{ width: 0; }}"  
-        )
+        sb.setStyleSheet("")
         
         col.addWidget(lbl)
         col.addWidget(sb)
@@ -11167,25 +10837,9 @@ class Live2DMotionLinkerDialog(QDialog):
                 background: transparent;
                 border: none;
             }
-            QComboBox {
-                background-color: rgba(22, 22, 26, 0.6);
-                color: #DEDAD2;
-                border: 1px solid rgba(255, 255, 255, 0.08);
-                border-radius: 8px;
-                padding: 6px 12px;
-                font-family: 'Segoe UI', sans-serif;
-            }
-            QComboBox:hover {
-                border-color: rgba(255, 255, 255, 0.2);
-            }
-            QComboBox QAbstractItemView {
-                background-color: #121218;
-                color: #DEDAD2;
-                border: 1px solid rgba(255, 255, 255, 0.15);
-                border-radius: 8px;
-                selection-background-color: rgba(255, 255, 255, 0.1);
-                outline: none;
-            }
+            
+            
+            
             QPushButton {
                 background-color: rgba(255, 255, 255, 0.05);
                 color: #DEDAD2;
@@ -11260,7 +10914,6 @@ class Live2DMotionLinkerDialog(QDialog):
             emo_lbl.setStyleSheet("font-size: 13px; font-weight: bold; color: rgba(255,255,255,0.85);")
             
             combo = QComboBox()
-            combo.setFixedHeight(34)
             combo.setFixedWidth(220)
             
             combo.addItem("Default fallback", userData="default")
@@ -11750,14 +11403,7 @@ class PersonaQuickButton(QtWidgets.QPushButton):
             border: none; 
             outline: none;
         }
-        QToolTip { 
-            background-color: rgba(25, 25, 30, 0.95); 
-            color: #E0E0E0; 
-            border: 1px solid rgba(255, 255, 255, 0.15); 
-            border-radius: 6px; 
-            padding: 6px 10px; font-size: 12px; 
-            font-weight: 500; 
-        }
+        
         """)
 
     def set_avatar(self, avatar_path: str):
@@ -12075,28 +11721,9 @@ class AudioHudPopup(QtWidgets.QWidget):
                 border: none;
                 background: transparent;
             }
-            QComboBox {
-                background-color: rgba(255, 255, 255, 0.05);
-                color: #E2E8F0;
-                border: 1px solid rgba(255, 255, 255, 0.1);
-                border-radius: 8px;
-                padding: 6px 10px;
-                font-family: 'Inter Tight Medium';
-                font-size: 11px;
-            }
-            QComboBox:hover {
-                border-color: rgba(75, 184, 255, 0.4);
-                background-color: rgba(255, 255, 255, 0.08);
-            }
-            QComboBox QAbstractItemView {
-                background-color: rgb(24, 24, 30);
-                color: #E2E8F0;
-                border: 1px solid rgba(255, 255, 255, 0.15);
-                border-radius: 8px;
-                selection-background-color: rgba(75, 184, 255, 0.25);
-                padding: 4px;
-                outline: none;
-            }
+            
+            
+            
             QSlider::groove:horizontal {
                 height: 4px;
                 background: rgba(255, 255, 255, 0.1);

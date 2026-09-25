@@ -665,14 +665,7 @@ class Ui_MainWindow(object):
             QScrollBar:vertical {
                 background-color: transparent; width: 0px; 
             }
-            QToolTip {
-                background-color: rgba(25, 25, 30, 0.95); 
-                color: #E0E0E0; 
-                border: 1px solid rgba(255, 255, 255, 0.15); 
-                border-radius: 6px; 
-                padding: 6px 10px; font-size: 13px; 
-                font-family: 'Inter Tight SemiBold';
-            }
+            
         """)
         self.layout_character_list_panel.addWidget(self.editor_character_list)
         
@@ -683,14 +676,7 @@ class Ui_MainWindow(object):
         self.btn_create_new_character_editor.setFixedSize(56, 56)
         self.btn_create_new_character_editor.setText("+")
         self.btn_create_new_character_editor.setStyleSheet("""
-            QToolTip { 
-                background-color: rgba(25, 25, 30, 0.95); 
-                color: #E0E0E0; 
-                border: 1px solid rgba(255, 255, 255, 0.15); 
-                border-radius: 6px; 
-                padding: 6px 10px; font-size: 12px; 
-                font-weight: 500; 
-            }
+            
             QPushButton {
                 background-color: rgba(255, 255, 255, 0.05);
                 color: rgba(255, 255, 255, 0.6);
@@ -767,9 +753,9 @@ class Ui_MainWindow(object):
             f"  color: {self._TEXT_S};"
             f"  font-family: 'Inter Tight SemiBold';"
             f"  font-size: 13px;"
-            f"  padding: 10px 14px;"
+            f"  padding: 8px 12px;"
             f"  border-radius: 8px;"
-            f"  margin-bottom: 4px;"
+            f"  margin-bottom: 2px;"
             f"  border: 1px solid transparent;"
             f"}}"
             f"QListWidget#anchor_menu_building::item:hover {{"
@@ -850,20 +836,7 @@ class Ui_MainWindow(object):
             layout.addWidget(title)
             return card, layout
 
-        input_style = (
-            f"QLineEdit, QTextEdit {{"
-            f"  background-color: {self._SURF2};"
-            f"  color: {self._TEXT};"
-            f"  border: 1px solid {self._BORDER};"
-            f"  border-radius: 8px;"
-            f"  padding: 10px;"
-            f"  selection-background-color: {self._BLUE_MUT};"
-            f"}}"
-            f"QLineEdit:focus, QTextEdit:focus {{"
-            f"  border-color: {self._BORDER_M};"
-            f"  background-color: {self._SURF3};"
-            f"}}"
-        )
+        input_style = ""
 
         # Card 1: General Info
         self.general_info_text = self.translations.get("character_creator_title_general_info", "General Information")
@@ -972,7 +945,6 @@ class Ui_MainWindow(object):
         self.lineEdit_character_name_building = QtWidgets.QLineEdit()
         self.lineEdit_character_name_building.setObjectName("lineEdit_character_name_building")
         self.lineEdit_character_name_building.setFont(font_input)
-        self.lineEdit_character_name_building.setFixedHeight(45)
         self.lineEdit_character_name_building.setStyleSheet(input_style)
         
         vbox_name.addWidget(self.character_name_building_label)
@@ -1061,18 +1033,12 @@ class Ui_MainWindow(object):
         row_combos.setSpacing(20)
         
         combo_style = f"""
-            QComboBox {{
-                background-color: {self._SURF2}; color: {self._TEXT};
-                border: 1px solid {self._BORDER}; border-radius: 8px; padding: 10px 15px;
-            }}
-            QComboBox:hover {{ border: 1px solid {self._BORDER_M}; }}
-            QComboBox::drop-down {{ border: none; width: 30px; }}
-            QComboBox::down-arrow {{ width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 5px solid {self._TEXT_S}; }}
-            QComboBox QAbstractItemView {{
-                background-color: {self._SURF3}; color: {self._TEXT}; border: 1px solid {self._BORDER_M};
-                border-radius: 8px; selection-background-color: {self._SURF2}; outline: none; padding: 4px;
-            }}
-            QComboBox QAbstractItemView::item {{ padding: 8px; border-radius: 4px; }}
+            
+            
+            
+            
+            
+            
         """
 
         vbox_persona = QtWidgets.QVBoxLayout()
@@ -1082,7 +1048,6 @@ class Ui_MainWindow(object):
         self.comboBox_user_persona_building.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.comboBox_user_persona_building.setFont(font_input)
         self.comboBox_user_persona_building.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
-        self.comboBox_user_persona_building.setFixedHeight(40)
         self.comboBox_user_persona_building.setStyleSheet(combo_style)
         vbox_persona.addWidget(self.user_persona_building_label)
         vbox_persona.addWidget(self.comboBox_user_persona_building)
@@ -1094,7 +1059,6 @@ class Ui_MainWindow(object):
         self.comboBox_system_prompt_building.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.comboBox_system_prompt_building.setFont(font_input)
         self.comboBox_system_prompt_building.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
-        self.comboBox_system_prompt_building.setFixedHeight(40)
         self.comboBox_system_prompt_building.setStyleSheet(combo_style)
         vbox_prompt.addWidget(self.system_prompt_building_label)
         vbox_prompt.addWidget(self.comboBox_system_prompt_building)
@@ -1106,7 +1070,6 @@ class Ui_MainWindow(object):
         self.comboBox_lorebook_building.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.comboBox_lorebook_building.setFont(font_input)
         self.comboBox_lorebook_building.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
-        self.comboBox_lorebook_building.setFixedHeight(40)
         self.comboBox_lorebook_building.setStyleSheet(combo_style)
         vbox_lore.addWidget(self.lorebook_building_label)
         vbox_lore.addWidget(self.comboBox_lorebook_building)
@@ -1126,7 +1089,6 @@ class Ui_MainWindow(object):
         self.character_version_building_label.setFont(font_label)
         self.character_version_building_label.setStyleSheet(f"color: {self._TEXT_S}; background: transparent; border: none; margin-top: 15px;")
         self.textEdit_character_version = QtWidgets.QTextEdit()
-        self.textEdit_character_version.setFixedHeight(45)
         self.textEdit_character_version.setFont(font_input)
         self.textEdit_character_version.setStyleSheet(input_style)
 
@@ -1156,7 +1118,6 @@ class Ui_MainWindow(object):
         
         self.combo_variables_presets = QtWidgets.QComboBox()
         self.combo_variables_presets.setFont(font_input)
-        self.combo_variables_presets.setFixedHeight(36)
         self.combo_variables_presets.setStyleSheet(combo_style)
         self.combo_variables_presets.addItems([
             self.translations.get("var_preset_custom", "Custom (None)"),
@@ -1455,31 +1416,14 @@ class Ui_MainWindow(object):
 
         # --- Soul Hub filters ---
         hub_filter_style = """
-            QComboBox {
-                background-color: rgba(255, 255, 255, 0.04);
-                color: #DEDAD2;
-                border: 1px solid rgba(255, 255, 255, 0.1);
-                border-radius: 10px;
-                padding: 6px 12px;
-                font-family: 'Inter Tight Medium';
-                font-size: 12px;
-            }
-            QComboBox:hover { border-color: rgba(75, 184, 255, 0.4); }
-            QComboBox::drop-down { border: none; width: 22px; }
-            QComboBox QAbstractItemView {
-                background-color: rgb(24, 24, 30);
-                color: #E2E8F0;
-                border: 1px solid rgba(255, 255, 255, 0.15);
-                border-radius: 8px;
-                selection-background-color: rgba(75, 184, 255, 0.25);
-                padding: 4px;
-                outline: none;
-            }
+            
+            
+            
+            
         """
 
         self.comboBox_hub_tag = QtWidgets.QComboBox(parent=self.charactersgateway_page)
         self.comboBox_hub_tag.setObjectName("comboBox_hub_tag")
-        self.comboBox_hub_tag.setFixedHeight(34)
         self.comboBox_hub_tag.setMinimumWidth(150)
         self.comboBox_hub_tag.setFont(font_nsfw)
         self.comboBox_hub_tag.setStyleSheet(hub_filter_style)
@@ -1488,7 +1432,6 @@ class Ui_MainWindow(object):
 
         self.comboBox_hub_sort = QtWidgets.QComboBox(parent=self.charactersgateway_page)
         self.comboBox_hub_sort.setObjectName("comboBox_hub_sort")
-        self.comboBox_hub_sort.setFixedHeight(34)
         self.comboBox_hub_sort.setMinimumWidth(130)
         self.comboBox_hub_sort.setFont(font_nsfw)
         self.comboBox_hub_sort.setStyleSheet(hub_filter_style)
@@ -1777,9 +1720,9 @@ class Ui_MainWindow(object):
             f"  color: #6F6B63;"
             f"  font-family: 'Inter Tight SemiBold';"
             f"  font-size: 13px;"
-            f"  padding: 10px 14px;"
+            f"  padding: 8px 12px;"
             f"  border-radius: 8px;"
-            f"  margin-bottom: 4px;"
+            f"  margin-bottom: 2px;"
             f"  border: 1px solid transparent;"
             f"}}"
             f"QListWidget#options_menu::item:hover {{"
@@ -1817,81 +1760,23 @@ class Ui_MainWindow(object):
         self.options_menu.currentRowChanged.connect(self.tabWidget_options.setCurrentIndex)
 
         global_input_style = """
-            QComboBox {
-                background-color: rgba(15, 15, 18, 0.4);
-                color: #e0e0e0;
-                border: 1px solid rgba(255, 255, 255, 0.15);
-                border-radius: 12px;
-                padding: 8px 12px;
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                            stop:0 rgba(255, 255, 255, 0.05),
-                                            stop:1 rgba(0, 0, 0, 0.05));
-            }
-            QComboBox:hover {
-                border: 1px solid rgba(255, 255, 255, 0.4);
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                            stop:0 rgba(255, 255, 255, 0.08),
-                                            stop:1 rgba(0, 0, 0, 0.08));
-            }
-            QComboBox:focus {
-                border: 1px solid rgba(255, 255, 255, 0.6);
-                outline: none;
-            }
-            QComboBox::drop-down {
-                subcontrol-origin: padding;
-                subcontrol-position: top right;
-                width: 20px;
-                border: none;
-            }
-            QComboBox::down-arrow {
-                image: url(:/sowInterface/arrowDown.png);
-                width: 12px;
-                height: 12px;
-            }
-            QComboBox QAbstractItemView {
-                background-color: rgba(30, 30, 35, 0.8);
-                color: #e0e0e0;
-                border: 1px solid rgba(255, 255, 255, 0.2);
-                border-radius: 8px;
-                selection-background-color: rgba(255, 255, 255, 0.15);
-                selection-color: #ffffff;
-                padding: 5px;
-                outline: none;
-            }
+            
+            
+            
+            
+            
+            
             QComboBox QAbstractItemView::item {
                 padding: 8px 12px;
                 border: none;
                 border-radius: 6px;
                 background: transparent;
             }
-            QComboBox QAbstractItemView::item:hover {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                            stop:0 rgba(255, 255, 255, 0.1),
-                                            stop:1 rgba(255, 255, 255, 0.05));
-                color: #ffffff;
-            }
-            QComboBox QAbstractItemView::item:selected {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                            stop:0 rgba(255, 255, 255, 0.15),
-                                            stop:1 rgba(255, 255, 255, 0.05));
-                color: #ffffff;
-            }
-            QLineEdit, QSpinBox {
-                background-color: rgba(30, 30, 35, 0.5);
-                border: 1px solid rgba(255, 255, 255, 0.1);
-                border-radius: 8px;
-                color: white;
-                padding: 5px 15px;
-            }
-            QLineEdit:focus, QSpinBox:focus {
-                border: 1px solid rgba(255, 255, 255, 0.4);
-                background-color: rgba(40, 40, 45, 0.6);
-            }
-            QSpinBox::up-button, QSpinBox::down-button {
-                subcontrol-origin: border;
-                width: 0px;
-                height: 0px;
-            }
+            
+            
+            
+            
+            
             QPushButton {
                 background-color: rgba(255, 255, 255, 0.05);
                 border: 1px solid rgba(255, 255, 255, 0.1);
@@ -1930,31 +1815,25 @@ class Ui_MainWindow(object):
                 border: 1px solid rgba(180, 180, 180, 0.6);
                 image: url(:/sowInterface/checked.png);
             }
-            QToolTip { 
-                background-color: rgba(25, 25, 30, 0.95); 
-                color: #E0E0E0; 
-                border: 1px solid rgba(255, 255, 255, 0.15); 
-                border-radius: 6px; 
-                padding: 6px 10px; font-size: 12px; 
-                font-weight: 500; 
-            }
+            
         """
 
         def create_glass_card(title_text):
             card = QtWidgets.QFrame()
+            card.setObjectName("settings_card")
             card.setStyleSheet(f"""
-                QFrame {{
+                QFrame#settings_card {{
                     background-color: rgba(22, 22, 26, 0.5);
                     border: 1px solid rgba(255, 255, 255, 0.08);
-                    border-radius: 16px;
+                    border-radius: 12px;
                 }}
                 QLabel {{ color: rgba(255, 255, 255, 0.85); border: none; background: transparent; }}
                 {global_input_style}
             """)
             
             layout = QtWidgets.QVBoxLayout(card)
-            layout.setContentsMargins(30, 30, 30, 30)
-            layout.setSpacing(20)
+            layout.setContentsMargins(16, 16, 16, 16)
+            layout.setSpacing(12)
             
             title = QtWidgets.QLabel(title_text)
             title.setFont(font_title)
@@ -1987,8 +1866,8 @@ class Ui_MainWindow(object):
             content = QtWidgets.QWidget()
             content.setStyleSheet("background: transparent;")
             content_layout = QtWidgets.QVBoxLayout(content)
-            content_layout.setContentsMargins(24, 32, 24, 40)
-            content_layout.setSpacing(30)
+            content_layout.setContentsMargins(16, 16, 16, 24)
+            content_layout.setSpacing(16)
             
             scroll.setWidget(content)
             layout.addWidget(scroll)
@@ -2031,14 +1910,17 @@ class Ui_MainWindow(object):
         l_lang.addLayout(create_section_header(self.translations.get("section_app_interface", "APP INTERFACE")))
         
         form_app_lang = QtWidgets.QFormLayout()
-        form_app_lang.setVerticalSpacing(20)
-        form_app_lang.setHorizontalSpacing(30)
+        
+        form_app_lang.setLabelAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+        
+        form_app_lang.setFormAlignment(Qt.AlignmentFlag.AlignTop)
+        form_app_lang.setVerticalSpacing(12)
+        form_app_lang.setHorizontalSpacing(16)
 
         self.program_language_label = QtWidgets.QLabel("App Language")
         self.program_language_label.setFont(font_label)
         self.comboBox_program_language = QtWidgets.QComboBox()
         self.comboBox_program_language.setFont(font_input)
-        self.comboBox_program_language.setFixedHeight(40)
         self.comboBox_program_language.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.comboBox_program_language.addItems(["English", "Russian", "German"])
         self.comboBox_program_language.setObjectName("comboBox_program_language")
@@ -2048,7 +1930,6 @@ class Ui_MainWindow(object):
         self.response_language_label.setFont(font_label)
         self.comboBox_response_language = QtWidgets.QComboBox()
         self.comboBox_response_language.setFont(font_input)
-        self.comboBox_response_language.setFixedHeight(40)
         self.comboBox_response_language.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.comboBox_response_language.addItems(
             ["Follow app language", "English", "Russian", "German", "Let the model decide"]
@@ -2063,14 +1944,17 @@ class Ui_MainWindow(object):
         l_lang.addLayout(create_section_header(self.translations.get("section_message_translation", "MESSAGE TRANSLATION")))
         
         form_trans = QtWidgets.QFormLayout()
-        form_trans.setVerticalSpacing(20)
-        form_trans.setHorizontalSpacing(30)
+        
+        form_trans.setLabelAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+        
+        form_trans.setFormAlignment(Qt.AlignmentFlag.AlignTop)
+        form_trans.setVerticalSpacing(12)
+        form_trans.setHorizontalSpacing(16)
 
         self.choose_translator_label = QtWidgets.QLabel("Translator Engine")
         self.choose_translator_label.setFont(font_label)
         self.comboBox_translator = QtWidgets.QComboBox()
         self.comboBox_translator.setFont(font_input)
-        self.comboBox_translator.setFixedHeight(40)
         self.comboBox_translator.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.comboBox_translator.addItems(["None", "Google", "Yandex", "AI Translator (Current Model)"])
         self.comboBox_translator.setObjectName("comboBox_translator")
@@ -2080,7 +1964,6 @@ class Ui_MainWindow(object):
         self.target_language_translator_label.setFont(font_label)
         self.comboBox_target_language_translator = QtWidgets.QComboBox()
         self.comboBox_target_language_translator.setFont(font_input)
-        self.comboBox_target_language_translator.setFixedHeight(40)
         self.comboBox_target_language_translator.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.comboBox_target_language_translator.addItems(["Russian", "German"])
         self.comboBox_target_language_translator.setObjectName("comboBox_target_language_translator")
@@ -2113,14 +1996,17 @@ class Ui_MainWindow(object):
         l_audio.addLayout(create_section_header(self.translations.get("section_audio_channels", "AUDIO I/O CHANNELS")))
         
         form_audio = QtWidgets.QFormLayout()
-        form_audio.setVerticalSpacing(20)
-        form_audio.setHorizontalSpacing(30)
+        
+        form_audio.setLabelAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+        
+        form_audio.setFormAlignment(Qt.AlignmentFlag.AlignTop)
+        form_audio.setVerticalSpacing(12)
+        form_audio.setHorizontalSpacing(16)
 
         self.input_device_label = QtWidgets.QLabel("Microphone Input")
         self.input_device_label.setFont(font_label)
         self.comboBox_input_devices = QtWidgets.QComboBox()
         self.comboBox_input_devices.setFont(font_input)
-        self.comboBox_input_devices.setFixedHeight(40)
         self.comboBox_input_devices.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.comboBox_input_devices.setObjectName("comboBox_input_devices")
         form_audio.addRow(self.input_device_label, self.comboBox_input_devices)
@@ -2129,7 +2015,6 @@ class Ui_MainWindow(object):
         self.output_device_label.setFont(font_label)
         self.comboBox_output_devices = QtWidgets.QComboBox()
         self.comboBox_output_devices.setFont(font_input)
-        self.comboBox_output_devices.setFixedHeight(40)
         self.comboBox_output_devices.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.comboBox_output_devices.setObjectName("comboBox_output_devices")
         self.pushButton_reload_audio_devices = QtWidgets.QPushButton()
@@ -2155,14 +2040,17 @@ class Ui_MainWindow(object):
         l_tts_rules.addLayout(create_section_header(self.translations.get("section_tts_voicing_mode", "VOICING MODE SELECTION")))
         
         form_tts_rules = QtWidgets.QFormLayout()
-        form_tts_rules.setVerticalSpacing(20)
-        form_tts_rules.setHorizontalSpacing(30)
+        
+        form_tts_rules.setLabelAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+        
+        form_tts_rules.setFormAlignment(Qt.AlignmentFlag.AlignTop)
+        form_tts_rules.setVerticalSpacing(12)
+        form_tts_rules.setHorizontalSpacing(16)
 
         self.tts_voicing_mode_label = QtWidgets.QLabel(self.translations.get("tts_voicing_mode_label", "Voicing Mode"))
         self.tts_voicing_mode_label.setFont(font_label)
         self.comboBox_tts_voicing_mode = QtWidgets.QComboBox()
         self.comboBox_tts_voicing_mode.setFont(font_input)
-        self.comboBox_tts_voicing_mode.setFixedHeight(40)
         self.comboBox_tts_voicing_mode.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.comboBox_tts_voicing_mode.addItems([
             "Voice Everything",
@@ -2178,7 +2066,6 @@ class Ui_MainWindow(object):
         self.tts_custom_regex_label.setFont(font_label)
         self.lineEdit_tts_custom_regex = QtWidgets.QLineEdit()
         self.lineEdit_tts_custom_regex.setFont(font_input)
-        self.lineEdit_tts_custom_regex.setFixedHeight(40)
         self.lineEdit_tts_custom_regex.setPlaceholderText(self.translations.get("tts_custom_regex_placeholder", "e.g., \*(.*?)\* to voice only inside asterisks"))
         self.lineEdit_tts_custom_regex.setObjectName("lineEdit_tts_custom_regex")
         form_tts_rules.addRow(self.tts_custom_regex_label, self.lineEdit_tts_custom_regex)
@@ -2240,14 +2127,15 @@ class Ui_MainWindow(object):
         card_method, l_method = create_glass_card(self.conversation_provider_title)
         form_method = QtWidgets.QFormLayout()
         form_method.setLabelAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
-        form_method.setVerticalSpacing(20)
-        form_method.setHorizontalSpacing(30)
+        form_method.setFormAlignment(Qt.AlignmentFlag.AlignTop)
+        form_method.setLabelAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+        form_method.setVerticalSpacing(12)
+        form_method.setHorizontalSpacing(16)
         
         self.conversation_method_options_label = QtWidgets.QLabel("Conversation Method")
         self.conversation_method_options_label.setFont(font_label)
         self.comboBox_conversation_method = QtWidgets.QComboBox()
         self.comboBox_conversation_method.setFont(font_input)
-        self.comboBox_conversation_method.setFixedHeight(40)
         self.comboBox_conversation_method.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.comboBox_conversation_method.addItems([
             "Mistral AI", "Open AI", "OpenRouter", "Anthropic", "Google Gemini", "DeepSeek", "Grok", "Qwen", "Z.AI"
@@ -2260,14 +2148,15 @@ class Ui_MainWindow(object):
 
         self.card_api, l_api = create_glass_card(self.api_configuration_title)
         form_api = QtWidgets.QFormLayout()
-        form_api.setVerticalSpacing(20)
-        form_api.setHorizontalSpacing(30)
+        form_api.setLabelAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+        form_api.setFormAlignment(Qt.AlignmentFlag.AlignTop)
+        form_api.setVerticalSpacing(12)
+        form_api.setHorizontalSpacing(16)
         
         self.conversation_method_token_title_label = QtWidgets.QLabel("API Token")
         self.conversation_method_token_title_label.setFont(font_label)
         self.lineEdit_api_token_options = QtWidgets.QLineEdit()
         self.lineEdit_api_token_options.setFont(font_input)
-        self.lineEdit_api_token_options.setFixedHeight(40)
         self.lineEdit_api_token_options.setEchoMode(QtWidgets.QLineEdit.EchoMode.Password)
         self.lineEdit_api_token_options.setObjectName("lineEdit_api_token_options")
         form_api.addRow(self.conversation_method_token_title_label, self.lineEdit_api_token_options)
@@ -2276,7 +2165,6 @@ class Ui_MainWindow(object):
         self.label_base_url.setFont(font_label)
         self.lineEdit_base_url_options = QtWidgets.QLineEdit()
         self.lineEdit_base_url_options.setFont(font_input)
-        self.lineEdit_base_url_options.setFixedHeight(40)
         self.lineEdit_base_url_options.setPlaceholderText("Custom Endpoint URL (Optional)")
         self.lineEdit_base_url_options.setObjectName("lineEdit_base_url_options")
         form_api.addRow(self.label_base_url, self.lineEdit_base_url_options)
@@ -2286,7 +2174,6 @@ class Ui_MainWindow(object):
         
         self.lineEdit_openai_model = QtWidgets.QLineEdit()
         self.lineEdit_openai_model.setFont(font_input)
-        self.lineEdit_openai_model.setFixedHeight(40)
         self.lineEdit_openai_model.setPlaceholderText("gpt-5.4 or something else")
         self.lineEdit_openai_model.setObjectName("lineEdit_openai_model")
         form_api.addRow(self.label_openai_model, self.lineEdit_openai_model)
@@ -2295,7 +2182,6 @@ class Ui_MainWindow(object):
         self.label_mistral_model.setFont(font_label)
         self.lineEdit_mistral_model = QtWidgets.QLineEdit()
         self.lineEdit_mistral_model.setFont(font_input)
-        self.lineEdit_mistral_model.setFixedHeight(40)
         self.lineEdit_mistral_model.setObjectName("lineEdit_mistral_model")
         form_api.addRow(self.label_mistral_model, self.lineEdit_mistral_model)
 
@@ -2303,7 +2189,6 @@ class Ui_MainWindow(object):
         self.label_anthropic_model.setFont(font_label)
         self.lineEdit_anthropic_model = QtWidgets.QLineEdit()
         self.lineEdit_anthropic_model.setFont(font_input)
-        self.lineEdit_anthropic_model.setFixedHeight(40)
         self.lineEdit_anthropic_model.setPlaceholderText("claude-sonnet-4-6")
         self.lineEdit_anthropic_model.setObjectName("lineEdit_anthropic_model")
         form_api.addRow(self.label_anthropic_model, self.lineEdit_anthropic_model)
@@ -2312,7 +2197,6 @@ class Ui_MainWindow(object):
         self.label_gemini_model.setFont(font_label)
         self.lineEdit_gemini_model = QtWidgets.QLineEdit()
         self.lineEdit_gemini_model.setFont(font_input)
-        self.lineEdit_gemini_model.setFixedHeight(40)
         self.lineEdit_gemini_model.setPlaceholderText("gemini-3-flash-preview")
         self.lineEdit_gemini_model.setObjectName("lineEdit_gemini_model")
         form_api.addRow(self.label_gemini_model, self.lineEdit_gemini_model)
@@ -2321,7 +2205,6 @@ class Ui_MainWindow(object):
         self.label_deepseek_model.setFont(font_label)
         self.lineEdit_deepseek_model = QtWidgets.QLineEdit()
         self.lineEdit_deepseek_model.setFont(font_input)
-        self.lineEdit_deepseek_model.setFixedHeight(40)
         self.lineEdit_deepseek_model.setPlaceholderText("deepseek-v4-flash")
         self.lineEdit_deepseek_model.setObjectName("lineEdit_deepseek_model")
         form_api.addRow(self.label_deepseek_model, self.lineEdit_deepseek_model)
@@ -2330,7 +2213,6 @@ class Ui_MainWindow(object):
         self.label_grok_model.setFont(font_label)
         self.lineEdit_grok_model = QtWidgets.QLineEdit()
         self.lineEdit_grok_model.setFont(font_input)
-        self.lineEdit_grok_model.setFixedHeight(40)
         self.lineEdit_grok_model.setPlaceholderText("grok-4.3")
         self.lineEdit_grok_model.setObjectName("lineEdit_grok_model")
         form_api.addRow(self.label_grok_model, self.lineEdit_grok_model)
@@ -2339,7 +2221,6 @@ class Ui_MainWindow(object):
         self.label_qwen_model.setFont(font_label)
         self.lineEdit_qwen_model = QtWidgets.QLineEdit()
         self.lineEdit_qwen_model.setFont(font_input)
-        self.lineEdit_qwen_model.setFixedHeight(40)
         self.lineEdit_qwen_model.setPlaceholderText("qwen3.7-max")
         self.lineEdit_qwen_model.setObjectName("lineEdit_qwen_model")
         form_api.addRow(self.label_qwen_model, self.lineEdit_qwen_model)
@@ -2348,7 +2229,6 @@ class Ui_MainWindow(object):
         self.label_zai_model.setFont(font_label)
         self.lineEdit_zai_model = QtWidgets.QLineEdit()
         self.lineEdit_zai_model.setFont(font_input)
-        self.lineEdit_zai_model.setFixedHeight(40)
         self.lineEdit_zai_model.setPlaceholderText("glm-4.7")
         self.lineEdit_zai_model.setObjectName("lineEdit_zai_model")
         form_api.addRow(self.label_zai_model, self.lineEdit_zai_model)
@@ -2361,12 +2241,10 @@ class Ui_MainWindow(object):
         openrouter_layout.setSpacing(15)
         self.lineEdit_search_openrouter_models = QtWidgets.QLineEdit()
         self.lineEdit_search_openrouter_models.setFont(font_input)
-        self.lineEdit_search_openrouter_models.setFixedHeight(40)
         self.lineEdit_search_openrouter_models.setPlaceholderText("Search models...")
         self.lineEdit_search_openrouter_models.setObjectName("lineEdit_search_openrouter_models")
         self.comboBox_openrouter_models = NoScrollComboBox()
         self.comboBox_openrouter_models.setFont(font_input)
-        self.comboBox_openrouter_models.setFixedHeight(40)
         self.comboBox_openrouter_models.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.comboBox_openrouter_models.setObjectName("comboBox_openrouter_models")
 
@@ -2406,7 +2284,7 @@ class Ui_MainWindow(object):
             
             lbl = QtWidgets.QLabel(label_text)
             lbl.setFont(font_label)
-            lbl.setFixedWidth(160)
+            lbl.setMinimumWidth(140)
             if tooltip:
                 lbl.setToolTip(tooltip)
             
@@ -2421,7 +2299,7 @@ class Ui_MainWindow(object):
             slider_obj.setStyleSheet(SLIDER_STYLE_DARK)
             
             line_edit_obj.setFont(font_input)
-            line_edit_obj.setFixedSize(85, 35)
+            line_edit_obj.setFixedWidth(72)
             line_edit_obj.setAlignment(Qt.AlignmentFlag.AlignCenter)
             if tooltip:
                 line_edit_obj.setToolTip(tooltip)
@@ -2453,48 +2331,16 @@ class Ui_MainWindow(object):
         self.comboBox_llm_presets = NoScrollComboBox()
         self.comboBox_llm_presets.setObjectName("comboBox_llm_presets")
         self.comboBox_llm_presets.setFont(font_input)
-        self.comboBox_llm_presets.setFixedHeight(38)
         self.comboBox_llm_presets.setMinimumWidth(220)
         self.comboBox_llm_presets.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.comboBox_llm_presets.setStyleSheet("""
-            QComboBox {
-                background-color: rgba(22, 22, 28, 0.95);
-                color: #e0e0e0;
-                border: 1px solid rgba(255, 255, 255, 0.15);
-                border-radius: 8px;
-                padding: 6px 12px;
-            }
-            QComboBox:hover {
-                border: 1px solid rgba(59, 130, 246, 0.4);
-                background-color: rgba(30, 30, 38, 0.95);
-            }
-            QComboBox:focus {
-                border: 1px solid rgba(59, 130, 246, 0.6);
-            }
-            QComboBox::drop-down {
-                border: none;
-                width: 24px;
-            }
-            QComboBox::down-arrow {
-                width: 0; height: 0;
-                border-left: 4px solid transparent;
-                border-right: 4px solid transparent;
-                border-top: 5px solid rgba(255, 255, 255, 0.6);
-            }
-            QComboBox QAbstractItemView {
-                background-color: rgb(24, 24, 30);
-                color: #e0e0e0;
-                border: 1px solid rgba(255, 255, 255, 0.15);
-                border-radius: 8px;
-                selection-background-color: rgba(59, 130, 246, 0.25);
-                selection-color: #ffffff;
-                padding: 4px;
-                outline: none;
-            }
-            QComboBox QAbstractItemView::item {
-                padding: 8px 12px;
-                border-radius: 6px;
-            }
+            
+            
+            
+            
+            
+            
+            
         """)
         self.comboBox_llm_presets.setToolTip(self.translations.get(
             "llm_preset_tooltip",
@@ -2730,7 +2576,6 @@ class Ui_MainWindow(object):
         ))
         self.comboBox_reasoning_effort = QtWidgets.QComboBox()
         self.comboBox_reasoning_effort.setFont(font_input)
-        self.comboBox_reasoning_effort.setFixedHeight(40)
         self.comboBox_reasoning_effort.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.comboBox_reasoning_effort.setObjectName("comboBox_reasoning_effort")
         self.comboBox_reasoning_effort.addItem(self.translations.get("reasoning_effort_none", "Off"), "none")
@@ -2794,8 +2639,10 @@ class Ui_MainWindow(object):
         # -----------------------------------------------------------------
         card_llm_hw, l_llm_hw = create_glass_card(self.translations.get("llm_hw_title", "Hardware & Backend"))
         form_llm_hw = QtWidgets.QFormLayout()
-        form_llm_hw.setVerticalSpacing(20)
-        form_llm_hw.setHorizontalSpacing(30)
+        form_llm_hw.setLabelAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+        form_llm_hw.setFormAlignment(Qt.AlignmentFlag.AlignTop)
+        form_llm_hw.setVerticalSpacing(12)
+        form_llm_hw.setHorizontalSpacing(16)
 
         l_llm_hw.addLayout(create_section_header(self.translations.get("section_inference_engine", "INFERENCE ENGINE")))
 
@@ -2803,7 +2650,6 @@ class Ui_MainWindow(object):
         self.llm_options_label.setFont(font_label)
         self.lineEdit_server = QtWidgets.QLineEdit()
         self.lineEdit_server.setFont(font_input)
-        self.lineEdit_server.setFixedHeight(40)
         self.lineEdit_server.setReadOnly(True)
         self.lineEdit_server.setObjectName("lineEdit_server")
         form_llm_hw.addRow(self.llm_options_label, self.lineEdit_server)
@@ -2812,14 +2658,12 @@ class Ui_MainWindow(object):
         hw_combo_layout.setSpacing(15)
         self.comboBox_llm_devices = QtWidgets.QComboBox()
         self.comboBox_llm_devices.setFont(font_input)
-        self.comboBox_llm_devices.setFixedHeight(40)
         self.comboBox_llm_devices.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.comboBox_llm_devices.addItems(["CPU", "GPU"])
         self.comboBox_llm_devices.setObjectName("comboBox_llm_devices")
         
         self.comboBox_llm_gpu_devices = QtWidgets.QComboBox()
         self.comboBox_llm_gpu_devices.setFont(font_input)
-        self.comboBox_llm_gpu_devices.setFixedHeight(40)
         self.comboBox_llm_gpu_devices.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.comboBox_llm_gpu_devices.addItems(["Vulkan", "CUDA (NVIDIA)", "HIP (AMD)", "SYCL (Intel)"])
         self.comboBox_llm_gpu_devices.setObjectName("comboBox_llm_gpu_devices")
@@ -2863,7 +2707,6 @@ class Ui_MainWindow(object):
         self.kv_cache_label.setFont(font_label)
         self.comboBox_kv_cache = QtWidgets.QComboBox()
         self.comboBox_kv_cache.setFont(font_input)
-        self.comboBox_kv_cache.setFixedHeight(40)
         self.comboBox_kv_cache.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.comboBox_kv_cache.addItems(["f16", "q8_0", "q4_1", "q4_0"])
         self.comboBox_kv_cache.setObjectName("comboBox_kv_cache")
@@ -2953,22 +2796,12 @@ class Ui_MainWindow(object):
         
         self.lineEdit_customArgs = QtWidgets.QLineEdit()
         self.lineEdit_customArgs.setFont(font_input)
-        self.lineEdit_customArgs.setFixedHeight(35)
         self.lineEdit_customArgs.setPlaceholderText(self.translations.get("custom_args_placeholder", "e.g., '--temp 0.8 --name 'My Model'"))
         self.lineEdit_customArgs.setObjectName("lineEdit_customArgs")
         self.lineEdit_customArgs.setToolTip(self.translations.get("custom_args_tooltip", ""))
         self.lineEdit_customArgs.setStyleSheet("""
-            QLineEdit {
-                background: rgba(10, 10, 15, 0.5); 
-                border: 1px solid rgba(255, 255, 255, 0.06); 
-                border-radius: 6px; 
-                padding-left: 10px; 
-                color: #E2E8F0;
-            }
-            QLineEdit:focus {
-                border: 1px solid rgba(96, 165, 250, 0.4); 
-                background: rgba(15, 15, 20, 0.7);
-            }
+            
+            
         """)
         
         custom_args_layout.addWidget(self.custom_args_label)
@@ -2983,8 +2816,10 @@ class Ui_MainWindow(object):
         # -----------------------------------------------------------------
         card_llm_format, l_llm_format = create_glass_card(self.translations.get("llm_format_title", "Prompting & Formatting"))
         form_llm_format = QtWidgets.QFormLayout()
-        form_llm_format.setVerticalSpacing(20)
-        form_llm_format.setHorizontalSpacing(30)
+        form_llm_format.setLabelAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+        form_llm_format.setFormAlignment(Qt.AlignmentFlag.AlignTop)
+        form_llm_format.setVerticalSpacing(12)
+        form_llm_format.setHorizontalSpacing(16)
 
         l_llm_format.addLayout(create_section_header(self.translations.get("section_prompt_structure", "PROMPT STRUCTURE & SYNTAX")))
 
@@ -2992,7 +2827,6 @@ class Ui_MainWindow(object):
         self.chat_template_label.setFont(font_label)
         self.comboBox_chat_template = QtWidgets.QComboBox()
         self.comboBox_chat_template.setFont(font_input)
-        self.comboBox_chat_template.setFixedHeight(40)
         self.comboBox_chat_template.setToolTip(self.translations.get("chat_template_tooltip", ""))
         self.comboBox_chat_template.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.comboBox_chat_template.addItems(["Auto", "ChatML", "Llama-3", "DeepSeek", "Qwen", "Mistral", "Alpaca"])
@@ -3004,7 +2838,6 @@ class Ui_MainWindow(object):
         self.stop_strings_label.setToolTip(self.translations.get("stop_strings_tooltip", ""))
         self.lineEdit_stop_strings = QtWidgets.QLineEdit()
         self.lineEdit_stop_strings.setFont(font_input)
-        self.lineEdit_stop_strings.setFixedHeight(40)
         self.lineEdit_stop_strings.setPlaceholderText(self.translations.get("stop_strings_placeholder", "\\nUser:, </s>, <|eot_id|>, <|im_end|>"))
         self.lineEdit_stop_strings.setObjectName("lineEdit_stop_strings")
         form_llm_format.addRow(self.stop_strings_label, self.lineEdit_stop_strings)
@@ -3370,25 +3203,12 @@ class Ui_MainWindow(object):
         
         self.lineEdit_mcp_url = QtWidgets.QLineEdit()
         self.lineEdit_mcp_url.setFont(font_input)
-        self.lineEdit_mcp_url.setFixedHeight(35)
         self.lineEdit_mcp_url.setPlaceholderText(self.translations.get("mcp_url_placeholder", "e.g., http://127.0.0.1:8000"))
         self.lineEdit_mcp_url.setObjectName("lineEdit_mcp_url")
         self.lineEdit_mcp_url.setStyleSheet("""
-            QLineEdit {
-                background: rgba(10, 10, 15, 0.5); 
-                border: 1px solid rgba(255, 255, 255, 0.06); 
-                border-radius: 6px; 
-                padding-left: 10px; 
-                color: #E2E8F0;
-            }
-            QLineEdit:focus {
-                border: 1px solid rgba(96, 165, 250, 0.4); 
-                background: rgba(15, 15, 20, 0.7);
-            }
-            QLineEdit:disabled {
-                background: rgba(0, 0, 0, 0.2);
-                color: rgba(255, 255, 255, 0.2);
-            }
+            
+            
+            
         """)
         
         mcp_url_layout.addWidget(self.mcp_url_label)
@@ -3418,14 +3238,7 @@ class Ui_MainWindow(object):
         self.checkBox_enable_sow_system = QtWidgets.QCheckBox("Enable Soul of Waifu System")
         self.checkBox_enable_sow_system.setFont(font_label)
         self.checkBox_enable_sow_system.setStyleSheet("""
-            QToolTip { 
-                background-color: rgba(25, 25, 30, 0.95); 
-                color: #E0E0E0; 
-                border: 1px solid rgba(255, 255, 255, 0.15); 
-                border-radius: 6px; 
-                padding: 6px 10px; font-size: 12px; 
-                font-weight: 500; 
-            }
+            
             
             QCheckBox { 
                 color: #ffffff; 
@@ -3480,14 +3293,17 @@ class Ui_MainWindow(object):
         l_visuals.addLayout(create_section_header(self.translations.get("section_render_engine", "RENDER ENGINE")))
         
         form_vis = QtWidgets.QFormLayout()
-        form_vis.setVerticalSpacing(20)
-        form_vis.setHorizontalSpacing(30)
+        
+        form_vis.setLabelAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+        
+        form_vis.setFormAlignment(Qt.AlignmentFlag.AlignTop)
+        form_vis.setVerticalSpacing(12)
+        form_vis.setHorizontalSpacing(16)
 
         self.label_model_fps = QtWidgets.QLabel("Target FPS")
         self.label_model_fps.setFont(font_label)
         self.comboBox_model_fps = QtWidgets.QComboBox()
         self.comboBox_model_fps.setFont(font_input)
-        self.comboBox_model_fps.setFixedHeight(40)
         self.comboBox_model_fps.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.comboBox_model_fps.addItems(["30 FPS", "60 FPS", "120 FPS"])
         self.comboBox_model_fps.setObjectName("comboBox_model_fps")
@@ -3500,14 +3316,17 @@ class Ui_MainWindow(object):
         l_visuals.addLayout(create_section_header(self.translations.get("section_environment_background", "ENVIRONMENT BACKGROUND")))
         
         form_bg = QtWidgets.QFormLayout()
-        form_bg.setVerticalSpacing(20)
-        form_bg.setHorizontalSpacing(30)
+        
+        form_bg.setLabelAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+        
+        form_bg.setFormAlignment(Qt.AlignmentFlag.AlignTop)
+        form_bg.setVerticalSpacing(12)
+        form_bg.setHorizontalSpacing(16)
 
         self.label_model_background = QtWidgets.QLabel("Background Type")
         self.label_model_background.setFont(font_label)
         self.comboBox_model_background = QtWidgets.QComboBox()
         self.comboBox_model_background.setFont(font_input)
-        self.comboBox_model_background.setFixedHeight(40)
         self.comboBox_model_background.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.comboBox_model_background.addItems(["Solid Color", "Image"])
         self.comboBox_model_background.setObjectName("comboBox_model_background")
@@ -3523,7 +3342,6 @@ class Ui_MainWindow(object):
         
         self.comboBox_model_bg_color = QtWidgets.QComboBox()
         self.comboBox_model_bg_color.setFont(font_input)
-        self.comboBox_model_bg_color.setFixedHeight(40)
         self.comboBox_model_bg_color.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.comboBox_model_bg_color.addItems(["Black", "Deep Blue", "Vinous", "Dark Green", "Soft Purple", "Warm Coal Grey"])
         self.comboBox_model_bg_color.setObjectName("comboBox_model_bg_color")
@@ -3533,7 +3351,6 @@ class Ui_MainWindow(object):
         
         self.comboBox_model_bg_image = QtWidgets.QComboBox()
         self.comboBox_model_bg_image.setFont(font_input)
-        self.comboBox_model_bg_image.setFixedHeight(40)
         self.comboBox_model_bg_image.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.comboBox_model_bg_image.setObjectName("comboBox_model_bg_image")
         
@@ -3689,7 +3506,6 @@ class Ui_MainWindow(object):
 
         self.comboBox_ambient_mode = QtWidgets.QComboBox()
         self.comboBox_ambient_mode.setFont(font_input)
-        self.comboBox_ambient_mode.setFixedHeight(38)
         self.comboBox_ambient_mode.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.comboBox_ambient_mode.setObjectName("comboBox_ambient_mode")
 
@@ -3763,14 +3579,7 @@ class Ui_MainWindow(object):
         # Soul Memory
         self.checkBox_enable_soul_memory = QtWidgets.QCheckBox("Enable Soul Memory (Agentic Long-Term Memory)")
         self.checkBox_enable_soul_memory.setStyleSheet("""
-            QToolTip { 
-                background-color: rgba(25, 25, 30, 0.95); 
-                color: #E0E0E0; 
-                border: 1px solid rgba(255, 255, 255, 0.15); 
-                border-radius: 6px; 
-                padding: 6px 10px; font-size: 12px; 
-                font-weight: 500; 
-            }
+            
         """)
         self.checkBox_enable_soul_memory.setFont(font_input)
         self.checkBox_enable_soul_memory.setFocusPolicy(Qt.FocusPolicy.NoFocus)
@@ -3786,7 +3595,6 @@ class Ui_MainWindow(object):
 
         self.comboBox_soul_memory_mode = QtWidgets.QComboBox()
         self.comboBox_soul_memory_mode.setFont(font_input)
-        self.comboBox_soul_memory_mode.setFixedHeight(35)
         self.comboBox_soul_memory_mode.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.comboBox_soul_memory_mode.setObjectName("comboBox_soul_memory_mode")
         self.comboBox_soul_memory_mode.addItems([
@@ -3814,23 +3622,9 @@ class Ui_MainWindow(object):
 
         self.spinBox_soul_memory_batch = QtWidgets.QSpinBox()
         self.spinBox_soul_memory_batch.setStyleSheet("""
-            QSpinBox, QDoubleSpinBox {
-                background: rgba(255, 255, 255, 0.03);
-                border: 1px solid rgba(255, 255, 255, 0.06);
-                border-top: 1px solid rgba(255, 255, 255, 0.12);
-                border-radius: 10px;
-                color: rgba(240, 240, 240, 0.95);
-                font-family: 'Inter Tight Medium'; 
-                font-size: 13px;
-                padding: 8px 14px;
-                padding-right: 28px;
-                selection-background-color: rgba(255, 255, 255, 0.15);
-            }
+            
         
-            QSpinBox:focus, QDoubleSpinBox:focus {
-                border: 1px solid rgba(255, 255, 255, 0.25);
-                background: rgba(255, 255, 255, 0.05);
-            }
+            
         
             QSpinBox::up-button, QDoubleSpinBox::up-button {
                 subcontrol-origin: border;
@@ -3856,33 +3650,14 @@ class Ui_MainWindow(object):
                 border-bottom-right-radius: 8px;
             }
         
-            QSpinBox::up-button:hover, QSpinBox::down-button:hover,
-            QDoubleSpinBox::up-button:hover, QDoubleSpinBox::down-button:hover {
-                background: rgba(255, 255, 255, 0.08);
-            }
+            
         
-            QSpinBox::up-arrow, QDoubleSpinBox::up-arrow {
-                image: url(app/gui/icons/up_arrow.png);
-                width: 10px; 
-                height: 10px;
-            }
+            
         
-            QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {
-                image: url(app/gui/icons/down_arrow.png);
-                width: 10px; 
-                height: 10px;
-            }
-            QToolTip {
-                background-color: rgba(25, 25, 30, 0.95); 
-                color: #E0E0E0; 
-                border: 1px solid rgba(255, 255, 255, 0.15); 
-                border-radius: 6px; 
-                padding: 6px 10px; font-size: 13px; 
-                font-family: 'Inter Tight SemiBold';
-            }
+            
+            
         """)
         self.spinBox_soul_memory_batch.setFont(font_input)
-        self.spinBox_soul_memory_batch.setFixedHeight(35)
         self.spinBox_soul_memory_batch.setFixedWidth(150)
         self.spinBox_soul_memory_batch.setMinimum(0)
         self.spinBox_soul_memory_batch.setMaximum(50)
@@ -3898,14 +3673,7 @@ class Ui_MainWindow(object):
         sum_row.setSpacing(15)      
         self.checkBox_enable_summary = QtWidgets.QCheckBox("Auto-Summarization")
         self.checkBox_enable_summary.setStyleSheet("""
-            QToolTip { 
-                background-color: rgba(25, 25, 30, 0.95); 
-                color: #E0E0E0; 
-                border: 1px solid rgba(255, 255, 255, 0.15); 
-                border-radius: 6px; 
-                padding: 6px 10px; font-size: 12px; 
-                font-weight: 500; 
-            }
+            
         """)
         self.checkBox_enable_summary.setFont(font_input)
         self.checkBox_enable_summary.setFocusPolicy(Qt.FocusPolicy.NoFocus)
@@ -3917,23 +3685,9 @@ class Ui_MainWindow(object):
         
         self.spinBox_summary_interval = QtWidgets.QSpinBox()
         self.spinBox_summary_interval.setStyleSheet("""
-            QSpinBox, QDoubleSpinBox {
-                background: rgba(255, 255, 255, 0.03);
-                border: 1px solid rgba(255, 255, 255, 0.06);
-                border-top: 1px solid rgba(255, 255, 255, 0.12);
-                border-radius: 10px;
-                color: rgba(240, 240, 240, 0.95);
-                font-family: 'Inter Tight Medium'; 
-                font-size: 13px;
-                padding: 8px 14px;
-                padding-right: 28px;
-                selection-background-color: rgba(255, 255, 255, 0.15);
-            }
+            
         
-            QSpinBox:focus, QDoubleSpinBox:focus {
-                border: 1px solid rgba(255, 255, 255, 0.25);
-                background: rgba(255, 255, 255, 0.05);
-            }
+            
         
             QSpinBox::up-button, QDoubleSpinBox::up-button {
                 subcontrol-origin: border;
@@ -3959,33 +3713,14 @@ class Ui_MainWindow(object):
                 border-bottom-right-radius: 8px;
             }
         
-            QSpinBox::up-button:hover, QSpinBox::down-button:hover,
-            QDoubleSpinBox::up-button:hover, QDoubleSpinBox::down-button:hover {
-                background: rgba(255, 255, 255, 0.08);
-            }
+            
         
-            QSpinBox::up-arrow, QDoubleSpinBox::up-arrow {
-                image: url(app/gui/icons/up_arrow.png);
-                width: 10px; 
-                height: 10px;
-            }
+            
         
-            QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {
-                image: url(app/gui/icons/down_arrow.png);
-                width: 10px; 
-                height: 10px;
-            }
-            QToolTip {
-                background-color: rgba(25, 25, 30, 0.95); 
-                color: #E0E0E0; 
-                border: 1px solid rgba(255, 255, 255, 0.15); 
-                border-radius: 6px; 
-                padding: 6px 10px; font-size: 13px; 
-                font-family: 'Inter Tight SemiBold';
-            }
+            
+            
         """)
         self.spinBox_summary_interval.setFont(font_input)
-        self.spinBox_summary_interval.setFixedHeight(35)
         self.spinBox_summary_interval.setFixedWidth(150)
         self.spinBox_summary_interval.setMinimum(5)
         self.spinBox_summary_interval.setObjectName("spinBox_summary_interval")        
@@ -4364,14 +4099,7 @@ class Ui_MainWindow(object):
             QPushButton:pressed {
                 background-color: rgba(168, 85, 247, 0.25);
             }
-            QToolTip { 
-                background-color: rgba(25, 25, 30, 0.95); 
-                color: #E0E0E0; 
-                border: 1px solid rgba(255, 255, 255, 0.15); 
-                border-radius: 6px; 
-                padding: 6px 10px; font-size: 12px; 
-                font-weight: 500; 
-            }
+            
         """)
         self.horizontalLayout_5.addWidget(self.pushButton_force_memory, 0, QtCore.Qt.AlignmentFlag.AlignBottom)
 
@@ -4384,6 +4112,9 @@ class Ui_MainWindow(object):
         self.frame_send_message.setSizePolicy(sizePolicy)
         self.frame_send_message.setMinimumWidth(240)
         self.frame_send_message.setMaximumWidth(900)
+        send_policy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Fixed)
+        send_policy.setHorizontalStretch(1)
+        self.frame_send_message.setSizePolicy(send_policy)
         self.frame_send_message.setMinimumHeight(40)
         self.frame_send_message.setMaximumHeight(40)
         self.frame_send_message.setBaseSize(QtCore.QSize(0, 0))
@@ -4422,14 +4153,7 @@ class Ui_MainWindow(object):
         icon_attach_file = QtGui.QIcon("app/gui/icons/attached.png")
         self.pushButton_attach_file.setIcon(icon_attach_file)
         self.pushButton_attach_file.setStyleSheet("""
-            QToolTip { 
-                background-color: rgba(25, 25, 30, 0.95); 
-                color: #E0E0E0; 
-                border: 1px solid rgba(255, 255, 255, 0.15); 
-                border-radius: 6px; 
-                padding: 6px 10px; font-size: 12px; 
-                font-weight: 500; 
-            }
+            
             QPushButton {
                 background-color: transparent;
                 border: none;
@@ -4514,14 +4238,7 @@ class Ui_MainWindow(object):
                 border: 1px solid rgba(245, 158, 11, 0.8);
                 color: #FDE68A;
             }
-            QToolTip { 
-                background-color: rgba(25, 25, 30, 0.95); 
-                color: #E0E0E0; 
-                border: 1px solid rgba(255, 255, 255, 0.15); 
-                border-radius: 6px; 
-                padding: 6px 10px; font-size: 12px; 
-                font-weight: 500; 
-            }
+            
         """)
         self.pushButton_director_note.setToolTip(self.translations.get("director_note_btn_tooltip", "Narrative Directive"))
         self.pushButton_director_note.setObjectName("pushButton_director_note")
@@ -4553,14 +4270,7 @@ class Ui_MainWindow(object):
                 color: rgba(255, 255, 255, 0.25);
                 background-color: rgba(255, 255, 255, 0.02);
             }
-            QToolTip {
-                background-color: rgba(25, 25, 30, 0.95);
-                color: #E0E0E0;
-                border: 1px solid rgba(255, 255, 255, 0.15);
-                border-radius: 6px;
-                padding: 6px 10px; font-size: 12px;
-                font-weight: 500;
-            }
+            
         """)
         self.pushButton_impersonate.setToolTip(self.translations.get(
             "impersonate_btn_tooltip",
@@ -4598,14 +4308,7 @@ class Ui_MainWindow(object):
                 background-color: rgba(96, 165, 250, 0.25);
                 border: 1px solid rgba(96, 165, 250, 0.8);
             }
-            QToolTip { 
-                background-color: rgba(25, 25, 30, 0.95); 
-                color: #E0E0E0; 
-                border: 1px solid rgba(255, 255, 255, 0.15); 
-                border-radius: 6px; 
-                padding: 6px 10px; font-size: 12px; 
-                font-weight: 500; 
-            }
+            
         """)
         self.horizontalLayout_5.addWidget(self.pushButton_toggle_tools, 0, QtCore.Qt.AlignmentFlag.AlignBottom)
 
@@ -4632,9 +4335,7 @@ class Ui_MainWindow(object):
                 font-size: 13px;
                 padding: 0 10px;
             }
-            QLineEdit::placeholder {
-                color: rgba(253, 230, 138, 0.45);
-            }
+            
         """)
         
         self.layout_dir_note = QtWidgets.QHBoxLayout(self.frame_director_note)
@@ -5683,29 +5384,14 @@ class Ui_MainWindow(object):
         grid.setContentsMargins(12, 12, 12, 12)
         grid.setSpacing(10)
 
-        input_style = (
-            f"QLineEdit {{"
-            f"  background-color: {self._SURF3};"
-            f"  color: {self._TEXT};"
-            f"  border: 1px solid {self._BORDER};"
-            f"  border-radius: 6px;"
-            f"  padding: 8px;"
-            f"}}"
-            f"QLineEdit:focus {{ border-color: {self._BORDER_M}; }}"
-        )
+        input_style = ""
         
         combo_style = f"""
-            QComboBox {{
-                background-color: {self._SURF3}; color: {self._TEXT};
-                border: 1px solid {self._BORDER}; border-radius: 6px; padding: 6px 12px;
-            }}
-            QComboBox:hover {{ border: 1px solid {self._BORDER_M}; }}
-            QComboBox::drop-down {{ border: none; width: 24px; }}
-            QComboBox::down-arrow {{ width: 0; height: 0; border-left: 3px solid transparent; border-right: 3px solid transparent; border-top: 4px solid {self._TEXT_S}; }}
-            QComboBox QAbstractItemView {{
-                background-color: {self._SURF3}; color: {self._TEXT}; border: 1px solid {self._BORDER_M};
-                border-radius: 6px; selection-background-color: {self._SURF2}; outline: none; padding: 2px;
-            }}
+            
+            
+            
+            
+            
         """
 
         font_label = QtGui.QFont("Inter Tight Medium", 8, QtGui.QFont.Weight.Bold)
@@ -5757,7 +5443,7 @@ class Ui_MainWindow(object):
         spin_min = QtWidgets.QSpinBox()
         spin_min.setRange(-999999, 999999)
         spin_min.setValue(0)
-        spin_min.setStyleSheet(input_style.replace("QLineEdit", "QSpinBox") + "QSpinBox::up-button, QSpinBox::down-button { width: 0; height: 0; }")
+        spin_min.setStyleSheet(input_style.replace("QLineEdit", "QSpinBox"))
 
         lbl_max = QtWidgets.QLabel(self.translations.get("var_editor_max_label", "MAX VALUE"))
         lbl_max.setFont(font_label)
@@ -5765,7 +5451,7 @@ class Ui_MainWindow(object):
         spin_max = QtWidgets.QSpinBox()
         spin_max.setRange(-999999, 999999)
         spin_max.setValue(100)
-        spin_max.setStyleSheet(input_style.replace("QLineEdit", "QSpinBox") + "QSpinBox::up-button, QSpinBox::down-button { width: 0; height: 0; }")
+        spin_max.setStyleSheet(input_style.replace("QLineEdit", "QSpinBox"))
 
         lbl_def = QtWidgets.QLabel(self.translations.get("var_editor_default_label", "DEFAULT VALUE"))
         lbl_def.setFont(font_label)
@@ -6466,9 +6152,7 @@ class ModernSearchBar(QtWidgets.QFrame):
                 font-size: 14px;
                 font-family: 'Inter Tight', 'Segoe UI';
             }
-            QLineEdit::placeholder {
-                color: rgba(255, 255, 255, 100);
-            }
+            
         """)
         self.line_edit.textChanged.connect(self._handle_text_change)
         self.line_edit.returnPressed.connect(self.returnPressed)
@@ -6853,11 +6537,11 @@ class AppearanceSettingsTab(QtWidgets.QWidget):
         def swatch_style_pair(user_clr, char_clr, selected=False):
             border = "#666666" if selected else "transparent"
             bg = f"qlineargradient(x1:0,y1:0,x2:1,y2:1, stop:0 {user_clr},stop:0.499 {user_clr}, stop:0.5 {char_clr},stop:1 {char_clr})"
-            return f"QPushButton {{ background: {bg}; border-radius: 8px; border: 2px solid {border}; }} QPushButton:hover {{ border: 2px solid #888888; }} QToolTip {{ background-color: rgba(25, 25, 30, 0.95); color: #E0E0E0; border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 6px; padding: 6px 10px; font-size: 12px; font-weight: 500; }}"
+            return f"QPushButton {{ background: {bg}; border-radius: 8px; border: 2px solid {border}; }} QPushButton:hover {{ border: 2px solid #888888; }} "
 
         def swatch_style_single(clr, selected=False):
             border = "#666666" if selected else "transparent"
-            return f"QPushButton {{ background: {clr}; border-radius: 8px; border: 2px solid {border}; }} QPushButton:hover {{ border: 2px solid #888888; }} QToolTip {{ background-color: rgba(25, 25, 30, 0.95); color: #E0E0E0; border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 6px; padding: 6px 10px; font-size: 12px; font-weight: 500; }}"
+            return f"QPushButton {{ background: {clr}; border-radius: 8px; border: 2px solid {border}; }} QPushButton:hover {{ border: 2px solid #888888; }} "
 
         def create_swatch_grid(items, key, target_dict, apply_fn, is_pair=False):
             wrapper = QtWidgets.QHBoxLayout()
@@ -6933,15 +6617,7 @@ class AppearanceSettingsTab(QtWidgets.QWidget):
             custom_btn.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
             custom_btn.setFont(self.get_font())
             custom_btn.setStyleSheet("""
-                QToolTip {
-                    background-color: rgba(25, 25, 30, 0.95);
-                    color: #E0E0E0;
-                    border: 1px solid rgba(255, 255, 255, 0.15);
-                    border-radius: 6px;
-                    padding: 6px 10px;
-                    font-size: 12px;
-                    font-weight: 500;
-                }
+                
                 QPushButton { background: #232323; color: #777; border-radius: 8px; border: 1px dashed #444; font-size: 16px; }
                 QPushButton:hover { background: #2c2c2c; color: #aaa; border: 1px dashed #666; }
             """)
@@ -7083,13 +6759,11 @@ class AppearanceSettingsTab(QtWidgets.QWidget):
         spin.setRange(8, 48)
         spin.setValue(s.get("font_size", 14))
         spin.setFixedWidth(65)
-        spin.setFixedHeight(28)
         spin.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
         spin.setFont(self.get_font())
         spin.setStyleSheet("""
-            QSpinBox { background: #2A2A2A; color: #E0E0E0; border: 1px solid #3A3A3A;
-                        border-radius: 6px; padding: 0px 8px; font-size: 13px; font-weight: bold;}
-            QSpinBox::up-button, QSpinBox::down-button { width: 0px; }
+            
+            
         """)
         def on_fs(v):
             s["font_size"] = v

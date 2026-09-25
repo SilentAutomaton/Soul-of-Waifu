@@ -966,6 +966,7 @@ if __name__ == "__main__":
 
     app = QApplication(sys.argv)
     theme.install(theme_config)
+    app.setStyleSheet(theme.CONTROLS_QSS)
     if IS_LINUX:
         theme.use_system_hinting()
     if theme_settings["font_family"]:

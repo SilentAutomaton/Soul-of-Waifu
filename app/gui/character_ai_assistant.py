@@ -292,14 +292,8 @@ class ChipSelector(QWidget):
             self.custom_input.setPlaceholderText(custom_placeholder or "Custom… (Enter to add)")
             if custom_tooltip:
                 self.custom_input.setToolTip(custom_tooltip)
-            self.custom_input.setFixedHeight(36)
             self.custom_input.setFont(FONT_INPUT)
-            self.custom_input.setStyleSheet(
-                f"QLineEdit {{ background-color: {SURF2}; color: {TEXT}; border: 1px solid {BORDER};"
-                f" border-radius: 8px; padding: 6px 10px; }}"
-                f"QLineEdit:focus {{ border-color: {ACC_GLO}; background-color: {SURF3}; }}"
-                f"QToolTip {{ background-color: rgba(25, 25, 30, 0.95); color: #E0E0E0; border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 6px; padding: 6px 10px; font-size: 13px; font-family: 'Inter Tight SemiBold';}}"
-            )
+            self.custom_input.setStyleSheet("")
             self.custom_input.returnPressed.connect(self._add_custom)
 
             self.add_btn = QPushButton("+")
@@ -314,7 +308,6 @@ class ChipSelector(QWidget):
                 f"QPushButton {{ background-color: {ACC_MUT}; color: {ACC_BRT};"
                 f" border: 1px solid {ACC_GLO}; border-radius: 8px; font-size: 16px; }}"
                 f"QPushButton:hover {{ background-color: {ACC_GLO}; color: {TEXT}; }}"
-                f"QToolTip {{ background-color: rgba(25, 25, 30, 0.95); color: #E0E0E0; border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 6px; padding: 6px 10px; font-size: 13px; font-family: 'Inter Tight SemiBold';}}"
             )
             self.add_btn.clicked.connect(self._add_custom)
 
@@ -372,13 +365,7 @@ class AutoTextEdit(QTextEdit):
         self.setFixedHeight(max(self._min_h, min(self._max_h, doc_h)))
 
 
-INPUT_STYLE = (
-    f"QLineEdit, QTextEdit {{"
-    f"  background-color: {SURF2}; color: {TEXT}; border: 1px solid {BORDER};"
-    f"  border-radius: 8px; padding: 10px; selection-background-color: {ACC_MUT};"
-    f"}}"
-    f"QLineEdit:focus, QTextEdit:focus {{ border-color: {ACC_GLO}; background-color: {SURF3}; }}"
-)
+INPUT_STYLE = ""
 
 
 def make_card(title_text: Optional[str] = None, subtitle: Optional[str] = None,
@@ -395,7 +382,7 @@ def make_card(title_text: Optional[str] = None, subtitle: Optional[str] = None,
         f"  border-radius: 10px;"
         f"}}"
         f"QFrame#AICard QLabel {{ background: transparent; border: none; }}"
-        f"QFrame#AICard QToolTip {{ background-color: rgba(25, 25, 30, 0.95); color: #E0E0E0; border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 6px; padding: 6px 10px; font-size: 13px; font-family: 'Inter Tight SemiBold';}}"
+        f"QFrame#AICard "
     )
     layout = QVBoxLayout(card)
     layout.setContentsMargins(22, 18, 22, 18)
@@ -715,7 +702,6 @@ class CharacterAIAssistantDialog(QDialog):
                 f"QPushButton:hover {{ background-color: {ACC_BRT}; }}"
                 f"QPushButton:pressed {{ background-color: #9333EA; }}"
                 f"QPushButton:disabled {{ background-color: {SURF3}; color: {TEXT_FAINT}; }}"
-                f"QToolTip {{ background-color: rgba(25, 25, 30, 0.95); color: #E0E0E0; border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 6px; padding: 6px 10px; font-size: 13px; font-family: 'Inter Tight SemiBold';}}"
             )
         else:
             btn.setStyleSheet(
@@ -723,7 +709,6 @@ class CharacterAIAssistantDialog(QDialog):
                 f"QPushButton:hover {{ background-color: {SURF3}; color: {TEXT}; border-color: {BORDER_H}; }}"
                 f"QPushButton:pressed {{ background-color: {SURF4}; }}"
                 f"QPushButton:disabled {{ color: {TEXT_FAINT}; border-color: {BORDER}; }}"
-                f"QToolTip {{ background-color: rgba(25, 25, 30, 0.95); color: #E0E0E0; border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 6px; padding: 6px 10px; font-size: 13px; font-family: 'Inter Tight SemiBold';}}"
             )
         return btn
 
@@ -1152,9 +1137,7 @@ class CharacterAIAssistantDialog(QDialog):
         self.stream_output.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.stream_output.setFixedHeight(140)
         self.stream_output.setFont(FONT_MONO)
-        self.stream_output.setStyleSheet(
-            f"QTextEdit {{ background-color: {SURF2}; color: {TEXT_S}; border: 1px solid {BORDER}; border-radius: 8px; padding: 10px; }}"
-        )
+        self.stream_output.setStyleSheet("")
         stream_cl.addWidget(self.stream_output)
         self.stream_card.hide()
         layout.addWidget(self.stream_card)

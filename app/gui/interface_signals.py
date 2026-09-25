@@ -47,6 +47,7 @@ from PyQt6.QtWidgets import (
 
 from app.gui.character_ai_assistant import CharacterAIAssistantDialog
 from app.utils import platform_compat
+from app.gui.theme import CONTROLS_QSS
 from app.utils.discord_rpc import DiscordRPCManager
 from app.utils.ai_clients.local_server_manager import LocalServerManager
 from app.utils.ai_clients.prompt_engine import (
@@ -574,17 +575,9 @@ class InterfaceSignals():
         self.lineEdit_search_options.setObjectName("lineEdit_search_options")
         self.lineEdit_search_options.setPlaceholderText(self.translations.get("search_settings_placeholder", "Search settings..."))
         self.lineEdit_search_options.setClearButtonEnabled(True)
-        self.lineEdit_search_options.setFixedHeight(36)
         self.lineEdit_search_options.setStyleSheet("""
-            QLineEdit {
-                background-color: rgba(20, 20, 24, 0.9);
-                color: #E0E0E0;
-                border: 1px solid rgba(255, 255, 255, 0.12);
-                border-radius: 8px;
-                padding: 6px 12px;
-                font-size: 12px;
-            }
-            QLineEdit:focus { border-color: rgba(59, 130, 246, 0.55); }
+            
+            
         """)
         self.lineEdit_search_options.textChanged.connect(self._on_options_search_changed)
         lay.addWidget(self.lineEdit_search_options)
@@ -781,9 +774,8 @@ class InterfaceSignals():
         TITLE_SS = ("color: rgba(255,255,255,0.95); font-family: 'Inter Tight SemiBold';"
                     " font-size: 17px; font-weight: bold;")
         SUB_SS = "color: rgba(255,255,255,0.5); font-size: 12px;"
-        INPUT_SS = ("QLineEdit { background-color: rgba(15,15,18,0.6); color: #e0e0e0;"
-                    " border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; padding: 7px 11px; font-size: 12px; }"
-                    "QLineEdit:focus { border-color: rgba(59,130,246,0.55); }")
+        INPUT_SS = (""
+                    "")
         BTN_ACCENT_SS = ("QPushButton { background-color: rgba(59,130,246,0.2); color: #BFDBFE;"
                          " border: 1px solid rgba(59,130,246,0.45); border-radius: 9px;"
                          " padding: 0 20px; font-weight: bold; font-size: 13px; }"
@@ -2156,7 +2148,7 @@ class InterfaceSignals():
 
         app = QApplication.instance()
         if app:
-            app.setStyleSheet(qss)
+            app.setStyleSheet(CONTROLS_QSS + qss)
 
         self.configuration_settings.update_main_setting("gui_theme", theme_name)
 
@@ -2175,7 +2167,7 @@ class InterfaceSignals():
                 background-color: transparent;
                 text-align: left;
                 padding-left: 10px;
-                height: 50px;
+                height: 40px;
             }}
             QPushButton:hover {{
                 background-color: {hv};
@@ -2291,15 +2283,7 @@ class InterfaceSignals():
         dialog.setMinimumSize(700, 600)
         dialog.setStyleSheet("""
             QDialog { background-color: #1e1e1e; }
-            QTextEdit {
-                background-color: #151518;
-                color: #a0a0b0;
-                font-family: 'Consolas', 'Courier New';
-                font-size: 13px;
-                border: 1px solid #333;
-                border-radius: 8px;
-                padding: 10px;
-            }
+            
             QLabel { color: #d0d0d0; font-family: 'Inter Tight SemiBold'; font-size: 14px; }
         """)
         
@@ -4625,19 +4609,8 @@ class InterfaceSignals():
                         background: transparent; 
                         border: none; 
                     }
-                    QTextEdit {
-                        background: rgba(0, 0, 0, 0.2);
-                        border: 1px solid rgba(255, 255, 255, 0.08);
-                        border-top: 1px solid rgba(255, 255, 255, 0.15);
-                        border-radius: 8px;
-                        color: rgba(240, 240, 240, 0.95);
-                        padding: 12px 14px;
-                        selection-background-color: rgba(255, 255, 255, 0.20);
-                    }
-                    QTextEdit:focus {
-                        background: rgba(255, 255, 255, 0.04);
-                        border: 1px solid rgba(255, 255, 255, 0.25);
-                    }
+                    
+                    
                 """)
                 
                 def _set_font(widget, family="Inter Tight Medium", size=12, bold=False):
@@ -6353,25 +6326,16 @@ class InterfaceSignals():
         f = QtGui.QFont()
         f.setHintingPreference(QtGui.QFont.HintingPreference.PreferNoHinting)
         sort_combo.setFont(f)
-        sort_combo.setFixedHeight(34)
         sort_combo.setMinimumWidth(180)
         sort_combo.setCursor(Qt.CursorShape.PointingHandCursor)
         sort_combo.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         sort_combo.setStyleSheet("""
-            QComboBox { background-color: rgba(255,255,255,0.05); color: #e0e0e0;
-                        border: 1px solid rgba(255,255,255,0.14); border-radius: 15px;
-                        padding: 4px 14px; font-size: 12px;
-                        font-family: 'Inter Tight SemiBold'; }
-            QComboBox:hover { border-color: rgba(255,255,255,0.3);
-                              background-color: rgba(255,255,255,0.09); }
-            QComboBox::drop-down { border: none; width: 22px; }
-            QComboBox::down-arrow { width: 0; height: 0;
-                border-left: 4px solid transparent; border-right: 4px solid transparent;
-                border-top: 5px solid rgba(255,255,255,0.55); }
-            QComboBox QAbstractItemView { background-color: rgb(24,24,30); color: #e0e0e0;
-                border: 1px solid rgba(255,255,255,0.15); border-radius: 8px;
-                selection-background-color: rgba(59,130,246,0.3); outline: none; }
-            QComboBox QAbstractItemView::item { padding: 7px 12px; border-radius: 5px; min-height: 22px; }
+            
+            
+            
+            
+            
+            
         """)
         modes = [
             ("name_asc", tr.get("hub_sort_name_asc", "Name  A → Z")),
@@ -7106,21 +7070,7 @@ class InterfaceSignals():
         name_edit = QLineEdit(character_name)
         name_edit.setObjectName("IGNameInput")
         name_edit.setFont(f_title)
-        name_edit.setStyleSheet(
-            f"QLineEdit#IGNameInput {{"
-            f"  background-color: {_SURF2};"
-            f"  color: {_TEXT};"
-            f"  border: 1px solid {_BORDER};"
-            f"  border-radius: 8px;"
-            f"  padding: 8px 12px;"
-            f"  selection-background-color: {_BLUE_MUT};"
-            f"}}"
-            f"QLineEdit#IGNameInput:focus {{"
-            f"  border-color: {_BORDER_M};"
-            f"  background-color: {_SURF3};"
-            f"}}"
-        )
-        name_edit.setFixedHeight(38)
+        name_edit.setStyleSheet("")
         left_layout.addWidget(name_edit)
 
         nav_title = QLabel(self.translations.get("character_settings_nav_label", "CONFIGURATION"))
@@ -7400,38 +7350,18 @@ class InterfaceSignals():
             if placeholder: 
                 text_edit.setPlaceholderText(placeholder)
             
-            text_edit.setStyleSheet(
-                f"QTextEdit {{"
-                f"  background-color: {_SURF2};"
-                f"  color: {_TEXT};"
-                f"  border: 1px solid {_BORDER};"
-                f"  border-radius: 8px;"
-                f"  padding: 12px 14px;"
-                f"  selection-background-color: {_BLUE_MUT};"
-                f"  line-height: 1.4;"
-                f"}}"
-                f"QTextEdit:focus {{"
-                f"  border-color: {_BORDER_M};"
-                f"  background-color: {_SURF3};"
-                f"}}"
-            )
+            text_edit.setStyleSheet("")
             text_edit.setMinimumHeight(180)
             layout.addWidget(text_edit)
             return text_edit
 
         combo_style = f"""
-            QComboBox {{
-                background-color: {_SURF2}; color: {_TEXT};
-                border: 1px solid {_BORDER}; border-radius: 8px; padding: 10px 15px;
-            }}
-            QComboBox:hover {{ border: 1px solid {_BORDER_M}; }}
-            QComboBox::drop-down {{ border: none; width: 30px; }}
-            QComboBox::down-arrow {{ width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 5px solid {_TEXT_S}; }}
-            QComboBox QAbstractItemView {{
-                background-color: {_SURF3}; color: {_TEXT}; border: 1px solid {_BORDER_M};
-                border-radius: 8px; selection-background-color: {_SURF2}; outline: none; padding: 4px;
-            }}
-            QComboBox QAbstractItemView::item {{ padding: 8px; border-radius: 4px; }}
+            
+            
+            
+            
+            
+            
         """
 
         def create_combo_section(parent_layout, label_text, items, current_text, callback):
@@ -7443,7 +7373,6 @@ class InterfaceSignals():
             combo = QtWidgets.QComboBox()
             combo.setFont(f_input)
             combo.setStyleSheet(combo_style)
-            combo.setFixedHeight(40)
             combo.addItems(items)
             combo.setCurrentText(current_text)
             combo.currentTextChanged.connect(callback)
@@ -7764,7 +7693,6 @@ class InterfaceSignals():
         tags_row.setSpacing(8)
         tags_input = QtWidgets.QLineEdit()
         tags_input.setFont(f_input)
-        tags_input.setFixedHeight(40)
         tags_input.setPlaceholderText(self.translations.get(
             "hub_tags_placeholder", "fantasy, adventure, magic..."))
         tags_input.setStyleSheet(combo_style)
@@ -7827,7 +7755,6 @@ class InterfaceSignals():
         chat_combobox = QtWidgets.QComboBox()
         chat_combobox.setFont(f_input)
         chat_combobox.setStyleSheet(combo_style)
-        chat_combobox.setFixedHeight(40)
 
         chats = character_information.get("chats", {})
         current_chat_id = character_information.get("current_chat", None)
@@ -8641,23 +8568,9 @@ class InterfaceSignals():
                 font-size: 13px;
                 padding: 40px;
             }
-            QLineEdit {
-                background: rgba(255, 255, 255, 0.035); 
-                color: rgba(255, 255, 255, 0.95);
-                border: 1px solid rgba(255, 255, 255, 0.07); 
-                border-radius: 10px; 
-                padding: 14px 16px; 
-                font-size: 14px;
-                selection-background-color: rgba(255, 255, 255, 0.2);
-            }
-            QLineEdit:focus { 
-                border: 1px solid rgba(255, 255, 255, 0.25); 
-                background: rgba(255, 255, 255, 0.05); 
-            }
-            QLineEdit:hover {
-                background: rgba(255, 255, 255, 0.045);
-                border: 1px solid rgba(255, 255, 255, 0.12);
-            }
+            
+            
+            
             QListWidget {
                 background: rgba(255, 255, 255, 0.015);
                 border: 1px solid rgba(255, 255, 255, 0.05);
@@ -8977,23 +8890,9 @@ class InterfaceSignals():
                 font-size: 11px;
                 padding-left: 4px;
             }
-            QLineEdit {
-                background: rgba(255, 255, 255, 0.035); 
-                color: rgba(255, 255, 255, 0.95);
-                border: 1px solid rgba(255, 255, 255, 0.07); 
-                border-radius: 10px; 
-                padding: 14px 16px; 
-                font-size: 14px;
-                selection-background-color: rgba(255, 255, 255, 0.2);
-            }
-            QLineEdit:focus { 
-                border: 1px solid rgba(255, 255, 255, 0.25); 
-                background: rgba(255, 255, 255, 0.05); 
-            }
-            QLineEdit:hover {
-                background: rgba(255, 255, 255, 0.045);
-                border: 1px solid rgba(255, 255, 255, 0.12);
-            }
+            
+            
+            
             QListWidget {
                 background: rgba(255, 255, 255, 0.015);
                 border: 1px solid rgba(255, 255, 255, 0.05);
@@ -12410,20 +12309,7 @@ class InterfaceSignals():
 
         lbl_style = f"color: {_TEXT_S}; letter-spacing: 0.8px; border: none; background: transparent; margin-bottom: 2px;"
 
-        input_style = (
-            f"QLineEdit {{"
-            f"  background-color: {_SURF3};"
-            f"  color: {_TEXT};"
-            f"  border: 1px solid {_BORDER};"
-            f"  border-radius: 8px;"
-            f"  padding: 10px;"
-            f"  selection-background-color: {_BLUE_MUT};"
-            f"}}"
-            f"QLineEdit:focus {{"
-            f"  border-color: {_BORDER_M};"
-            f"  background-color: {_SURF2};"
-            f"}}"
-        )
+        input_style = ""
 
         layout = QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
@@ -12533,18 +12419,12 @@ class InterfaceSignals():
         lbl_style = f"color: {_TEXT_S}; letter-spacing: 0.8px; border: none; background: transparent; margin-bottom: 2px;"
 
         combo_style = f"""
-            QComboBox {{
-                background-color: {_SURF2}; color: {_TEXT};
-                border: 1px solid {_BORDER}; border-radius: 8px; padding: 8px 12px;
-            }}
-            QComboBox:hover {{ border: 1px solid {_BORDER_M}; }}
-            QComboBox::drop-down {{ border: none; width: 24px; }}
-            QComboBox::down-arrow {{ width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 5px solid {_TEXT_S}; }}
-            QComboBox QAbstractItemView {{
-                background-color: {_SURF3}; color: {_TEXT}; border: 1px solid {_BORDER_M};
-                border-radius: 8px; selection-background-color: {_SURF2}; outline: none; padding: 4px;
-            }}
-            QComboBox QAbstractItemView::item {{ padding: 6px; border-radius: 4px; }}
+            
+            
+            
+            
+            
+            
         """
 
         layout = QVBoxLayout()
@@ -12789,18 +12669,12 @@ class InterfaceSignals():
         lbl_style = f"color: {_TEXT_S}; letter-spacing: 0.8px; border: none; background: transparent; margin-bottom: 2px;"
 
         combo_style = f"""
-            QComboBox {{
-                background-color: {_SURF2}; color: {_TEXT};
-                border: 1px solid {_BORDER}; border-radius: 8px; padding: 8px 12px;
-            }}
-            QComboBox:hover {{ border: 1px solid {_BORDER_M}; }}
-            QComboBox::drop-down {{ border: none; width: 24px; }}
-            QComboBox::down-arrow {{ width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 5px solid {_TEXT_S}; }}
-            QComboBox QAbstractItemView {{
-                background-color: {_SURF3}; color: {_TEXT}; border: 1px solid {_BORDER_M};
-                border-radius: 8px; selection-background-color: {_SURF2}; outline: none; padding: 4px;
-            }}
-            QComboBox QAbstractItemView::item {{ padding: 6px; border-radius: 4px; }}
+            
+            
+            
+            
+            
+            
         """
 
         layout = QVBoxLayout()
@@ -13073,18 +12947,12 @@ class InterfaceSignals():
         lbl_style = f"color: {_TEXT_S}; letter-spacing: 0.8px; border: none; background: transparent; margin-bottom: 2px;"
 
         combo_style = f"""
-            QComboBox {{
-                background-color: {_SURF2}; color: {_TEXT};
-                border: 1px solid {_BORDER}; border-radius: 8px; padding: 8px 12px;
-            }}
-            QComboBox:hover {{ border: 1px solid {_BORDER_M}; }}
-            QComboBox::drop-down {{ border: none; width: 24px; }}
-            QComboBox::down-arrow {{ width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 5px solid {_TEXT_S}; }}
-            QComboBox QAbstractItemView {{
-                background-color: {_SURF3}; color: {_TEXT}; border: 1px solid {_BORDER_M};
-                border-radius: 8px; selection-background-color: {_SURF2}; outline: none; padding: 4px;
-            }}
-            QComboBox QAbstractItemView::item {{ padding: 6px; border-radius: 4px; }}
+            
+            
+            
+            
+            
+            
         """
 
         layout = QVBoxLayout()
@@ -13315,18 +13183,12 @@ class InterfaceSignals():
         lbl_style = f"color: {_TEXT_S}; letter-spacing: 0.8px; border: none; background: transparent; margin-bottom: 2px;"
 
         combo_style = f"""
-            QComboBox {{
-                background-color: {_SURF2}; color: {_TEXT};
-                border: 1px solid {_BORDER}; border-radius: 8px; padding: 10px 15px;
-            }}
-            QComboBox:hover {{ border: 1px solid {_BORDER_M}; }}
-            QComboBox::drop-down {{ border: none; width: 24px; }}
-            QComboBox::down-arrow {{ width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 5px solid {_TEXT_S}; }}
-            QComboBox QAbstractItemView {{
-                background-color: {_SURF3}; color: {_TEXT}; border: 1px solid {_BORDER_M};
-                border-radius: 8px; selection-background-color: {_SURF2}; outline: none; padding: 4px;
-            }}
-            QComboBox QAbstractItemView::item {{ padding: 6px; border-radius: 4px; }}
+            
+            
+            
+            
+            
+            
         """
 
         layout = QVBoxLayout()
@@ -13526,34 +13388,15 @@ class InterfaceSignals():
 
         lbl_style = f"color: {_TEXT_S}; letter-spacing: 0.8px; border: none; background: transparent; margin-bottom: 2px;"
 
-        input_style = (
-            f"QLineEdit {{"
-            f"  background-color: {_SURF3};"
-            f"  color: {_TEXT};"
-            f"  border: 1px solid {_BORDER};"
-            f"  border-radius: 8px;"
-            f"  padding: 10px;"
-            f"  selection-background-color: {_BLUE_MUT};"
-            f"}}"
-            f"QLineEdit:focus {{"
-            f"  border-color: {_BORDER_M};"
-            f"  background-color: {_SURF2};"
-            f"}}"
-        )
+        input_style = ""
 
         combo_style = f"""
-            QComboBox {{
-                background-color: {_SURF2}; color: {_TEXT};
-                border: 1px solid {_BORDER}; border-radius: 8px; padding: 8px 12px;
-            }}
-            QComboBox:hover {{ border: 1px solid {_BORDER_M}; }}
-            QComboBox::drop-down {{ border: none; width: 24px; }}
-            QComboBox::down-arrow {{ width: 0; height: 0; border-left: 3px solid transparent; border-right: 3px solid transparent; border-top: 4px solid {_TEXT_S}; }}
-            QComboBox QAbstractItemView {{
-                background-color: {_SURF3}; color: {_TEXT}; border: 1px solid {_BORDER_M};
-                border-radius: 8px; selection-background-color: {_SURF2}; outline: none; padding: 4px;
-            }}
-            QComboBox QAbstractItemView::item {{ padding: 6px; border-radius: 4px; }}
+            
+            
+            
+            
+            
+            
         """
 
         layout = QVBoxLayout()
@@ -14209,18 +14052,12 @@ class InterfaceSignals():
         lbl_style = f"color: {_TEXT_S}; letter-spacing: 0.8px; border: none; background: transparent; margin-bottom: 2px;"
 
         combo_style = f"""
-            QComboBox {{
-                background-color: {_SURF2}; color: {_TEXT};
-                border: 1px solid {_BORDER}; border-radius: 8px; padding: 10px 15px;
-            }}
-            QComboBox:hover {{ border: 1px solid {_BORDER_M}; }}
-            QComboBox::drop-down {{ border: none; width: 24px; }}
-            QComboBox::down-arrow {{ width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 5px solid {_TEXT_S}; }}
-            QComboBox QAbstractItemView {{
-                background-color: {_SURF3}; color: {_TEXT}; border: 1px solid {_BORDER_M};
-                border-radius: 8px; selection-background-color: {_SURF2}; outline: none; padding: 4px;
-            }}
-            QComboBox QAbstractItemView::item {{ padding: 6px; border-radius: 4px; }}
+            
+            
+            
+            
+            
+            
         """
 
         layout = QVBoxLayout()
@@ -14343,18 +14180,12 @@ class InterfaceSignals():
         lbl_style = f"color: {_TEXT_S}; letter-spacing: 0.8px; border: none; background: transparent; margin-bottom: 2px;"
 
         combo_style = f"""
-            QComboBox {{
-                background-color: {_SURF2}; color: {_TEXT};
-                border: 1px solid {_BORDER}; border-radius: 8px; padding: 10px 15px;
-            }}
-            QComboBox:hover {{ border: 1px solid {_BORDER_M}; }}
-            QComboBox::drop-down {{ border: none; width: 24px; }}
-            QComboBox::down-arrow {{ width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 5px solid {_TEXT_S}; }}
-            QComboBox QAbstractItemView {{
-                background-color: {_SURF3}; color: {_TEXT}; border: 1px solid {_BORDER_M};
-                border-radius: 8px; selection-background-color: {_SURF2}; outline: none; padding: 4px;
-            }}
-            QComboBox QAbstractItemView::item {{ padding: 6px; border-radius: 4px; }}
+            
+            
+            
+            
+            
+            
         """
 
         layout = QVBoxLayout()
@@ -14512,18 +14343,12 @@ class InterfaceSignals():
         lbl_style = f"color: {_TEXT_S}; letter-spacing: 0.8px; border: none; background: transparent; margin-bottom: 2px;"
 
         combo_style = f"""
-            QComboBox {{
-                background-color: {_SURF2}; color: {_TEXT};
-                border: 1px solid {_BORDER}; border-radius: 8px; padding: 10px 15px;
-            }}
-            QComboBox:hover {{ border: 1px solid {_BORDER_M}; }}
-            QComboBox::drop-down {{ border: none; width: 24px; }}
-            QComboBox::down-arrow {{ width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 5px solid {_TEXT_S}; }}
-            QComboBox QAbstractItemView {{
-                background-color: {_SURF3}; color: {_TEXT}; border: 1px solid {_BORDER_M};
-                border-radius: 8px; selection-background-color: {_SURF2}; outline: none; padding: 4px;
-            }}
-            QComboBox QAbstractItemView::item {{ padding: 6px; border-radius: 4px; }}
+            
+            
+            
+            
+            
+            
         """
 
         layout = QVBoxLayout()
@@ -15945,21 +15770,7 @@ class InterfaceSignals():
             text_edit.setFont(f_input)
             text_edit.setPlainText(str(content))
             text_edit.setReadOnly(True)
-            text_edit.setStyleSheet(
-                f"QTextEdit {{"
-                f"  background-color: {_SURF2};"
-                f"  color: {_TEXT};"
-                f"  border: 1px solid {_BORDER};"
-                f"  border-radius: 8px;"
-                f"  padding: 12px 14px;"
-                f"  line-height: 1.5;"
-                f"  selection-background-color: {_WHITE_MUT};"
-                f"}}"
-                f"QTextEdit:focus {{"
-                f"  border-color: {_BORDER_M};"
-                f"  background-color: {_SURF3};"
-                f"}}"
-            )
+            text_edit.setStyleSheet("")
             text_edit.setMinimumHeight(150)
             layout.addWidget(text_edit)
 
@@ -18436,21 +18247,7 @@ class InterfaceSignals():
         name_edit = QLineEdit(character_name, dialog)
         name_edit.setObjectName("IGNameInput")
         name_edit.setFont(f_title)
-        name_edit.setStyleSheet(
-            f"QLineEdit#IGNameInput {{"
-            f"  background-color: {_SURF2};"
-            f"  color: {_TEXT};"
-            f"  border: 1px solid {_BORDER};"
-            f"  border-radius: 8px;"
-            f"  padding: 8px 12px;"
-            f"  selection-background-color: {_BLUE_MUT};"
-            f"}}"
-            f"QLineEdit#IGNameInput:focus {{"
-            f"  border-color: {_BORDER_M};"
-            f"  background-color: {_SURF3};"
-            f"}}"
-        )
-        name_edit.setFixedHeight(38)
+        name_edit.setStyleSheet("")
         sidebar_layout.addWidget(name_edit)
 
         nav_lbl = QLabel(self.translations.get("character_settings_nav_label", "CONFIGURATION"))
@@ -18591,21 +18388,7 @@ class InterfaceSignals():
             if placeholder:
                 text_edit.setPlaceholderText(placeholder)
             
-            text_edit.setStyleSheet(
-                f"QTextEdit {{"
-                f"  background-color: {_SURF2};"
-                f"  color: {_TEXT};"
-                f"  border: 1px solid {_BORDER};"
-                f"  border-radius: 8px;"
-                f"  padding: 12px 14px;"
-                f"  selection-background-color: {_BLUE_MUT};"
-                f"  line-height: 1.4;"
-                f"}}"
-                f"QTextEdit:focus {{"
-                f"  border-color: {_BORDER_M};"
-                f"  background-color: {_SURF3};"
-                f"}}"
-            )
+            text_edit.setStyleSheet("")
             text_edit.setMinimumHeight(180)
             layout.addWidget(text_edit)
             return text_edit
@@ -21134,19 +20917,8 @@ Image prompt:"""
         
         s = self.get_chat_appearance()
         edit_box.setStyleSheet(f"""
-            QTextEdit {{
-                background-color: rgba(0, 0, 0, 0.25);
-                color: {s['text_color']};
-                border: 1px solid rgba(255, 255, 255, 0.15);
-                border-radius: 8px;
-                padding: 10px;
-                font-family: 'Inter Tight Medium';
-                font-size: {s['font_size']}px;
-            }}
-            QTextEdit:focus {{
-                border: 1px solid rgba(255, 255, 255, 0.35);
-                background-color: rgba(0, 0, 0, 0.4);
-            }}
+            
+            
             QScrollBar:vertical {{
                 background: transparent; width: 6px; margin: 0px;
             }}

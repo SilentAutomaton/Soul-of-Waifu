@@ -5042,19 +5042,8 @@ class CompanionTextInputOverlay(QtWidgets.QLineEdit):
 
         self.setPlaceholderText(t("sc_input_placeholder", "Write your text..."))
         self.setStyleSheet("""
-            QLineEdit {
-                background-color: rgba(24, 24, 32, 0.85);
-                color: #FFFFFF;
-                border: 1px solid rgba(255, 255, 255, 0.2);
-                border-radius: 12px;
-                padding: 6px 12px;
-                font-family: 'Comfortaa', 'Segoe UI', sans-serif;
-                font-size: 12px;
-            }
-            QLineEdit:focus {
-                border: 1px solid #A78BFA;
-                background-color: rgba(24, 24, 32, 0.95);
-            }
+            
+            
         """)
         
         shadow = QGraphicsDropShadowEffect(self)

@@ -25,7 +25,9 @@ from pathlib import Path
 from PyQt6 import sip
 from PyQt6.QtCore import Qt, QObject, pyqtSignal, QFileSystemWatcher, QTimer
 from PyQt6.QtGui import QColor, QFont, QFontDatabase, QGuiApplication, QPalette
-from PyQt6.QtWidgets import QWidget, QApplication
+from PyQt6.QtWidgets import (
+    QWidget, QApplication, QComboBox, QLineEdit, QAbstractSpinBox, QTextEdit, QPlainTextEdit,
+)
 
 BUILTIN_DIR = Path(__file__).resolve().parent / "themes"
 USER_DIR = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config")) / "soul-of-waifu" / "themes"
@@ -81,6 +83,86 @@ ACCENT_FAMILIES = [
     ((240, 300), (0.35, 1.0), "#8B5CF6"),
     ((34, 48), (0.45, 0.8), "#C49A38"),
 ]
+
+# One look for every form field, set on the application. Local style sheets only restyle
+# fields that belong to another element (chat input, search bars, message views).
+# Sizes follow the compact control scale: 32 px high, 8 px radius, 4 px grid.
+CONTROL_HEIGHT = 32
+CONTROLS_QSS = """
+QComboBox, QFontComboBox, QLineEdit, QSpinBox, QDoubleSpinBox {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: #E3E3E3;
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    border-radius: 8px;
+    padding: 4px 10px;
+    min-height: 22px;
+    selection-background-color: rgba(75, 184, 255, 0.35);
+}
+QTextEdit, QPlainTextEdit {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: #E3E3E3;
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    border-radius: 8px;
+    padding: 6px 8px;
+    selection-background-color: rgba(75, 184, 255, 0.35);
+}
+QComboBox:hover, QFontComboBox:hover, QLineEdit:hover, QSpinBox:hover, QDoubleSpinBox:hover,
+QTextEdit:hover, QPlainTextEdit:hover {
+    border: 1px solid rgba(255, 255, 255, 0.18);
+}
+QComboBox:focus, QFontComboBox:focus, QLineEdit:focus, QSpinBox:focus, QDoubleSpinBox:focus,
+QTextEdit:focus, QPlainTextEdit:focus {
+    border: 1px solid #4BB8FF;
+}
+QComboBox:disabled, QLineEdit:disabled, QSpinBox:disabled, QDoubleSpinBox:disabled,
+QTextEdit:disabled, QPlainTextEdit:disabled {
+    color: #6F6B63;
+    background-color: rgba(255, 255, 255, 0.03);
+}
+QComboBox::drop-down, QFontComboBox::drop-down {
+    subcontrol-origin: padding;
+    subcontrol-position: center right;
+    width: 20px;
+    border: none;
+}
+QComboBox::down-arrow, QFontComboBox::down-arrow {
+    image: url(:/sowInterface/arrowDown.png);
+    width: 10px;
+    height: 10px;
+}
+QComboBox QAbstractItemView, QFontComboBox QAbstractItemView {
+    background-color: #161616;
+    color: #E3E3E3;
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    border-radius: 8px;
+    padding: 4px;
+    outline: none;
+    selection-background-color: #2B2B2B;
+    selection-color: #FFFFFF;
+}
+QComboBox QAbstractItemView::item {
+    min-height: 24px;
+    padding: 2px 8px;
+    border-radius: 6px;
+}
+QSpinBox, QDoubleSpinBox {
+    padding: 2px 8px;
+    min-height: 23px;
+}
+QSpinBox::up-button, QSpinBox::down-button, QDoubleSpinBox::up-button, QDoubleSpinBox::down-button {
+    width: 16px;
+    border: none;
+    background: transparent;
+}
+QToolTip {
+    background-color: rgba(25, 25, 30, 0.95);
+    color: #E0E0E0;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 12px;
+}
+"""
 
 COLOR_RE = re.compile(
     r"#(?P<hex>[0-9a-fA-F]{6}|[0-9a-fA-F]{3})\b"
@@ -217,9 +299,26 @@ def token(name):
     return QColor(_theme.tokens[name])
 
 
+_FIELDS = (QComboBox, QLineEdit, QAbstractSpinBox, QTextEdit, QPlainTextEdit)
+# A container sheet without selectors, or with a rule for *, QWidget or QFrame, reaches the
+# fields inside it and beats the application sheet (the closest sheet always wins in Qt).
+_BROAD_RULE = re.compile(r"(?:^|[},])\s*(?:\*|QWidget|QFrame|QAbstractScrollArea)\s*(?:[,{]|:[a-z])")
+
+
+def _for_widget(widget, qss):
+    """The sheet Qt gets: themed, and on containers followed by the field styles, so a
+    container's "background: transparent; border: none" does not strip the fields inside."""
+    if qss and not isinstance(widget, _FIELDS) and RAW_MARKER not in qss:
+        if "{" not in qss:
+            qss = "* {" + qss + "}"
+        if _BROAD_RULE.search(qss):
+            qss = qss + "\n" + CONTROLS_QSS
+    return resolve(qss)
+
+
 def _set_style_sheet(widget, qss):
     _raw_sheets[widget] = qss
-    _original_set(widget, resolve(qss))
+    _original_set(widget, _for_widget(widget, qss))
 
 
 def _style_sheet(widget):
@@ -247,7 +346,7 @@ def _restyle_all():
         if isinstance(owner, QApplication):
             _original_app_set(owner, resolve(qss))
         else:
-            _original_set(owner, resolve(qss))
+            _original_set(owner, _for_widget(owner, qss))
             owner.update()
 
 
