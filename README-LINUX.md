@@ -44,8 +44,8 @@ This branch also adds features that are not Linux-specific:
 - Upstream fixes: the Appearance tab is translated at last, and RP editor cards no longer clip
   longer translations.
 
-None of that is Linux-specific, so it runs on Windows as well: **[v2.5.1-win.1](https://github.com/SnowwhiteOakheart/Soul-of-Waifu/releases/tag/v2.5.1-win.1)** ships those
-files as a small patch to unpack over an official v2.5.1 installation (untested on Windows, see the
+None of that is Linux-specific, so it runs on Windows as well: **[v2.5.1-win.2](https://github.com/SnowwhiteOakheart/Soul-of-Waifu/releases/tag/v2.5.1-win.2)** ships those
+files as a 52 MB patch to unpack over an official v2.5.1 installation (untested on Windows, see the
 release notes).
 
 ## Requirements

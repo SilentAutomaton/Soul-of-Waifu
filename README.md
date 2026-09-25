@@ -39,7 +39,7 @@
   <a href="README-LINUX.md">
     <img src="https://img.shields.io/badge/LINUX PORT-1793D1?style=for-the-badge&logo=linux&logoColor=white" alt="Linux port">
   </a>
-  <a href="https://github.com/SnowwhiteOakheart/Soul-of-Waifu/releases/tag/v2.5.1-win.1">
+  <a href="https://github.com/SnowwhiteOakheart/Soul-of-Waifu/releases/tag/v2.5.1-win.2">
     <img src="https://img.shields.io/badge/GERMAN PATCH-6e40c9?style=for-the-badge&logo=windows&logoColor=white" alt="German patch for Windows">
   </a>
 </p>
@@ -95,7 +95,7 @@ release; `./tools/fork_report.sh` verifies afterwards that none of them got lost
 - **Upstream bugs fixed:** the Appearance tab was never translated in any language; RP editor cards
   clipped longer translations; the start page greeting drew from 5 of the 7 variants each language file
   ships; `update_lip_sync` crashed on a configuration without `character_list`.
-- Windows users get all of it as a drop-in patch: **[v2.5.1-win.1](https://github.com/SnowwhiteOakheart/Soul-of-Waifu/releases/tag/v2.5.1-win.1)** (687 KB, unpack over an
+- Windows users get all of it as a drop-in patch: **[v2.5.1-win.2](https://github.com/SnowwhiteOakheart/Soul-of-Waifu/releases/tag/v2.5.1-win.2)** (52 MB, unpack over an
   official v2.5.1 installation).
 
 ### 🧰 Extras

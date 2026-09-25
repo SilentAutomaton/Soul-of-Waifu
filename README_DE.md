@@ -39,7 +39,7 @@
   <a href="README-LINUX.md">
     <img src="https://img.shields.io/badge/LINUX--VERSION-1793D1?style=for-the-badge&logo=linux&logoColor=white" alt="Linux-Portierung">
   </a>
-  <a href="https://github.com/SnowwhiteOakheart/Soul-of-Waifu/releases/tag/v2.5.1-win.1">
+  <a href="https://github.com/SnowwhiteOakheart/Soul-of-Waifu/releases/tag/v2.5.1-win.2">
     <img src="https://img.shields.io/badge/DEUTSCH--PATCH-6e40c9?style=for-the-badge&logo=windows&logoColor=white" alt="Deutsch-Patch für Windows">
   </a>
 </p>
@@ -100,7 +100,7 @@ keine verloren gegangen ist.
 - **Fehler des Originals behoben:** Der Reiter „Appearance“ wurde in keiner Sprache übersetzt; Karten im
   RP-Editor schnitten längere Übersetzungen ab; die Begrüßung auf der Startseite nutzte 5 der 7 Varianten,
   die jede Sprachdatei mitbringt; `update_lip_sync` stürzte ohne `character_list` ab.
-- Für Windows gibt es das alles als Patch zum Drüberkopieren: **[v2.5.1-win.1](https://github.com/SnowwhiteOakheart/Soul-of-Waifu/releases/tag/v2.5.1-win.1)** (687 KB, wird über
+- Für Windows gibt es das alles als Patch zum Drüberkopieren: **[v2.5.1-win.2](https://github.com/SnowwhiteOakheart/Soul-of-Waifu/releases/tag/v2.5.1-win.2)** (52 MB, wird über
   eine offizielle v2.5.1-Installation entpackt).
 
 ### 🧰 Extras

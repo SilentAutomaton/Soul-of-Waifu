@@ -39,7 +39,7 @@
   <a href="README-LINUX.md">
     <img src="https://img.shields.io/badge/ПОРТ ДЛЯ LINUX-1793D1?style=for-the-badge&logo=linux&logoColor=white" alt="Порт для Linux">
   </a>
-  <a href="https://github.com/SnowwhiteOakheart/Soul-of-Waifu/releases/tag/v2.5.1-win.1">
+  <a href="https://github.com/SnowwhiteOakheart/Soul-of-Waifu/releases/tag/v2.5.1-win.2">
     <img src="https://img.shields.io/badge/ПАТЧ ДЛЯ WINDOWS-6e40c9?style=for-the-badge&logo=windows&logoColor=white" alt="Патч для Windows">
   </a>
 </p>
@@ -98,7 +98,7 @@
 - **Исправлены ошибки оригинала:** вкладка «Appearance» не переводилась ни на один язык; карточки в
   RP-редакторе обрезали длинные переводы; приветствие на главной странице использовало 5 из 7 вариантов,
   которые есть в каждом языковом файле; `update_lip_sync` падал без `character_list`.
-- Для Windows всё это доступно отдельным патчем: **[v2.5.1-win.1](https://github.com/SnowwhiteOakheart/Soul-of-Waifu/releases/tag/v2.5.1-win.1)** (687 КБ, распаковывается поверх
+- Для Windows всё это доступно отдельным патчем: **[v2.5.1-win.2](https://github.com/SnowwhiteOakheart/Soul-of-Waifu/releases/tag/v2.5.1-win.2)** (52 МБ, распаковывается поверх
   официальной установки v2.5.1).
 
 ### 🧰 Дополнительно
