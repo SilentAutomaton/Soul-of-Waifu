@@ -59,14 +59,25 @@ The `master` branch sits on top of the Linux port below and reworks the interfac
 - **Native on Wayland:** the system window frame instead of the frameless window with its own
   _ □ × buttons, so tiling compositors (Hyprland, Sway, KDE, GNOME) handle the window like any other.
 - **File dialogs through the XDG desktop portal:** the system file picker instead of Qt's own dialog.
-- **Adaptive layout:** the window shrinks to 720×480 (was 1350×734); the sidebar hides below 1000 px
+- **Adaptive layout:** the window shrinks to about 710×440 (was 1350×734); the sidebar hides below 1000 px
   (the ☰ button brings it back); long labels wrap; top bars and button rows wrap; card grids drop columns.
 - **Themes:** Options -> Appearance -> Window Theme edits colors, spacing, corner radius, glass opacity,
   text size, interface scale and font. 16 built-in themes, your own as JSON files in
   `~/.config/soul-of-waifu/themes/` (import, export, live reload), the accent color can follow the system.
 - **Fonts as sharp as in other apps:** hinting follows fontconfig, Inter Tight everywhere instead of a
   mix with the system font.
-- The sidebar footer buttons are plain icons in the bottom-left corner.
+- **One accent:** blue, violet and gold buttons all take the theme's accent color; status colors
+  (errors, success, warnings) stay as they are.
+- **One compact look for every field:** combo boxes, text fields and spin boxes are 32 px high with an
+  8 px radius and a flat fill, the same in every window; settings cards and forms use tighter spacing.
+- **Plain buttons:** self-painted buttons and the frames around single buttons are gone, so every button
+  follows the theme. The sidebar footer buttons are plain icons in the bottom-left corner.
+- **PipeWire devices by name:** Options -> Audio Devices lists your headphones, speakers, microphones and
+  Easy Effects by name instead of "pipewire (ALSA)"; ⟳ re-reads the list after plugging something in.
+- **Hyprland:** the desktop companion reads the active window title, focuses windows (classic and Lua
+  configs) and takes screenshots through `grim`.
+- **Installed copy:** `./installer.sh --install` copies the prepared checkout to
+  `~/.local/share/soul-of-waifu`, adds the `soul-of-waifu` command and points the menu entry at it.
 
 Every change is listed in **[FORK-CHANGES.md](FORK-CHANGES.md)**.
 
@@ -379,6 +390,7 @@ copies the program files out of the official release archive:
 git clone https://github.com/SilentAutomaton/Soul-of-Waifu.git
 cd Soul-of-Waifu
 ./installer.sh     # then start with ./start.sh
+./installer.sh --install   # optional: install a copy and the soul-of-waifu command
 ```
 
 See **[README-LINUX.md](README-LINUX.md)** for system packages, GPU backends and feature status.

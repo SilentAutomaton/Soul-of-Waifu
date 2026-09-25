@@ -59,7 +59,7 @@ Der Branch `master` setzt auf der Linux-Portierung unten auf und überarbeitet d
 - **Nativ unter Wayland:** der Fensterrahmen des Systems statt des rahmenlosen Fensters mit eigenen
   _ □ ×-Knöpfen, so behandeln Tiling-Compositoren (Hyprland, Sway, KDE, GNOME) das Fenster wie jedes andere.
 - **Dateidialoge über das XDG-Desktop-Portal:** die Dateiauswahl des Systems statt des Qt-Dialogs.
-- **Anpassbares Layout:** das Fenster lässt sich auf 720×480 verkleinern (vorher 1350×734); die
+- **Anpassbares Layout:** das Fenster lässt sich auf etwa 710×440 verkleinern (vorher 1350×734); die
   Seitenleiste blendet sich unter 1000 px aus (☰ holt sie zurück); lange Beschriftungen, obere Leisten und
   Knopfreihen brechen um; Kartenraster verringern die Spaltenzahl.
 - **Designs:** Einstellungen -> Appearance -> Window Theme ändert Farben, Abstände, Eckenradius,
@@ -68,7 +68,19 @@ Der Branch `master` setzt auf der Linux-Portierung unten auf und überarbeitet d
   die Akzentfarbe kann dem System folgen.
 - **Schrift so scharf wie in anderen Programmen:** Hinting nach fontconfig, überall Inter Tight statt
   einer Mischung mit der Systemschrift.
-- Die Knöpfe unten in der Seitenleiste sind schlichte Symbole in der linken unteren Ecke.
+- **Eine Akzentfarbe:** blaue, violette und goldene Knöpfe übernehmen die Akzentfarbe des Designs;
+  Statusfarben (Fehler, Erfolg, Warnung) bleiben.
+- **Ein kompaktes Aussehen für alle Felder:** Auswahllisten, Textfelder und Zahlenfelder sind 32 px hoch,
+  mit 8 px Eckenradius und flacher Füllung, in jedem Fenster gleich; Einstellungskarten und Formulare
+  sind dichter.
+- **Schlichte Knöpfe:** selbst gezeichnete Knöpfe und Rahmen um einzelne Knöpfe sind entfernt, alle Knöpfe
+  folgen dem Design. Die Knöpfe unten in der Seitenleiste sind schlichte Symbole in der linken unteren Ecke.
+- **PipeWire-Geräte mit Namen:** Einstellungen -> Audio Devices zeigt Kopfhörer, Lautsprecher, Mikrofone
+  und Easy Effects mit Namen statt „pipewire (ALSA)"; ⟳ liest die Liste nach dem Anstecken neu ein.
+- **Hyprland:** der Desktop-Begleiter liest den Titel des aktiven Fensters, holt Fenster nach vorn
+  (klassische und Lua-Konfiguration) und macht Bildschirmfotos mit `grim`.
+- **Installierte Kopie:** `./installer.sh --install` kopiert den vorbereiteten Checkout nach
+  `~/.local/share/soul-of-waifu`, legt den Befehl `soul-of-waifu` an und richtet den Menüeintrag darauf.
 
 Jede Änderung steht in **[FORK-CHANGES.md](FORK-CHANGES.md)**.
 
@@ -385,6 +397,7 @@ und holt die Programmdateien aus dem offiziellen Release-Archiv:
 git clone https://github.com/SilentAutomaton/Soul-of-Waifu.git
 cd Soul-of-Waifu
 ./installer.sh     # danach starten mit ./start.sh
+./installer.sh --install   # optional: eine Kopie und den Befehl soul-of-waifu installieren
 ```
 
 Systempakete, GPU-Backends und den Stand der einzelnen Funktionen findest du in **[README-LINUX.md](README-LINUX.md)**.

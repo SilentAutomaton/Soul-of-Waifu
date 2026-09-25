@@ -302,12 +302,11 @@ class Ui_MainWindow(object):
         self.gridLayout_7.setObjectName("gridLayout_7")
         self.pushButton_create_character_2 = QtWidgets.QPushButton(parent=self.main_no_characters_page)
         self.pushButton_create_character_2.setStyleSheet(
-            "QPushButton { background-color: rgba(10, 10, 10, 200); color: rgb(148, 163, 184);"
-            " border: 1px solid rgba(255, 255, 255, 20); border-radius: 25px; padding: 0 20px; }"
-            "QPushButton:hover { background-color: rgba(75, 184, 255, 40); color: #FFFFFF;"
-            " border: 1px solid rgba(75, 184, 255, 220); }"
-            "QPushButton:pressed { background-color: rgba(0, 0, 0, 140); }"
-            "QPushButton:focus { border: 1px solid #4BB8FF; }"
+            "QPushButton { background-color: rgba(75, 184, 255, 0.16); color: #E3E3E3;"
+            " border: 1px solid rgba(75, 184, 255, 0.45); border-radius: 8px; padding: 0 18px; }"
+            "QPushButton:hover { background-color: rgba(75, 184, 255, 0.26); color: #FFFFFF; }"
+            "QPushButton:pressed { background-color: rgba(75, 184, 255, 0.12); }"
+            "QPushButton:focus { border: 1px solid rgba(75, 184, 255, 0.8); }"
         )
         self.pushButton_create_character_2.setEnabled(True)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Preferred)
@@ -315,8 +314,8 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.pushButton_create_character_2.sizePolicy().hasHeightForWidth())
         self.pushButton_create_character_2.setSizePolicy(sizePolicy)
-        self.pushButton_create_character_2.setMinimumSize(QtCore.QSize(200, 50))
-        self.pushButton_create_character_2.setMaximumSize(QtCore.QSize(200, 100))
+        self.pushButton_create_character_2.setMinimumWidth(180)
+        self.pushButton_create_character_2.setFixedHeight(36)
         
         font = QtGui.QFont()
         font.setFamily("Comfortaa")
