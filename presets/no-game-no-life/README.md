@@ -6,9 +6,11 @@ lorebooks covering Disboard's rules, races/locations and cast. The texts are **G
 fork's German UI, and were built from a detailed episode-by-episode research pass (Fandom wiki, MyAnimeList,
 the official Yen Press light novel text for the Ten Pledges) rather than from memory alone.
 
-**Local-only preset.** Unlike `presets/sakura-succubus-3/`, this set uses real, copyrighted anime characters
-(Sora, Shiro, Jibril, ...) rather than original characters, so it intentionally stays out of the public
-`sow-data` registry and lives only in this repository.
+**Also published to `sow-data`.** Unlike `presets/sakura-succubus-3/`, this set uses real, copyrighted anime
+characters (Sora, Shiro, Jibril, ...) rather than original characters. It started local-only for that reason;
+after an explicit go-ahead it was published to `SnowwhiteOakheart/sow-data` as well, so it's also reachable
+through the app's Soul/Lorebook/Stage Gateway tabs, not just via the manual import below. Scene backgrounds
+stay local-only either way - `sow-data` has no backgrounds registry.
 
 | File | Who |
 |---|---|
