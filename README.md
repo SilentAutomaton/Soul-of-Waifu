@@ -45,10 +45,30 @@
 </p>
 
 > [!NOTE]
-> This is a **fork**. On top of upstream it adds an unofficial **Linux port**, a complete **German
-> translation** and a handful of fixes - see **[what this fork adds](#-what-this-fork-adds)** below.
+> This is a **fork of a fork**. [SnowwhiteOakheart/Soul-of-Waifu](https://github.com/SnowwhiteOakheart/Soul-of-Waifu) adds an unofficial **Linux port**, a complete **German
+> translation** and a handful of fixes - see **[what this fork adds](#-what-this-fork-adds)**. This fork
+> builds on it with an interface made for **Linux and Wayland** - see
+> **[the Wayland interface](#-the-wayland-interface-this-fork)**.
 
 ---
+
+## 🪟 The Wayland interface (this fork)
+
+The `master` branch sits on top of the Linux port below and reworks the interface:
+
+- **Native on Wayland:** the system window frame instead of the frameless window with its own
+  _ □ × buttons, so tiling compositors (Hyprland, Sway, KDE, GNOME) handle the window like any other.
+- **File dialogs through the XDG desktop portal:** the system file picker instead of Qt's own dialog.
+- **Adaptive layout:** the window shrinks to 720×480 (was 1350×734); the sidebar hides below 1000 px
+  (the ☰ button brings it back); long labels wrap; top bars and button rows wrap; card grids drop columns.
+- **Themes:** Options -> Appearance -> Window Theme edits colors, spacing, corner radius, glass opacity,
+  text size, interface scale and font. 16 built-in themes, your own as JSON files in
+  `~/.config/soul-of-waifu/themes/` (import, export, live reload), the accent color can follow the system.
+- **Fonts as sharp as in other apps:** hinting follows fontconfig, Inter Tight everywhere instead of a
+  mix with the system font.
+- The sidebar footer buttons are plain icons in the bottom-left corner.
+
+Every change is listed in **[FORK-CHANGES.md](FORK-CHANGES.md)**.
 
 ## 🍴 What this fork adds
 
@@ -56,7 +76,7 @@ Everything here sits on top of the unmodified source of the official **v2.5.1** 
 **[FORK-CHANGES.md](FORK-CHANGES.md)** documents every single change and how to merge a new upstream
 release; `./tools/fork_report.sh` verifies afterwards that none of them got lost.
 
-### 🐧 The Linux port (`linux` branch, the default branch here)
+### 🐧 The Linux port (base fork, `linux` branch)
 
 - `installer.sh` and `start.sh` replace the `.bat` scripts: Python 3.11 through [`uv`](https://docs.astral.sh/uv/),
   PyTorch (CUDA/ROCm/CPU), every dependency, the llama.cpp Linux build, and the icons, backgrounds and
@@ -352,12 +372,11 @@ No Python knowledge, Node.js, or command-line experience required.
 
 ### 🐧 Linux
 
-This fork ships a Linux port on the `linux` branch. The installer sets up Python 3.11, PyTorch
-(CUDA/ROCm/CPU), llama.cpp and every dependency, and copies the program files out of the official
-release archive:
+The installer sets up Python 3.11, PyTorch (CUDA/ROCm/CPU), llama.cpp and every dependency, and
+copies the program files out of the official release archive:
 
 ```bash
-git clone -b linux https://github.com/SnowwhiteOakheart/Soul-of-Waifu.git
+git clone https://github.com/SilentAutomaton/Soul-of-Waifu.git
 cd Soul-of-Waifu
 ./installer.sh     # then start with ./start.sh
 ```

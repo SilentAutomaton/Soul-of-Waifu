@@ -102,6 +102,7 @@ Conflicts can only appear in the files under "Changed upstream files" below. Rul
 | `.gitignore` | runtime data and files copied from the release archive | `# --- Linux port` |
 | `start.sh`, `main.py`, `app/gui/sowInterface.py` | native Wayland: system window frame on Linux (no frameless window, no own _ □ × buttons or resize grips), file dialogs through the XDG portal (`QT_QPA_PLATFORMTHEME=xdgdesktopportal`) | `if not IS_LINUX:` |
 | `app/gui/interface_signals.py` | file dialogs that had no parent get the main window, so the portal keeps them on top of it | `QFileDialog.getOpenFileName(self.main_window,` |
+| `installer.sh` | the menu entry's `StartupWMClass` is the Wayland app id `soul-of-waifu` (was `main.py`), so docks group the window under the entry | `StartupWMClass=soul-of-waifu` |
 
 ### Features on top of upstream
 

@@ -102,7 +102,7 @@ Path=$PWD
 Icon=$icon_ref
 Terminal=false
 Categories=Game;RolePlaying;
-StartupWMClass=main.py
+StartupWMClass=soul-of-waifu
 EOF
 
     install -m 644 "$entry" "$apps_dir/soul-of-waifu.desktop"

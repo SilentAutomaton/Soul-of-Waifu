@@ -1,7 +1,9 @@
 # Soul of Waifu on Linux
 
 This is an **unofficial Linux port** of [jofizcd/Soul-of-Waifu](https://github.com/jofizcd/Soul-of-Waifu).
-The port lives on the `linux` branch (the default branch of this fork). `main` tracks upstream unchanged.
+The port comes from [SnowwhiteOakheart/Soul-of-Waifu](https://github.com/SnowwhiteOakheart/Soul-of-Waifu)
+(`linux` branch). This fork's `master` branch adds a Wayland-native, adaptive and themeable interface on top.
+`main` tracks upstream unchanged.
 
 **Based on the official v2.5.1 release.** Upstream's GitHub repository lags behind its releases: the code in
 `Soul-of-Waifu-v2.5.1.rar` differs from GitHub `main` in about 60 files and adds new modules
@@ -50,7 +52,7 @@ release notes).
 
 ## Requirements
 
-- An x86_64 Linux desktop (tested on CachyOS/KDE Plasma, Wayland session)
+- An x86_64 Linux desktop (tested on CachyOS/KDE Plasma and Arch/Hyprland, Wayland sessions)
 - Python is handled by the installer. It uses [`uv`](https://docs.astral.sh/uv/) to set up **Python 3.11**, the version the upstream dependency pins need.
 - System packages:
 
@@ -78,7 +80,7 @@ Optional tools for the Soul Companion desktop features:
 ## Installation
 
 ```bash
-git clone -b linux https://github.com/SnowwhiteOakheart/Soul-of-Waifu.git
+git clone https://github.com/SilentAutomaton/Soul-of-Waifu.git
 cd Soul-of-Waifu
 ./installer.sh
 ```
