@@ -96,7 +96,7 @@ keine verloren gegangen ist.
   - **Gekennzeichnete Antwortoptionen:** Auswahlkarten mit farbigen Badges für erforderliche Fertigkeiten, Proben oder Ressourcenkosten (im Stil von *Baldur's Gate 3* / *Disco Elysium*).
   - **Interaktives Inventar für Verbrauchsgegenstände:** Direkter 1-Klick-Verzehr von Heiltränken, Rationen, Wasser und Bandagen mit sofortiger Heilung und Auskurierung von Zuständen.
   - **Lagerfeuer-Rast & Beziehungs-Meilensteine:** Kurze und Lange Rast (`🏕️`), intime Lagerfeuer-Gespräche (*Campfire Banter*) und steigende Gefährten-Affinität mit Meilenstein-Freischaltungen (+25, +50, +75).
-  - **Taktischer Begegnungs-Modus:** Sobald der Spielleiter einen echten Kampf startet, erscheinen eine Initiative-Leiste und Gegner-HP-Leisten mit Ein-Klick-Aktionen (Angriff/Ausweichen/Item/Flucht).
+  - **Taktischer Begegnungs-Modus:** Sobald der Spielleiter einen echten Kampf startet, erscheinen eine Initiative-Leiste und Gegner-HP-Leisten mit Ein-Klick-Aktionen (Angriff/Ausweichen/Item/Flucht/Verschieben) und ein Live-Indikator, wer gerade tatsächlich am Zug ist.
 - **Fehler des Originals behoben:** Der Reiter „Appearance“ wurde in keiner Sprache übersetzt; Karten im
   RP-Editor schnitten längere Übersetzungen ab; die Begrüßung auf der Startseite nutzte 5 der 7 Varianten,
   die jede Sprachdatei mitbringt; `update_lip_sync` stürzte ohne `character_list` ab.
@@ -199,7 +199,7 @@ Soul Stage verwandelt deinen Chat in eine strukturierte Tabletop-Rollenspielkamp
 - **Gekennzeichnete Antwortoptionen:** Entscheidungskarten mit farbigen Badges für Fertigkeiten, Schwierigkeitsgrade oder Ressourcenkosten (im Stil von *Baldur's Gate 3* / *Disco Elysium*).
 - **Interaktive Verbrauchsgegenstände:** 1-Klick-Nutzung von Tränken, Nahrung und Bandagen mit Soforteffekt auf HP/Energie/Stress und Kuration von Statuseffekten.
 - **Lagerfeuer-Rast & Beziehungs-Meilensteine:** Kurze oder lange Rast am Feuer (`🏕️`), intime Gefährten-Zwischenszenen (*Campfire Banter*) und Auszeichnung von Vertrauens-Meilensteinen (+25, +50, +75).
-- **Taktischer Begegnungs-Modus:** Startet der Spielleiter einen echten Kampf, erscheinen eine Initiative-Leiste (Gruppe + Gegner) und Gegner-HP-Leisten über der Eingabe, mit Ein-Klick-Aktionen ⚔️ Angriff / 🛡️ Ausweichen / 🎒 Item / 🏃 Flucht, die der Spielleiter narrativ auflöst.
+- **Taktischer Begegnungs-Modus:** Startet der Spielleiter einen echten Kampf, erscheinen eine Initiative-Leiste (Gruppe + Gegner) und Gegner-HP-Leisten über der Eingabe, mit Ein-Klick-Aktionen ⚔️ Angriff / 🛡️ Ausweichen / 🎒 Item / 🏃 Flucht / ⏳ Verschieben, die der Spielleiter narrativ auflöst - Verschieben erscheint nur am eigenen Zug und gibt die Priorität an die nächste Person in der Reihenfolge weiter, höchstens bis zum Ende der aktuellen Runde.
 - **Story-Arcs:** Verborgene Wendungen und Ermittlungen bleiben vor NPCs und der Gruppe geheim, bis im Spiel konkrete Hinweise gefunden werden.
 - **Zugsteuerung:** Wechsle zwischen den Eingabemodi Sagen, Tun, Denken und Regie, wähle den nächsten Sprecher manuell oder sende private Flüsternachrichten, die nur ein Gruppenmitglied sieht. Ein Live-Indikator zeigt, wer gerade tatsächlich am Zug ist - auch bei jedem Sprecherwechsel, den der Spielleiter innerhalb einer Runde eigenständig vornimmt.
 - **Strukturierte Beziehungsverfolgung:** Vertrauensstufen und soziale Rollen werden serialisiert und in jeden Zug eingespeist, sodass Gefährten und NPCs ihre Beziehung zu dir nie „vergessen“.

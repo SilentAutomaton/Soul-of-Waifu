@@ -88,9 +88,10 @@ Diese Roadmap bündelt die Weiterentwicklung der **Soul Stage Tabletop-RPG-Engin
   - Sobald der GM ein `encounter` mit benannten, kampffähigen Gegnern auslöst, würfelt die Engine automatisch eine Initiative-Reihenfolge (Spieler, Begleiter, Gegner) und zeigt sie live über der Eingabeleiste an.
   - Jeder Gegner erhält eine eigene HP-Leiste (`4/10`), die bei Treffern durch den GM in Echtzeit sinkt; besiegte Gegner werden durchgestrichen markiert.
   - Nachrückende Verstärkung wird nahtlos in die laufende Initiative-Reihenfolge eingereiht.
-- [x] **5.2 Schnellaktions-Buttons (Angriff, Ausweichen, Item, Flucht):**
-  - Vier kontextsensitive Buttons erscheinen nur während eines aktiven Kampfes: 🗡️ *Angriff*, 🛡️ *Ausweichen*, 🎒 *Item* (öffnet das interaktive Inventar) und 🏃 *Flucht*.
-  - Jede Aktion sendet einen getaggten Vorschlag (`[Attack] *I attack!*`), den der GM narrativ auflöst — inklusive Würfelprobe, Schaden und ggf. Kampfende.
+- [x] **5.2 Schnellaktions-Buttons (Angriff, Ausweichen, Item, Flucht, Verschieben):**
+  - Fünf kontextsensitive Buttons erscheinen nur während eines aktiven Kampfes: 🗡️ *Angriff*, 🛡️ *Ausweichen*, 🎒 *Item* (öffnet das interaktive Inventar), 🏃 *Flucht* und ⏳ *Verschieben*.
+  - Jede der ersten vier Aktionen sendet einen getaggten Vorschlag (`[Attack] *I attack!*`), den der GM narrativ auflöst — inklusive Würfelprobe, Schaden und ggf. Kampfende.
+  - *Verschieben* erscheint nur, wenn wirklich der Spieler am Zug ist: Es tauscht die eigene Initiative-Position mit der nächsten Person in der Reihenfolge, beliebig oft wiederholbar bis zum letzten Platz der aktuellen Runde (nicht darüber hinaus), und lässt den bevorzugten Charakter sofort handeln.
 - [x] **5.3 Kampfende & Auflösung:**
   - Der GM markiert das Ende eines Kampfes explizit (Sieg, Flucht geglückt, Waffenstillstand) oder die Engine erkennt automatisch, wenn alle Gegner besiegt sind.
   - Ein Ereignis-Kärtchen im Chat fasst Kampfbeginn, Verstärkung und Kampfende sichtbar zusammen, inklusive Sound-Stinger.

@@ -40,7 +40,7 @@ This branch also adds features that are not Linux-specific:
   - Visual decision badges (Baldur's Gate 3 / Disco Elysium style) in the choices bar.
   - Interactive consumable inventory with instant 1-click recovery.
   - Campfire rest system (`🏕️`) with short/long rest, companion banter interludes, and bond milestones (+25, +50, +75).
-  - Tactical Encounter Mode: a live initiative bar and enemy HP pools for real fights, with one-click Attack/Dodge/Item/Flee quick actions.
+  - Tactical Encounter Mode: a live initiative bar and enemy HP pools for real fights, with one-click Attack/Dodge/Item/Flee/Delay quick actions and a live turn indicator showing who has the floor right now.
 - Upstream fixes: the Appearance tab is translated at last, and RP editor cards no longer clip
   longer translations.
 

@@ -2992,6 +2992,7 @@ class CombatBar(QFrame):
     """
     quick_action = pyqtSignal(str)
     open_inventory = pyqtSignal()
+    delay_requested = pyqtSignal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -3044,7 +3045,12 @@ class CombatBar(QFrame):
             "🎒", self.translations.get("ss_combat_item", "Item"), "90, 220, 140")
         self._btn_flee = self._make_action_btn(
             "🏃", self.translations.get("ss_combat_flee", "Flee"), "255, 200, 90")
-        for b in (self._btn_attack, self._btn_dodge, self._btn_item, self._btn_flee):
+        self._btn_delay = self._make_action_btn(
+            "⏳", self.translations.get("ss_combat_delay", "Delay"), "200, 170, 255")
+        self._btn_delay.setToolTip(self.translations.get(
+            "ss_combat_delay_tooltip", "Let the next person in the initiative order act before you - up to the end of this round."
+        ))
+        for b in (self._btn_attack, self._btn_dodge, self._btn_item, self._btn_flee, self._btn_delay):
             actions_row.addWidget(b)
         root.addLayout(actions_row)
 
@@ -3055,6 +3061,7 @@ class CombatBar(QFrame):
         self._btn_item.clicked.connect(self.open_inventory.emit)
         self._btn_flee.clicked.connect(lambda: self.quick_action.emit(
             f"[{self.translations.get('ss_combat_flee_tag', 'Flee')}] *I break away and try to retreat from the fight!*"))
+        self._btn_delay.clicked.connect(self.delay_requested.emit)
 
         self.hide()
 
@@ -3074,10 +3081,15 @@ class CombatBar(QFrame):
                 padding: 4px 12px;
             }}
             QPushButton:hover {{ background: rgba({rgb}, 0.24); }}
+            QPushButton:disabled {{
+                background: rgba(255, 255, 255, 0.03);
+                border-color: rgba(255, 255, 255, 0.08);
+                color: rgba(255, 255, 255, 0.30);
+            }}
         """)
         return btn
 
-    def update_combat(self, combat_data: dict):
+    def update_combat(self, combat_data: dict, player_name: Optional[str] = None):
         combat_data = combat_data or {}
         if not combat_data.get("active"):
             self.hide()
@@ -3093,6 +3105,12 @@ class CombatBar(QFrame):
         enemy_names = {e.get("name") for e in combat_data.get("enemies", [])}
         current_idx = combat_data.get("turn_index", 0)
         current = order[current_idx % len(order)] if order else None
+
+        is_players_turn = bool(player_name) and current == player_name
+        can_delay = is_players_turn and order and (current_idx % len(order)) < len(order) - 1
+        self._btn_delay.setVisible(is_players_turn)
+        self._btn_delay.setEnabled(can_delay)
+
         for name in order:
             is_current = name == current
             is_enemy = name in enemy_names
@@ -5589,6 +5607,7 @@ class SoulStageChatView(QFrame):
     manual_dice_submitted = pyqtSignal(dict)
     camp_action_requested = pyqtSignal(str, bool)
     item_consumed_signal  = pyqtSignal(str, dict)
+    delay_turn_requested  = pyqtSignal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -6049,6 +6068,7 @@ class SoulStageChatView(QFrame):
         self.combat_bar = CombatBar()
         self.combat_bar.setMaximumWidth(681)
         self.combat_bar.quick_action.connect(self._on_choice_selected)
+        self.combat_bar.delay_requested.connect(self.delay_turn_requested.emit)
         combat_l.addWidget(self.combat_bar)
         combat_l.addStretch()
         root.addWidget(self.combat_bar_container)
@@ -6287,9 +6307,9 @@ class SoulStageChatView(QFrame):
         if hasattr(self, "player_status_hud"):
             self.player_status_hud.update_status(resources, player_status, status_durations)
 
-    def update_combat_bar(self, combat_data: dict):
+    def update_combat_bar(self, combat_data: dict, player_name: Optional[str] = None):
         if hasattr(self, "combat_bar"):
-            self.combat_bar.update_combat(combat_data)
+            self.combat_bar.update_combat(combat_data, player_name)
 
     def set_turn_party(self, name: str):
         if hasattr(self, "turn_indicator"):

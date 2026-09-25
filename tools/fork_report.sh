@@ -67,6 +67,7 @@ CHECKS=(
     "Curated models list points at this fork's sow-data|app/utils/models_hub.py|SnowwhiteOakheart/sow-data"
     "Character cards support portrait avatars|app/gui/interface_signals.py|character_card_height = 300"
     "Live turn indicator (who has the floor right now)|app/gui/soul_stage_page.py|class TurnIndicator"
+    "Delay-turn combat action|app/utils/ai_clients/soul_stage_engine.py|def delay_turn"
 )
 
 echo "${BOLD}Soul of Waifu - fork report${RESET}"

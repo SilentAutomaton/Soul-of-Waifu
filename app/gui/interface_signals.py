@@ -3910,6 +3910,12 @@ class InterfaceSignals():
         chat_view.camp_action_requested.connect(self._ss_handle_camp_action)
 
         try:
+            chat_view.delay_turn_requested.disconnect()
+        except Exception:
+            pass
+        chat_view.delay_turn_requested.connect(self._ss_handle_delay_turn)
+
+        try:
             self.ui.soul_stage_page.chat_view.exit_clicked.disconnect(self._ss_stop_ambient)
         except Exception:
             pass
@@ -4511,6 +4517,43 @@ class InterfaceSignals():
             )
             asyncio.create_task(self._ss_run_plot_advance(prompt))
 
+    def _ss_handle_delay_turn(self):
+        if not self.soul_stage_session:
+            return
+        session = self.soul_stage_session
+        ws = session.orchestrator.world_state
+        chat_view = self.ui.soul_stage_page.chat_view
+        from app.gui.soul_stage_page import _load_scenes
+
+        scene_data = _load_scenes().get("scenes", {}).get(self._soul_stage_scene_id, {})
+        persona_key = scene_data.get("persona", "None")
+        personas = self.configuration_settings.get_user_data("personas") or {}
+        user_name = self.translations.get("ss_default_player_name", "Player")
+        if persona_key and persona_key in personas:
+            user_name = personas[persona_key].get("user_name", user_name)
+
+        deferred_to = ws.combat.delay_turn(user_name)
+        if not deferred_to:
+            sow_toast(
+                parent=self.main_window,
+                title=self.translations.get("ss_combat_delay", "Delay"),
+                text=self.translations.get(
+                    "ss_combat_delay_denied",
+                    "You can't delay any further this round - everyone else has already acted.",
+                ),
+                msg_type="warning",
+            )
+            return
+
+        chat_view.update_combat_bar(ws.combat.to_dict(), user_name)
+
+        prompt = (
+            f"[SYSTEM DIRECTIVE — DELAYED TURN]:\n"
+            f"{user_name} deliberately holds back this round and lets {deferred_to} act first. "
+            f"Narrate {deferred_to} stepping up and taking their turn now."
+        )
+        asyncio.create_task(self._ss_run_plot_advance(prompt, manual_next_actor=deferred_to))
+
     def _ss_promote_npc_to_companion(self, npc_name: str):
         if not self.soul_stage_session or not npc_name:
             return
@@ -4803,7 +4846,7 @@ class InterfaceSignals():
 
         await self._ss_run_plot_advance(trigger_message)
 
-    async def _ss_run_plot_advance(self, trigger_message: str):
+    async def _ss_run_plot_advance(self, trigger_message: str, manual_next_actor=None):
         if not self.soul_stage_session:
             return
 
@@ -4998,7 +5041,7 @@ class InterfaceSignals():
             chat_view.update_campaign_tracker(
                 ws.campaign_board.to_dict()
             )
-            chat_view.update_combat_bar(ws.combat.to_dict())
+            chat_view.update_combat_bar(ws.combat.to_dict(), user_name)
             chat_view.set_turn_idle()
 
         async def on_choices(choices: list, event_type: str):
@@ -5089,7 +5132,8 @@ class InterfaceSignals():
             on_npc_start=on_npc_start, on_npc_chunk=on_npc_chunk, on_npc_done=on_npc_done,
             on_turn_complete=on_turn_complete, on_error=on_error, on_choices=on_choices,
             on_dice_roll=on_dice_roll,
-            on_narrative_event=on_narrative_event
+            on_narrative_event=on_narrative_event,
+            manual_next_actor=manual_next_actor,
         )
 
         full_chat_log = []
@@ -5817,7 +5861,7 @@ class InterfaceSignals():
             chat_view.update_campaign_tracker(
                 ws.campaign_board.to_dict()
             )
-            chat_view.update_combat_bar(ws.combat.to_dict())
+            chat_view.update_combat_bar(ws.combat.to_dict(), user_name)
             chat_view.set_turn_idle()
 
         async def on_error(msg: str):

@@ -91,7 +91,7 @@ release; `./tools/fork_report.sh` verifies afterwards that none of them got lost
   - **Tagged Decision Options:** Decision cards with colored skill check and resource cost pills (Baldur's Gate 3 / Disco Elysium style).
   - **Interactive Consumable Inventory:** Clicking potions, bread, water, or bandages instantly restores HP/Energy, lowers stress, and cures ailments.
   - **Campfire Rest & Bond Milestones:** Short & Long Rests (`🏕️`), intimate campfire banter interludes, and companion affinity progression with bond milestone announcements (+25, +50, +75).
-  - **Tactical Encounter Mode:** A live initiative bar and enemy HP pools appear the moment the GM starts a real fight, with one-click Attack/Dodge/Item/Flee quick actions.
+  - **Tactical Encounter Mode:** A live initiative bar and enemy HP pools appear the moment the GM starts a real fight, with one-click Attack/Dodge/Item/Flee quick actions, plus a Delay action to let someone else go first (up to the end of the round) and a live turn indicator showing who actually has the floor right now.
 - **Upstream bugs fixed:** the Appearance tab was never translated in any language; RP editor cards
   clipped longer translations; the start page greeting drew from 5 of the 7 variants each language file
   ships; `update_lip_sync` crashed on a configuration without `character_list`.
@@ -194,7 +194,7 @@ Soul Stage transitions your chat into a structured tabletop roleplaying campaign
 - **Tagged Choices:** Player decision options with colored skill check and resource cost badges (Baldur's Gate 3 / Disco Elysium style).
 - **Interactive Consumable Inventory:** Direct one-click consumption of potions, food, water, and bandages with instant recovery and condition cures.
 - **Campfire Rest & Bond Milestones:** Take short or long rests at the campfire (`🏕️`), trigger intimate companion conversations, and advance companion bond levels (+25, +50, +75).
-- **Tactical Encounter Mode:** When the GM starts a genuine fight, a live initiative bar (party + enemies) and per-enemy HP bars appear above the input, with one-click ⚔️ Attack / 🛡️ Dodge / 🎒 Item / 🏃 Flee quick actions the GM resolves narratively.
+- **Tactical Encounter Mode:** When the GM starts a genuine fight, a live initiative bar (party + enemies) and per-enemy HP bars appear above the input, with one-click ⚔️ Attack / 🛡️ Dodge / 🎒 Item / 🏃 Flee / ⏳ Delay quick actions the GM resolves narratively - Delay only appears on your own turn and lets you pass priority to the next person in line, up to the end of the current round.
 - **Story Arcs:** Hidden plot twists and investigations stay concealed from NPCs and the party until concrete clues are uncovered during play.
 - **Turn Control Bar:** Switch between Say, Do, Think, and Director input modes, pick the next speaker manually, or send Private Whispers only one party member can see. A live turn indicator shows who actually has the floor right now - including every speaker the GM chains through on its own within a single turn, not just the one you picked.
 - **Structural Relationship Tracker:** Trust levels and social roles are serialized and fed into every turn, so companions and NPCs never "forget" their dynamic with you, even dozens of turns later.

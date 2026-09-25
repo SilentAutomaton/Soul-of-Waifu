@@ -413,6 +413,33 @@ class CombatEncounter:
             return None
         return self.initiative_order[self.turn_index % len(self.initiative_order)]
 
+    def sync_turn(self, name: str) -> None:
+        """Keeps turn_index/round aligned with whoever the GM is actually calling on -
+        narrative routing isn't a strict mechanical rotation, so this reflects reality
+        instead of enforcing one. A new lap through the order (index moves backwards)
+        counts as the next round."""
+        if not self.active or not self.initiative_order or name not in self.initiative_order:
+            return
+        new_idx = self.initiative_order.index(name)
+        if new_idx < self.turn_index:
+            self.round += 1
+        self.turn_index = new_idx
+
+    def delay_turn(self, name: str) -> Optional[str]:
+        """Player-initiated: pushes `name`'s turn back by one slot, swapping them with
+        whoever is immediately next in the CURRENT round. Returns the name who now goes
+        instead, or None if it isn't `name`'s turn or they're already last this round."""
+        if not self.active or not self.initiative_order:
+            return None
+        idx = self.turn_index % len(self.initiative_order)
+        if self.initiative_order[idx] != name:
+            return None
+        if idx >= len(self.initiative_order) - 1:
+            return None
+        order = self.initiative_order
+        order[idx], order[idx + 1] = order[idx + 1], order[idx]
+        return order[idx]
+
     def prompt_block(self) -> str:
         if not self.active:
             return ""
@@ -3858,6 +3885,8 @@ class SoulStageOrchestrator:
                 actor_depth  += 1
                 actor_full_text = ""
                 _actor = next_actor
+                if self.world_state.combat.active:
+                    self.world_state.combat.sync_turn(_actor)
 
                 if _actor in party_names:
                     avatar_path = self._get_character_avatar(_actor)
@@ -3983,6 +4012,9 @@ class SoulStageOrchestrator:
                     next_actor = candidate_next
                 else:
                     next_actor = "PLAYER"
+
+            if self.world_state.combat.active:
+                self.world_state.combat.sync_turn(user_name)
 
             if on_choices is not None:
                 choices    = plan.get("player_choices",[])

@@ -2019,6 +2019,9 @@ ss_turn_party: 🎙 {name} is speaking
 ss_turn_npc: 🎭 {name} chimes in
 ss_turn_narrator: 📖 The narrator is describing the scene
 ss_turn_idle: ⏸ Waiting for your input
+ss_combat_delay: Delay
+ss_combat_delay_tooltip: Let the next person in the initiative order act before you - up to the end of this round.
+ss_combat_delay_denied: You can't delay any further this round - everyone else has already acted.
 starting_ambient: Starting Ambient
 starting_ambient_hint: Background audio for this scene. The Planner can switch it dynamically.
 starting_background: Starting Background

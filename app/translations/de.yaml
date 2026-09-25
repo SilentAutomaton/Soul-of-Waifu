@@ -2027,6 +2027,9 @@ ss_turn_party: 🎙 {name} spricht gerade
 ss_turn_npc: 🎭 {name} mischt sich ein
 ss_turn_narrator: 📖 Der Erzähler beschreibt die Szene
 ss_turn_idle: ⏸ Wartet auf deine Eingabe
+ss_combat_delay: Verschieben
+ss_combat_delay_tooltip: Lässt die nächste Person in der Initiative-Reihenfolge vor dir handeln - höchstens bis zum Ende dieser Runde.
+ss_combat_delay_denied: Du kannst diese Runde nicht weiter verschieben - alle anderen haben bereits gehandelt.
 starting_ambient: Start-Ambiente
 starting_ambient_hint: Hintergrundaudio für diese Szene. Der Planer kann es dynamisch wechseln.
 starting_background: Starthintergrund
